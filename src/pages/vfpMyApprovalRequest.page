@@ -1,0 +1,22 @@
+<apex:page standardController="Approval" extensions="ctrlMyApprovalRequest" showQuickActionVfHeader="true"  showHeader="true" sidebar="true" tabStyle="Approval">
+	<apex:pageBlock rendered="{! requests != null }">
+    	<apex:dataTable value="{!approvers}" var="pr" columns="4" width="30, 30, 20, 20"  border="0" cellpadding="5" cellspacing="0">
+            <apex:column width="25px">
+                <apex:facet name="header">Acción</apex:facet>
+                <apex:outputLink target="_blank" value="/{!pr.regId}"><apex:outputText value="Aprobar/Rechazar"/></apex:outputLink>
+            </apex:column>
+            <apex:column width="25px">
+                <apex:facet name="header">Nombre del Registro</apex:facet>
+                <apex:outputText value="{!pr.regName}"/>
+            </apex:column>
+            <apex:column width="25px">
+                <apex:facet name="header">Tipo</apex:facet>
+                <apex:outputText value="Oportunidad"/>
+            </apex:column>
+			<apex:column width="25px">
+                <apex:facet name="header">Aprobador</apex:facet>
+                <apex:outputText value="{!pr.appName}"/>
+            </apex:column>
+        </apex:dataTable>
+    </apex:pageBlock>
+</apex:page>

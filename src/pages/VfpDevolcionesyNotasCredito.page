@@ -1,0 +1,74 @@
+<!--
+ - Description: Web page for Cases.
+ - Author: Jose Barraza
+ - Company: SK
+ - Email: jose.barraza@sukarne.com
+ - Created date: 29/01/2018
+ -->
+<apex:page standardController="Case" extensions="ExtCaseDEvNote" title="Formulario de Contacto" docType="html-5.0" standardStylesheets="false">
+<apex:sectionHeader title="Formulario de Contacto"/>
+<apex:form id="form">
+    <apex:pageBlock title="" mode="edit"> 
+    <apex:pagemessages />
+        <apex:pageBlockButtons >
+            <apex:commandButton action="{!GuardarCasoDevolucion}" value="Guardar"/>
+            <apex:commandButton action="{!cancel}" value="Cancelar"/>
+        </apex:pageBlockButtons>
+         <apex:pageBlockSection title="Filtros" columns="1">
+         <apex:pageBlockSectionItem >
+         <apex:outputLabel value="Número Factura"/>
+         <apex:inputField label="Número Factura" value="{!case.No_Factura__c}" required="true" />
+          </apex:pageBlockSectionItem>
+          <apex:pageBlockSectionItem >
+          <apex:outputLabel value=""/>
+             <apex:commandButton action="{!ConsultarFactura}" value="Consultar Factura"/>
+          </apex:pageBlockSectionItem>
+            <apex:inputtext label="Número de caso" value="{!NumCaso}" disabled="true"/>
+            
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Datos Generales" columns="2" rendered="{!factura.ListaProductos != null}">
+            <apex:inputField label="Cliente" value="{!case.ContactId}"  required="true" html-disabled="true"/>
+            <apex:outputText label="Tipo Registro" value="{!case.RecordType.Name}"/> 
+            <apex:inputText label="Fecha Factura" value="{!factura.FechaFactura}" required="true" disabled="true"/>
+            <apex:pageBlockSectionItem />
+            <apex:inputField label="Nombre del cliente / sucursal" value="{!case.AccountId}" required="true" html-disabled="true"/>
+            <apex:inputField id="Categoria" value="{!case.SK_Categoria__c}"  rendered="{!Show}" required="true"/>
+            <apex:inputField value="{!case.Oficina_de_Ventas__c}" rendered="{!Show}" required="true" html-disabled="true"/>
+            <apex:inputField value="{!case.SK_SubCategoria_Tipo__c}"  rendered="{!Show}" required="true"/>
+            <apex:inputField value="{!case.Nivel_Centro__c}" rendered="{!Show}" required="true"/>
+            <apex:inputField value="{!case.SK_Escenario__c}" rendered="{!Show}" required="true"/>
+            <apex:inputField value="{!case.Origen__c}" rendered="{!Show}" required="true"/>
+            <apex:inputField value="{!case.SK_Descripcion_de_Caso_Causa__c}" rendered="{!Show}" required="true"/>
+            <apex:inputField value="{!case.Repartidor__c}" rendered="{!Show}" required="true"/>
+            <apex:inputField value="{!case.TIF__c}" rendered="{!Show}" required="true"/>
+            <apex:inputField value="{!case.Description}"  style="width:300px; height:80px;"/>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection id="factura" title="Detalle Factura" columns="1" >
+        <apex:pageBlockTable value="{!factura.ListaProductos}" var="opp">
+				<apex:column headerValue="Codigo"> 
+                     <apex:outputText value="{!opp.CodigoProducto}"/>
+                </apex:column>
+               <apex:column headerValue="Descripcion">
+                  <apex:outputText value="{!opp.Descripcion}"/>
+               </apex:column>
+              
+               <apex:column headerValue="UM">
+              		<apex:outputText value="{!opp.MedidaUnidad}"/>
+               </apex:column>
+               <apex:column headerValue="Cantidad">
+               		<apex:outputText value="{!opp.Cantidad}"/>
+               </apex:column>
+               <apex:column headerValue="Importe">
+               	<apex:outputText value="{!opp.Importe}"/>
+               </apex:column>
+               <apex:column headerValue="Cantidad de cajas a devolver">
+               		<apex:input type="number" value="{!opp.Cantidad_Dev}" style="width:80px;"/>		
+               </apex:column>
+
+            </apex:pageBlockTable> 
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:form>
+</apex:page>
+<!-- SK_Descripcion_de_Caso_Causa__c -->
+<!--  -->

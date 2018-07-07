@@ -1,0 +1,133 @@
+<apex:page sidebar="false" controller="CtrlPedidosRetenidosCartera" docType="html-5.0" standardStylesheets="true">
+ <style>
+ #showStatusDiv { position: fixed; background: rgba(0, 0, 0, 0.43); width: 100%; height: 100%; top: 0; left: 0; z-index: 999999; }
+
+#showStatusDiv img { position: absolute; top: 50%; left: 50%; margin-right: 25px; }
+
+  </style>
+<apex:stylesheet value="{!URLFOR($Resource.popup, 'Css/EstilosPopUp.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.PedidoWizard, 'js/jquery-1.11.1.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.popup, 'js/popUp.js')}"/>
+<script type="text/javascript">ieStylesheetUrl = "{!URLFOR($Resource.PedidoWizard, 'css/PedidoWizardIE.css')}"</script>
+  <apex:form id="form" >
+  <apex:pageMessages />
+   <apex:pageBlock id="generales" title="Pedidos retenidos por cartera" >
+	  <apex:pageBlockSection columns="2">
+          <apex:inputField value="{!Opp.Canal_Factura__c}" id="Canal" label="Canal factura:"/>
+          <apex:pageBlockSectionItem > </apex:pageBlockSectionItem>
+           <apex:inputField value="{!Opp.Cliente__c}" 	  id="FechaFiltro3" label="Cliente:"/>
+           <apex:pageBlockSectionItem > </apex:pageBlockSectionItem>
+          <apex:inputField value="{!Opp.Folio_Pedido_SDL__c}" 	  id="pedido" label="Num pedido:"/>
+            <apex:pageBlockSectionItem > </apex:pageBlockSectionItem>
+            <apex:inputField value="{!Opp.OwnerId}" id="FechaFiltro8"  label="Vendedor:" required="false"/>
+              <apex:pageBlockSectionItem > </apex:pageBlockSectionItem>
+          <apex:inputField value="{!Opp.Fecha_de_Embarque__c}" id="FechaFiltro2" label="Fecha Embarque Inicial:"/>
+          <apex:pageBlockSectionItem > </apex:pageBlockSectionItem>
+            <apex:inputField value="{!Opp2.Fecha_de_Embarque__c}" id="FechaFiltro4" label="Fecha Embarque Final:"/>
+           <apex:commandButton action="{!ObtenerPedidosRetenidos}" onclick="ShowLoad()" value="Consultar"  style="width: 100px;color: #fff;background-color: #0275d8;border-color: #0275d8;background-image:none;" id="theButton"  />
+           <apex:commandButton action="{!ValidarCartera}" onclick="ShowLoad()" value="Validar Cartera"  style="width: 100px;color: #fff;background-color: #5cb85c;border-color: #5cb85c;background-image:none;" id="theButton2" rendered="{!listaPedidos.size > 0}" />
+      </apex:pageBlockSection>
+ </apex:pageBlock>
+ <apex:pageBlock id="Datos">
+ 	<apex:pageBlockTable value="{!listaPedidos}" var="Pedido" rendered="{!listaPedidos.size > 0}">
+ 	 <apex:column >
+                  <apex:inputCheckbox value="{!Pedido.Seleccionado}" onclick="changeValue(this)" styleClass="myChk" />
+                </apex:column>
+ 	<apex:column headerValue="Folio">
+	               <apex:outputText value="{!Pedido.Pedido.Folio_Pedido_SDL__c}"/>
+	    </apex:column>
+	 	<apex:column headerValue="Cliente">
+	               <apex:outputText value="{!Pedido.Pedido.Cliente__r.Numero_Cliente_SAP__c}-{!Pedido.Pedido.Cliente__r.Name}"/>
+	    </apex:column>
+	    <apex:column headerValue="Sucursal">
+	               <apex:outputText value="{!Pedido.Pedido.Account.Name}"/>
+	    </apex:column>
+	     <apex:column headerValue="Fecha embarque">
+	     <apex:outputText value="{0,date,dd-MM-yyyy}">
+                    <apex:param value="{!Pedido.Pedido.Fecha_de_Embarque__c}" />
+         </apex:outputText>
+
+	    </apex:column>
+
+	     <apex:column headerValue="Importe">
+               <apex:outputText value="{0, number, ###,##0.00}">
+                    <apex:param value="{!Pedido.Importe}" />
+                </apex:outputText>
+       </apex:column>
+       <apex:column headerValue="Motivo">
+	               <apex:outputText value="{!Pedido.Pedido.Motivo_Rechazo_Cartera__c}"/>
+	    </apex:column>
+	    <apex:column headerValue="Saldo SF">
+               <apex:outputText value="{0, number, ###,##0.00}">
+                    <apex:param value="{!Pedido.SaldoSF}" />
+                </apex:outputText>
+       </apex:column>
+	    <apex:column headerValue="Saldo actual">
+               <apex:outputText value="{0, number, ###,##0.00}">
+                    <apex:param value="{!Pedido.SaldoActual}" />
+                </apex:outputText>
+       </apex:column>
+	   <apex:column headerValue="Saldo vencido">
+               <apex:outputText value="{0, number, ###,##0.00}">
+                    <apex:param value="{!Pedido.SaldoVencido}" />
+                </apex:outputText>
+       </apex:column>
+       <apex:column headerValue="Documentos vencidos">
+               <apex:outputText value="{!Pedido.DocumentosVencidos}">
+
+                </apex:outputText>
+       </apex:column>
+       <apex:column headerValue="Limite de credito">
+               <apex:outputText value="{0, number, ###,##0.00}">
+                    <apex:param value="{!Pedido.LimiteDeCredito}" />
+                </apex:outputText>
+       </apex:column>
+       <apex:column headerValue="Credito disponible">
+               <apex:outputText value="{0, number, ###,##0.00}">
+                    <apex:param value="{!Pedido.CreditoDisponible}" />
+                </apex:outputText>
+       </apex:column>
+       <apex:column headerValue="Saldo pedidos">
+               <apex:outputText value="{0, number, ###,##0.00}">
+                    <apex:param value="{!Pedido.SaldoPedidos}" />
+                </apex:outputText>
+       </apex:column>
+       <apex:column headerValue="Estatus">
+       	<apex:image url="{!URLFOR($Resource.popup, 'img/Bloqueado.png')}" id="someImage" width="24px" height="24px" rendered="{!Pedido.Liberado == false}"/>
+       	<apex:image url="{!URLFOR($Resource.popup, 'img/Liberado.png')}" id="someImage2" width="26px" height="26px" rendered="{!Pedido.Liberado}"/>
+       </apex:column>
+     </apex:pageBlockTable>
+    	</apex:pageBlock>
+    	<input id="hiddenElementId" type="hidden" />
+        <div id="showStatusDiv" style="display: none;">
+          <apex:image value="{!$Resource.spinner}" width="100" height="100"/>
+        </div>
+  </apex:form>
+<script type="text/javascript">
+$( document ).ready(function() {
+  setFocus();
+});
+function setFocus() {
+              document.getElementById("hiddenElementId").focus();
+}
+ function ShowLoad() {
+	$('[id$=showStatusDiv]').show();
+
+}
+function changeValue(checkButton) {
+        var chk = document.getElementsByClassName('myChk');
+        console.log(checkButton.value);
+
+       for (var i=0; i<chk.length; i++) {
+
+              if(chk[i].name != checkButton.name)
+              {
+                chk[i].checked = false;
+              }
+
+
+        }
+    }
+
+</script>
+</apex:page>

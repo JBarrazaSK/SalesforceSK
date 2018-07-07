@@ -1,0 +1,83 @@
+<apex:page controller="BLDS.ShieldUpdateController" action="{!performShield}" >
+    <apex:form id="changeDescription">
+	    <style>
+	    	.popupBackground{
+               background-color:black;
+               opacity: 0.20; 
+               filter: alpha(opacity = 20);
+               position: absolute;
+               width: 100%;
+               height: 100%;
+               top: 0;
+               left: 0;
+               z-index: 9998;
+           }
+            .custPopup{
+               background-color: white;
+               border-width: 2px;
+               border-style: solid;
+               z-index: 9999;
+               left: 50%;
+               padding:10px;
+               position: absolute;
+               overflow: auto;
+               max-height: 300px;
+               width: 800px; 
+               margin-left: -400px;
+               top:100px;
+           }
+	    </style>
+	    <script>
+	    	/* To show javascript error message in standard VF style*/
+		    function showError(e)
+		    {
+		       	afDisplayJSErrorMessage(e.message);
+		    }
+		    
+	    	function redirect()
+	    	{
+	    		try{
+		    		var left = (screen.width/2);
+	                var top = (screen.height/2);
+			    	window.open('{!JSENCODE(strBaseURL)}' + '/apex/blds__ShieldRegistrationError?src=' + 'true', 
+						                         "_blank","width=765, height=150, dependent=no, toolbar=no, status=no, directories=no, menubar=no, scrollbars=1, resizable=no"
+						                         +", top="+250+", left="+250, true); 
+					setTimeout(function(){window.open('{!JSENCODE(strBaseURL)}' + '/' + '{!JSENCODE(strRedirectId)}', "_self");},2000);
+				}catch(e){
+					showError(e);
+				}
+					
+	    	}
+	    </script>
+	     <apex:actionFunction name="afDisplayJSErrorMessage" action="{displayBlanketError}" rerender="msg,errorMessagePnl">
+    		<apex:param name="jsErrorMsg" value="" assignTo="{!strErrorMessage}"/>
+    	</apex:actionFunction>
+	    <apex:pageBlock title="Data Shield encountered an error" rendered="{!foundError}">
+	        <apex:outputText value="Please notify your Administrator." />
+	        <p />
+	        <apex:pageMessages id="msg"/>
+	        <apex:outputPanel Id="errorMessagePnl">
+				<script>
+					/* Section for displaying error message on mouse hover of error icon*/
+		            var actualMsg = '{!JSENCODE(strErrorMessage)}';
+		            if(actualMsg != '' && actualMsg != null) 
+		            {
+		                var errorTag =  document.getElementsByClassName('msgIcon');
+		                errorTag[0].title = actualMsg;
+		            }
+	            </script>
+		</apex:outputPanel>
+	    </apex:pageBlock>
+	    <apex:outputPanel rendered="{!blnIsRegistered}">
+	    	<apex:pageBlock title="Debug" rendered="{!debugMode}">
+	       		<apex:inputTextarea id="newDesc" cols="150" rows="50" value="{!textDebug}" rendered="{!blnIsRegistered}"/><p/>
+	        </apex:pageBlock>
+	    </apex:outputPanel>
+	        
+        <apex:outputPanel rendered="{!!blnIsRegistered}" id="popupPanel">
+        	<script>
+        		redirect();
+		    </script>
+	     </apex:outputPanel>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,480 @@
+<apex:page controller="BLDS.CreateAccountsController">
+<apex:sectionHeader subtitle="{!IF(profilerResultId != null, 'Update Account','Create Accounts')}" title="Account Edit"/>
+
+<apex:form >
+
+<apex:styleSheet value="{!URLFOR($Resource.BLDS__ProfilerResources,'Styles/MergeCSS.css')}" />
+<apex:includeScript value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Scripts/MergeJS.js')}" />
+<script>
+	
+	 // Function called on click of select all link of actual crm data
+            function resetRadio1(accountId)
+            {
+                try
+                {
+                    if(accountId != '' && accountId != null)
+                    {
+                        for(var i=1; i<52 ; i++)
+                        {
+                            var j = i+1;
+                            var tempParam1 = 'param'+i+accountId;
+                            var tempParam2 = 'param'+j+accountId;
+                            // unchecking adjacent radio button
+                            if(document.getElementById(tempParam2) != null) 
+                            {
+                                document.getElementById(tempParam2).checked = false; 
+                            }
+                            // checking current side radio button
+                            if(document.getElementById(tempParam1) != null) 
+                            {
+                                document.getElementById(tempParam1).checked = true; 
+                            }
+                            i++;
+                        }
+                        // calling an action function to bind contact data selected
+                        //TODO: reFillMapToUpdate(conId, 'Actual');
+                    }
+                    
+                    return false;
+                }
+                catch(e){}
+            }
+            // Function called on click of select all link of captured data
+            function resetRadioBack1(accountId)
+            {
+                try
+                {
+                    if(accountId != '' && accountId != null)
+                    {
+                        for(var i=1; i<52 ; i++)
+                        {
+                            var j = i+1;
+                            var tempParam1 = 'param'+i+accountId;
+                            var tempParam2 = 'param'+j+accountId;
+                            // unchecking adjacent radio button
+                            if(document.getElementById(tempParam1) != null)  
+                            {
+                                document.getElementById(tempParam1).checked = false; 
+                            }
+                            // checking current side radio button
+                            if(document.getElementById(tempParam2) != null) 
+                            {
+                                document.getElementById(tempParam2).checked = true; 
+                            }
+                            i++;
+                        }
+                        // calling an action function to bind contact data selected
+                        //TODO: reFillMapToUpdate(conId, 'Capture');
+                    }
+                    
+                    return false;
+                }catch(e){} 
+            }
+	
+</script>
+
+<apex:actionFunction name="callCheck" action="{!updateSelected}" rerender="opanel" >
+     		<apex:param assignTo="{!strRecId}" name="recid" value=""/>
+            <apex:param assignTo="{!strFieldName}" name="fname" value=""/>
+            <apex:param assignTo="{!strFieldValue}" name="fvalue" value=""/> 
+</apex:actionFunction>
+	
+<apex:outputPanel id="containerPanel">
+	<apex:outputPanel id="mergePanel">	
+		<apex:pageBlock rendered="{!!isShowConfirmPage}">			
+			
+			<apex:pageBlockButtons location="top">
+				<apex:commandButton action="{!showConfirmPage}" value="Next" id="nextBtn" style="float:right" rerender="containerPanel" />
+			</apex:pageBlockButtons>
+					  <apex:repeat value="{!lstCombineData}" var="val">
+						<apex:pageBlock id="pbSection">
+								<table width="100%" cellspacing="0" cellpadding="7">
+									<tr style=" width: 40px;">                        
+											<td style="background-color: #236fbd; color:white">
+												<b>Company :</b>&nbsp; {!val.objIClass.CompanyName}
+											</td>   
+										
+									</tr>
+									<tr>
+										<td width="100%"> 
+											<table width="100%" cellspacing="0" >
+												<tr class="trCSS">
+													<td class="titleTd" style="text-align:right;"><b>Select fields to update:</b></td> 
+													<td style="width : 300px; border-top: 1px solid #BBBBBB;">
+														<b>&nbsp; Current Salesforce Data</b>&nbsp;&nbsp;                                       
+													</td>
+													<td class="profilerData">
+														<b>&nbsp;&nbsp;Profiler Data</b>&nbsp;&nbsp;
+													</td>
+												</tr>
+											</table>                          
+											<table width="100%" cellspacing="0" >
+														<tr>
+															<td class="initialCSS" id="tdParam1{!val.intRecCount}">
+																<b>Company Name &nbsp;</b> 
+															</td>
+															<td class="actualCRMDataCSS">
+															<input type="radio"  id="param1{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID1" 
+																onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'Name', '{!JSINHTMLENCODE(val.objAccount.Name)}');"
+																/>
+															{!val.objAccount.Name}
+														</td > 
+														<td class="captureDataCSS">
+															<input type="radio" checked="true" id="param2{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID1"
+															onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'Name', '{!JSINHTMLENCODE(val.objIClass.CompanyName)}');"
+															 />
+															{!val.objIClass.CompanyName}
+														</td>
+														<apex:outputPanel rendered="{!if(val.objIClass.CompanyName != val.objAccount.Name, true, false)}">
+															<script> document.getElementById('tdParam1{!JSINHTMLENCODE(Text(val.intRecCount))}').className='accountCSSMore'; </script>
+														</apex:outputPanel>
+													</tr>
+											</table>
+											
+											<apex:outputPanel rendered="{! OR(val.objAccount.Website != '', val.objIClass.WWW != '' ) }">
+											<table width="100%" cellspacing="0" >
+			                                    <tr>
+			                                        <td class="initialCSS" id="tdParam3{!val.intRecCount}">
+			                                                <b>Website &nbsp;</b> 
+			                                            </td>
+			                                            <td class="actualCRMDataCSS">
+			                                            <input type="radio" id="param7{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID3" 
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'Website', '{!JSINHTMLENCODE(val.objAccount.Website)}');"
+			                                            />
+			                                            {!val.objAccount.Website}
+			                                        </td > 
+			                                        <td class="captureDataCSS">
+			                                            <input type="radio" checked="true"  id="param8{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID3"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'Website', '{!JSINHTMLENCODE(val.objIClass.WWW)}');" 
+			                                            />
+			                                            {!val.objIClass.WWW}
+			                                        </td>
+			                                        <apex:outputPanel rendered="{!if(val.objIClass.WWW != val.objAccount.Website, true, false)}">
+														<script> document.getElementById('tdParam3{!JSINHTMLENCODE(Text(val.intRecCount))}').className='accountCSSMore'; </script>
+													</apex:outputPanel>
+			                                        
+			                                    </tr>
+			                                </table>
+			                                </apex:outputPanel>
+			                                
+			                                <apex:outputPanel rendered="{! OR(val.objAccount.Industry != '', val.objIClass.Industry != '' ) }">
+			                                <table width="100%" cellspacing="0" >
+		                                        <tr>
+		                                            <td class="initialCSS" id="tdParam5{!val.intRecCount}" >
+		                                                <b>Industry &nbsp; </b> 
+		                                            </td>
+		                                            <td class="actualCRMDataCSS">
+		                                            <input type="radio"  id="param13{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID6"
+		                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'Industry', '{!JSINHTMLENCODE(val.objAccount.Industry)}');"  
+		                                            />
+		                                            {!val.objAccount.Industry}
+		                                        </td >
+			                                        <td class="captureDataCSS">
+			                                            <input type="radio" checked="true" id="param14{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID6"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'Industry', '{!JSINHTMLENCODE(val.objIClass.Industry)}');" 
+			                                            />
+			                                            {!val.objIClass.Industry}
+			                                        </td>			                                        
+			                                        
+			                                        <apex:outputPanel rendered="{!if(val.objIClass.Industry != val.objAccount.Industry, true, false)}">
+														<script> document.getElementById('tdParam5{!JSINHTMLENCODE(Text(val.intRecCount))}').className='accountCSSMore'; </script>
+													</apex:outputPanel>
+			                                        
+		                                       </tr>
+		                                   </table>
+		                                   </apex:outputPanel>
+		                                   
+		                                   <apex:outputPanel rendered="{! OR(val.objAccount.NumberOfEmployees != null, val.objIClass.Employees != '' ) }">
+		                                   <table width="100%" cellspacing="0" >
+			                                    <tr>
+			                                       <td class="initialCSS" id="tdParam6{!val.intRecCount}" >
+			                                            <b>Employees &nbsp; </b> 
+			                                            </td>
+			                                            <td class="actualCRMDataCSS">
+			                                            <input type="radio" id="param19{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID9"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'NumberOfEmployees', '{!JSINHTMLENCODE(Text(val.objAccount.NumberOfEmployees))}');" 
+			                                            />			                                            
+			                                            {!if(val.objAccount.NumberOfEmployees == 0, '', val.objAccount.NumberOfEmployees) }
+			                                        </td >
+			                                        <td class="captureDataCSS">
+			                                            <input type="radio" checked="true" id="param20{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID9"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'NumberOfEmployees', '{!JSINHTMLENCODE(val.objIClass.Employees)}');" 
+			                                            />
+			                                            {!val.objIClass.Employees}
+			                                        </td>
+			                                        
+			                                        <apex:outputPanel rendered="{!if( AND(val.objIClass.Employees  != TEXT(val.objAccount.NumberOfEmployees) , val.objAccount.NumberOfEmployees != 0) , true, false)}">
+														<script> document.getElementById('tdParam6{!JSINHTMLENCODE(Text(val.intRecCount))}').className='accountCSSMore'; </script>
+													</apex:outputPanel>
+																                                            
+			                                        
+			                                    </tr>
+			                                </table>
+			                                </apex:outputPanel>
+		                                            
+			                                <apex:outputPanel rendered="{! OR(val.objAccount.AnnualRevenue != null, val.objIClass.Revenue != '' ) }">
+			                                <table width="100%" cellspacing="0" >
+		                                        <tr>
+		                                        	
+		                                            <td class="initialCSS" id="tdParam7{!val.intRecCount}" >
+		                                                <b>Revenue &nbsp; </b> 
+		                                            </td>
+		                                            <td class="actualCRMDataCSS">
+		                                            <input type="radio"  id="param25{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID12"
+		                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'AnnualRevenue', '{!JSINHTMLENCODE(Text(val.objAccount.AnnualRevenue))}');" 
+		                                            />
+		                                            {!if(val.objAccount.AnnualRevenue == 0, '', val.objAccount.AnnualRevenue) }
+		                                            
+			                                        </td > 
+			                                        <td class="captureDataCSS">
+			                                            <input type="radio" checked="true" id="param26{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID12"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'AnnualRevenue', '{!JSINHTMLENCODE(val.objIClass.Revenue)}');" 
+			                                            />
+			                                            {!val.objIClass.Revenue}
+			                                        </td>
+			                                        
+			                                        <apex:outputPanel rendered="{!if( AND(val.objIClass.Revenue != TEXT(val.objAccount.AnnualRevenue), val.objAccount.AnnualRevenue != 0 ) , true, false)}">
+														<script> document.getElementById('tdParam7{!JSINHTMLENCODE(Text(val.intRecCount))}').className='accountCSSMore'; </script>
+													</apex:outputPanel>
+																                                        			                                        
+			                                    </tr>
+                                			</table>
+                                			</apex:outputPanel>
+                                			
+                                			<apex:outputPanel rendered="{! OR(val.objAccount.AnnualRevenue != 0, val.objIClass.Revenue != '' ) }">
+                                			<table width="100%" cellspacing="0" >
+			                                        <tr>
+			                                            <td class="initialCSS" id="tdParam8{!val.intRecCount}" >
+			                                                <b>Phone &nbsp; </b> 
+			                                            </td>
+			                                            <td class="actualCRMDataCSS">
+			                                            <input type="radio" id="param31{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID15"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'Phone', '{!JSINHTMLENCODE(val.objAccount.Phone)}');"  
+			                                            />
+			                                            {!val.objAccount.Phone}
+				                                        </td > 
+				                                        <td class="captureDataCSS">
+				                                            <input type="radio" checked="true" id="param32{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID15"
+				                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'Phone', '{!JSINHTMLENCODE(val.objIClass.Phone)}');"  
+				                                            />
+				                                            {!val.objIClass.Phone}
+				                                        </td>
+				                                        <apex:outputPanel rendered="{!if( val.objIClass.Phone != val.objAccount.Phone, true, false)}">
+															<script> document.getElementById('tdParam8{!JSINHTMLENCODE(Text(val.intRecCount))}').className='accountCSSMore'; </script>
+														</apex:outputPanel>
+				                                            
+				                                        
+				                                        
+			                                   		 </tr>
+			                                </table>
+			                                </apex:outputPanel>
+			                                		                                
+			                                
+			                                <apex:outputPanel rendered="{! OR(val.objAccount.BillingStreet != '', val.objIClass.Address != '' ) }">
+			                                <table width="100%" cellspacing="0" >
+			                                        <tr>
+			                                            <td class="initialCSS" id="tdParam10{!val.intRecCount}" >
+			                                                <b>Address &nbsp; </b> 
+			                                            </td>
+			                                            <td class="actualCRMDataCSS">
+			                                            <input type="radio"  id="param3{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID111"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'BillingStreet', '{!JSINHTMLENCODE(val.objAccount.BillingStreet)}');"
+			                                            />
+			                                            {!val.objAccount.BillingStreet} 
+			                                        </td >
+			                                        <td class="captureDataCSS">
+			                                            <input type="radio" checked="true"  id="param4{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID111"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'BillingStreet', '{!JSINHTMLENCODE(val.objIClass.Address)}');"  
+			                                            />
+			                                            {!val.objIClass.Address}
+			                                        </td>
+			                                        <apex:outputPanel rendered="{!if( val.objIClass.Address != val.objAccount.BillingStreet, true, false)}">
+															<script> document.getElementById('tdParam10{!JSINHTMLENCODE(Text(val.intRecCount))}').className='accountCSSMore'; </script>
+													</apex:outputPanel>
+			                                            
+			                                        
+			                                    	</tr>
+			                                </table>
+			                                </apex:outputPanel>
+			                                
+			                                <apex:outputPanel rendered="{! OR(val.objAccount.BillingCity != '', val.objIClass.City != '' ) }">
+			                                <table width="100%" cellspacing="0" >
+			                                        <tr>
+			                                            <td class="initialCSS" id="tdParam108{!val.intRecCount}" >
+			                                                <b>City &nbsp; </b> 
+			                                            </td>
+			                                            <td class="actualCRMDataCSS">
+			                                            <input type="radio"  id="param38{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID1118"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'BillingCity', '{!JSINHTMLENCODE(val.objAccount.BillingCity)}');"
+			                                            />
+			                                            {!val.objAccount.BillingCity} 
+			                                        </td >
+			                                        <td class="captureDataCSS">
+			                                            <input type="radio" checked="true"  id="param48{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID1118"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'BillingCity', '{!JSINHTMLENCODE(val.objIClass.City)}');"  
+			                                            />
+			                                            {!val.objIClass.City}
+			                                        </td>
+			                                        <apex:outputPanel rendered="{!if( val.objIClass.City != val.objAccount.BillingCity, true, false)}">
+														<script> document.getElementById('tdParam108{!JSINHTMLENCODE(Text(val.intRecCount))}').className='accountCSSMore'; </script>
+													</apex:outputPanel>			                                            
+			                                        
+			                                    	</tr>
+			                                </table>
+			                                </apex:outputPanel>
+			                                
+			                                <apex:outputPanel rendered="{! OR(val.objAccount.BillingState != '', val.objIClass.State != '' ) }">
+			                                <table width="100%" cellspacing="0" >
+			                                        <tr>
+			                                            <td class="initialCSS" id="tdParam109{!val.intRecCount}" >
+			                                                <b>State &nbsp; </b> 
+			                                            </td>
+			                                            <td class="actualCRMDataCSS">
+			                                            <input type="radio"  id="param39{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID1119"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'BillingState', '{!JSINHTMLENCODE(val.objAccount.BillingState)}');"
+			                                            />
+			                                            {!val.objAccount.BillingState} 
+			                                        </td >
+			                                        <td class="captureDataCSS">
+			                                            <input type="radio" checked="true"  id="param49{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID1119"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'BillingState', '{!JSINHTMLENCODE(val.objIClass.State)}');"  
+			                                            />
+			                                            {!val.objIClass.State}
+			                                        </td>
+			                                        <apex:outputPanel rendered="{!if( val.objIClass.State != val.objAccount.BillingState, true, false)}">
+														<script> document.getElementById('tdParam109{!JSINHTMLENCODE(Text(val.intRecCount))}').className='accountCSSMore'; </script>
+													</apex:outputPanel>
+			                                            
+			                                        
+			                                    	</tr>
+			                                </table>
+			                                </apex:outputPanel>
+			                                
+			                                <apex:outputPanel rendered="{! OR(val.objAccount.BillingPostalCode != '' , val.objIClass.Zip != '' ) }">
+			                                 <table width="100%" cellspacing="0" >
+			                                        <tr>
+			                                            <td class="initialCSS" id="tdParam1010{!val.intRecCount}" >
+			                                                <b>Zip &nbsp; </b> 
+			                                            </td>
+			                                            <td class="actualCRMDataCSS">
+			                                            <input type="radio"  id="param310{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID11110"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'BillingPostalCode', '{!JSINHTMLENCODE(val.objAccount.BillingPostalCode)}');"
+			                                            />
+			                                            {!val.objAccount.BillingPostalCode} 
+			                                        </td >
+			                                        <td class="captureDataCSS">
+			                                            <input type="radio" checked="true"  id="param410{!val.objAccount.Id}" name="{!val.objAccount.Id} + sObjectID11110"
+			                                            onClick="callCheck('{!JSINHTMLENCODE(val.objAccount.Id)}', 'BillingPostalCode', '{!JSINHTMLENCODE(val.objIClass.Zip)}');"  
+			                                            />
+			                                            {!val.objIClass.Zip}
+			                                        </td>
+			                                        <apex:outputPanel rendered="{!if( val.objIClass.Zip != val.objAccount.BillingPostalCode, true, false)}">
+														<script> document.getElementById('tdParam1010{!JSINHTMLENCODE(Text(val.intRecCount))}').className='accountCSSMore'; </script>
+													</apex:outputPanel>		                                            
+			                                        
+			                                    	</tr>
+			                                </table>
+			                                </apex:outputPanel>    
+			                                
+										</td>
+									</tr>
+								</table>
+						</apex:pageBlock>
+				</apex:repeat>
+					
+		</apex:pageBlock>
+	</apex:outputPanel>
+	
+	
+	<apex:outputPanel id="confirmPanel" >		
+		<apex:pageBlock rendered="{!AND(isShowConfirmPage, !isShowResult)}">
+			
+			<apex:pageBlockButtons location="top">
+				<apex:commandButton action="{!saveResults}" value="Confirm" id="confirmButton" style="float:right" 
+					status="processStatusLoad" rerender="containerPanel"/> 
+			</apex:pageBlockButtons>
+			<!-- div for showing loading icon on top of grid -->                      
+		    <div id="divButton" style="height:10px;position: absolute;top: 50%;left: 50%;margin-top: -50px;margin-left: -50px;">            
+		        <apex:actionStatus startText="Loading..." startStyle="color:#ff0000;font-size:16px;font-weight:bold" id="processStatusLoad"> 
+		             <apex:facet name="start">
+		                 <center>
+		                     <img src="/img/loading.gif" title="Loading..."/>
+		                 </center>
+		             </apex:facet> 
+		        </apex:actionStatus>
+		    </div>	
+						
+			 <apex:pageBlockSection title="Confirmation" columns="1" collapsible="false">
+                    <apex:facet name="header"> 
+                        <span style="font-size: 12px;">Confirmation</span>
+                    </apex:facet>
+                    <span style="padding-left: 8px;">Confirm all changes to Salesforce data</span>                                        
+                    <br />
+                 
+                    <apex:outputPanel rendered="{!if(lstConfirmRecords.size > 0, true, false)}" id="ConfirmOPPanel">
+                    	<apex:variable value="{!0}" var="rowNum"/>
+                        <apex:repeat value="{!lstConfirmRecords}" var="conf">                                                         
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? Create {!conf.Name} as a new Account <br />
+                            <apex:variable var="rowNum" value="{!rowNum + 1}"/>
+                        </apex:repeat>
+                    </apex:outputPanel>
+                    
+                    <!-- an Update list --> 
+                    <apex:outputPanel rendered="{!if(lstUpdatedConfirmRecords.size > 0, true, false)}">                    	
+                        <apex:repeat value="{!lstUpdatedConfirmRecords}" var="mod">                            
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? Update Account &nbsp; 
+                                <apex:outputLink target="_blank" value="/{!mod.Id}">{!mod.Name}</apex:outputLink> <br/>
+                                <!-- 
+                                <apex:repeat value="{!mod.lstUpdatedRecords}" var="modfields">
+                                    <br /> <apex:outputText style="width:100px; padding-left:50px;" />? {!modfields} 
+                                </apex:repeat>
+                                <br /><br />
+                                 -->
+                                                      
+                        </apex:repeat>
+                    </apex:outputPanel>
+                     
+                                       
+                </apex:pageBlockSection>			
+		</apex:pageBlock>
+	</apex:outputPanel>
+		
+	<apex:outputPanel id="resultPanel" >
+			<apex:pageBlock rendered="{!isShowResult}">
+				<!-- This sections renders all the inserted records -->
+				
+                <apex:outputPanel styleClass="red" rendered="{!lstConfirmRecords.size > 0 }">                    
+                    <apex:pageBlockSection collapsible="true" title="Inserted {!lstConfirmRecords.size} Account(s)" id="section1" rendered="true" columns="1">
+                        <apex:facet name="header"> 
+                            <span style="color:blue"><h3>Inserted {!lstConfirmRecords.size} Record(s)</h3></span>
+                        </apex:facet>
+                        <apex:outputPanel rendered="{!if(lstConfirmRecords.size > 0, true, false)}" >
+                            <b>Account(s): </b><br />    
+                            <apex:repeat value="{!lstConfirmRecords}" var="val">
+                                <apex:outputLink value="/{!val.Id}" >{!val.Name}</apex:outputLink><br />
+                            </apex:repeat>
+                        </apex:outputPanel>
+                    </apex:pageBlockSection>
+                </apex:outputPanel> 
+                
+                <!-- This sections renders all the updated records -->
+                <apex:outputPanel styleClass="grey" rendered="{!lstUpdatedConfirmRecords.size > 0 }">
+                    <apex:pageBlockSection collapsible="true" title="Updated {!lstUpdatedConfirmRecords.size} Record(s)" id="section2" rendered="true" columns="1"> 
+                        <apex:facet name="header">
+                            <span style="color:blue"><h3>Updated {!lstUpdatedConfirmRecords.size} Record(s)</h3></span>
+                        </apex:facet>
+                        <apex:outputPanel rendered="{!if(lstUpdatedConfirmRecords.size > 0, true, false)}" >
+                            <b>Account(s): </b>  <br />
+                            <apex:repeat value="{!lstUpdatedConfirmRecords}" var="val">
+                                <apex:outputLink value="/{!val.Id}" >{!val.Name}</apex:outputLink><br /> 
+                            </apex:repeat>
+                        </apex:outputPanel>                        
+                    </apex:pageBlockSection>
+                </apex:outputPanel>
+          </apex:pageBlock>      
+       </apex:outputPanel> 
+	
+	
+</apex:outputPanel>
+</apex:form>	
+</apex:page>

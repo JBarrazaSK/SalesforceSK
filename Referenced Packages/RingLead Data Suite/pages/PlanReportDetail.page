@@ -1,0 +1,442 @@
+<apex:page id="reportDetail" controller="BLDS.PlanReportDetailController" tabStyle="Profiler_Plan_View__tab">
+    <apex:form id="topForm">
+        <apex:styleSheet value="{!URLFOR($Resource.BLDS__ProfilerResources,'Styles/MergeCSS.css')}" />
+        <apex:styleSheet value="{!URLFOR($Resource.BLDS__ProfilerResources,'Styles/Profiler_PM.css')}" />
+        <apex:includeScript value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Scripts/MergeJS.js')}" />
+        
+        <apex:sectionHeader title="Profiler Actions Detail" subtitle="{!report.Name}"/>
+        <apex:pageMessages id="topPageMsg"/>
+        
+        <style>
+            .lDisabled {
+                  cursor: default !important;
+                  pointer-events: none;
+                  color:#a8a8a8 !important;
+             }
+              
+            .firstOff2{ 
+                background-image: url(/img/paginationArrows.gif);
+                background-repeat: no-repeat;
+                background-position: 0 -10px;
+                width: 9px;
+                height: 10px;
+            }
+            .firstOn2{
+                background-image: url(/img/paginationArrows.gif);
+                background-repeat: no-repeat;
+                background-position: 0 1px;
+                width: 9px;
+                height: 10px;
+            }
+            
+            
+            .lastOn2 {
+                background-image: url(/img/paginationArrows.gif);
+                background-repeat: no-repeat;
+                background-position: -27px 1px;
+                width: 9px;
+                height: 10px;
+            }
+            
+            
+            
+            .refreshListButton2 {
+            background: url(/img/alohaSkin/sync.png) top left no-repeat !important;
+            width: 26px !important;
+            height: 24px !important;
+            background-position: 4px 3px !important;
+            vertical-align: bottom !important;
+        }
+        .lDisabled {
+            cursor: default !important;
+            pointer-events: none;
+            color:#a8a8a8 !important;
+            text-decoration:none;
+        }
+        .lEnabled{
+            text-decoration:none;
+        }
+        
+         .LFirstPrevious{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: 0px 1px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+            }
+            
+        .LDFirstPrevious{
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: 0px -10px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        .LPrevious{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: -10px 1px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+            }
+            
+        .LDPrevious{
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: -10px -10px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        
+        
+        .LLastNext{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: -27px 1px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+            }
+            
+        .LDLastNext{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: -27px -10px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+        }
+        
+        .LNext{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: -17px 1px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+            }
+            
+        .LDNext{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: -17px -10px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+        }
+        
+            
+            
+        </style>
+        
+        <script>
+            function confirmOnDelete(){
+                var isYes =  confirm('Do you want to delete this report ?');
+                if(isYes){                  
+                    deleteReportJs(); // actionfunction 
+                    return false;                    
+                     
+                } else{
+                    return false;
+                }
+                
+            }
+            
+             function checkAll(cb)
+             {
+                 try{
+                        var inputElem = document.getElementsByTagName("input");
+                        for(var i=0;i<inputElem.length;i++)
+                         {
+                            if(inputElem[i].id.indexOf("selectLine")!=-1)
+                                inputElem[i].checked = cb.checked;
+                          }
+                       
+                      }catch(e){
+                        showError(e);
+                      }
+              }
+      
+        </script>
+         <div id="divButton" style="height:5px">            
+            <apex:actionStatus startText="Loading..." startStyle="color:#ff0000;font-size:16px;font-weight:bold" id="processStatusLoad"> 
+                     <apex:facet name="start">
+                         <center>
+                             <img src="/img/loading.gif" title="Loading..."/>
+                         </center>
+                     </apex:facet> 
+            </apex:actionStatus>
+        </div>  
+                
+        <apex:actionFunction name="deleteReportJs" action="{!deleteReport}" rerender="" status="processStatusLoad"
+            oncomplete="window.top.location = '{!IF(retURL == null || retURL == '', '/apex/BLDS__PlanReports', retURL)}'">
+        </apex:actionFunction>
+        
+        <apex:outputPanel rendered="{!!isShowExport}">
+            <apex:outputPanel id="processInfo" >
+                <apex:pageBlock title="Running Progress" id="jobStatus" rendered="{!isShowProcessing}" >
+                    <apex:pageBlockTable value="{!jobReport}" var="j">
+                            <apex:column value="{!j.createddate}" headerValue="Scan Started" />
+                            <apex:column value="{!j.status}"/>
+                            <apex:column value="{!j.jobitemsprocessed}"/>
+                            <apex:column value="{!j.totaljobitems}"/>
+                            <apex:column value="{!j.numberoferrors}"/>
+                            <apex:column value="{!j.extendedstatus}"/>
+                    </apex:pageBlockTable>
+                </apex:pageBlock>               
+            </apex:outputPanel>
+            
+            <apex:actionPoller reRender="processInfo,reportInfoDetails,topPageBlock,contactDetailTable,topPageMsg" interval="10" 
+                action="{!LoadJobReport}" enabled="{!OR(isShowProcessing,report.BLDS__Long_Export_Status__c == 'Processing' )}" />
+                    
+            <apex:outputPanel id="reportInfoDetails">
+                <apex:pageBlock id="reportInfo" rendered="{!!isShowProcessing}">
+                    <apex:pageBlockButtons location="bottom">
+                        <ul class="piped2">
+                            <li>
+                                <apex:commandButton value="Edit" action="{!navigateToEdit}"/>&nbsp;
+                                <apex:commandButton value="Delete" onclick="return confirmOnDelete();"/>&nbsp;
+                            </li>
+                            <li class="lastItem">
+                                <apex:commandButton rendered="{!report.BLDS__Status__c != 'Completed'}" value="Run This Report" action="{!runThisReport}"/>&nbsp;
+                                <apex:commandButton value="Export to Lead" action="{!exportToCampaign}"/>&nbsp;
+                                <apex:commandButton rendered="{!report.BLDS__Status__c == 'Completed'}" value="Refresh" action="{!refreshReport}"/>&nbsp;
+                            </li>
+                            
+                        </ul>
+                    </apex:pageBlockButtons>
+                    <table>
+                        <tr>
+                            <td class="labelCol" width="10%">Target Plan</td>
+                            <td class="dataCol col02 inlineEditWrite" width="40%"><apex:outputField value="{!report.Name}"/></td>
+                                            
+                            <td class="labelCol" width="20%">Description</td>
+                            <td class="dataCol col02 inlineEditWrite" width="100%"><apex:outputField value="{!report.BLDS__Description__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="labelCol">Plan Name</td>
+                            <td class="dataCol col02 inlineEditWrite"><apex:outputField value="{!report.BLDS__Plan_Name__c}"/></td>                                           
+                            
+                            <td class="labelCol">Number of Contacts</td>                            
+                            <td class="dataCol col02 inlineEditWrite"><apex:outputField value="{!report.BLDS__Total__c}"/></td>
+                        </tr>
+                        <tr>
+                            
+                            <td class="labelCol">Status</td>
+                            <td class="dataCol col02 inlineEditWrite"><apex:outputField value="{!report.BLDS__Status__c}"/></td>
+                                            
+                            <td class="labelCol">Owner</td>
+                            <td class="dataCol col02 inlineEditWrite"><apex:outputField value="{!report.Owner.Name}"/></td>
+                        </tr>
+                        <tr>
+                            <td class="labelCol"><b>Filters</b></td>
+                            <!-- td class="dataCol col02 inlineEditWrite" colspan="3" --> 
+                            <td class="dataCol col02 inlineEditWrite" colspan="3" >
+                                <!-- <apex:outputField value="{!report.Filter_Label__c}"/>  -->
+                                <apex:outputPanel >
+                                    <apex:outputpanel rendered="{! !ISBLANK(report.Filter_Category__c)}">
+                                        <b>Title : </b><apex:outputtext value="{!report.BLDS__Filter_Category__c}"></apex:outputtext>
+                                    </apex:outputpanel>
+                                    <b>Minimum Score : </b><apex:outputtext value="{!report.BLDS__Filter_Minimum_Score__c}"></apex:outputtext>
+                                    <br/>
+                                    <b>Status : </b><apex:outputtext value="{!report.BLDS__Filter_Status__c}"></apex:outputtext>
+                                    <br/>
+                                    <b>Email : </b><apex:outputtext value="{!report.BLDS__Filter_Email__c}"></apex:outputtext>
+                                    <br/>
+                                    <b>Include auto fill email : </b><apex:outputtext value="{!report.BLDS__Filter_Autofill_email__c}"></apex:outputtext>
+                                    <!--<apex:outputText value="{!filterString}" escape="true" />-->
+                                </apex:outputPanel>
+                            </td>
+                            
+                           
+                        </tr>
+                        <tr>
+                            
+                            <td class="labelCol">Export Status</td>
+                            <td class="dataCol col02 inlineEditWrite" colspan="3" >
+                                <apex:outputPanel rendered="{!exportStatus == 'Processing'}">                                   
+                                    <apex:outputText value="{!exportStatus}" escape="true"  style="color:red"/>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!exportStatus != 'Processing'}">                                   
+                                    <apex:outputText value="{!exportStatus}" escape="false"/>
+                                </apex:outputPanel>
+                            </td>
+                            
+                        </tr>
+                    </table>
+                    <br/>
+                </apex:pageBlock>
+            </apex:outputPanel>
+            
+            <!--  ***************************  Contacts page **************************************************8  -->
+            
+                
+            
+            <apex:outputPanel id="topPageBlock">    
+                <apex:pageBlock rendered="{!AND(!isShowProcessing, report.BLDS__Status__c == 'Completed')}" >       
+                <apex:pageBlockSection title="Report results - Page #{!pageNumber} / {!totalPage}" columns="1" collapsible="false">
+                
+                    <apex:pageBlockTable value="{!lstContactDetail}" var="contactDetail" id="contactDetailTable">
+                         <!--  remove checkbox
+                         <apex:column style="width:3%"> 
+                            <apex:facet name="header">
+                                <apex:inputCheckbox id="checkAll" onclick="checkAll(this);"/>
+                            </apex:facet>
+                                <apex:inputCheckbox value="{!contactDetail.selected}" id="selectLine" />
+                         </apex:column>
+                         -->
+                
+                        <apex:column >
+                            <apex:facet name="header">Name</apex:facet>
+                            <apex:outputText value="{!contactDetail.Name}"></apex:outputText>
+                        </apex:column>              
+                        
+                        <apex:column >
+                            <apex:facet name="header">Score</apex:facet>
+                            <apex:outputText value="{!contactDetail.Score}"></apex:outputText>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Status</apex:facet>
+                            <apex:outputText value="{!contactDetail.strStatus}"></apex:outputText>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Company</apex:facet>
+                            <apex:outputText value="{!contactDetail.CompanyName}"></apex:outputText>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Title</apex:facet>
+                            <apex:outputText value="{!contactDetail.Title}"></apex:outputText>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">Email</apex:facet>
+                            <apex:outputText value="{!contactDetail.Email}"></apex:outputText>
+                        </apex:column>
+                        <apex:column >
+                            <apex:facet name="header">City</apex:facet>
+                            <apex:outputText value="{!contactDetail.strCity}"></apex:outputText>
+                        </apex:column>
+                    </apex:pageBlockTable>
+                    
+                    </apex:pageBlockSection>
+                    
+                    <apex:actionFunction name="updatePaginatorJS" action="{!updatePaginator}" rerender="topPageBlock" status="processStatusLoad"/>
+                    <div id="divButton" style="height:5px;">            
+                        <apex:actionStatus startText="Loading..." startStyle="color:#ff0000;font-size:16px;font-weight:bold" id="processStatusLoad"> 
+                             <apex:facet name="start">
+                                 <center>
+                                     <img src="/img/loading.gif" title="Loading..."/>
+                                 </center>
+                             </apex:facet> 
+                        </apex:actionStatus>
+                    </div>  
+                    
+                    <table width="100%">
+                        <tr>
+                            <td width="10%">
+                                <span> {!startRecord}-{!endRecord} of {!report.BLDS__Total__c} </span>
+                            </td>
+                            
+                            <td width="28%" style="text-align:left;">
+                                Page size &nbsp;
+                                <apex:selectList value="{!selectPageSize}" size="1" onchange="updatePaginatorJS();">
+                                    <apex:selectOptions value="{!LstPaginatorOptions}"/>
+                                </apex:selectList>
+                                
+                            </td>
+                            
+                            <td style="text-align:left;">
+                                <!-- div for showing loading icon on top of grid -->                      
+                                
+                                <script>
+                                    function nextPageJS(){
+                                        nextJS();
+                                        return false;
+                                    }
+                                    function previousPageJS() {
+                                        previousJS();
+                                        return false;
+                                    }
+                                    function lastPageJS() {
+                                        lastJS();
+                                        return false;
+                                    }
+                                    function firstPageJS() {
+                                        firstJS();
+                                        return false;
+                                    }
+                                    
+                                </script>
+                                <apex:actionFunction name="firstJS" action="{!first}" rerender="topPageBlock" status="processStatusLoad"/>
+                                <apex:actionFunction name="previousJS" action="{!previous}" rerender="topPageBlock" status="processStatusLoad"/>
+                                <apex:actionFunction name="nextJS" action="{!next}" rerender="topPageBlock" status="processStatusLoad"/>                            
+                                <apex:actionFunction name="lastJS" action="{!last}" rerender="topPageBlock" status="processStatusLoad"/>                                                
+                                
+                                <apex:commandLink onclick="return firstPageJS();"    styleClass="{!If(DisablePrevious,'lDisabled','lEnabled')}"  >
+                                    <img src="/s.gif" class="{!If(DisablePrevious,'firstOff2','firstOn2')}" alt="First Page"/>
+                                </apex:commandlink>&nbsp;
+                                <apex:commandLink onclick="return previousPageJS();" styleClass="{!If(DisablePrevious,'lDisabled','lEnabled')}"  ><img src="/s.gif" title="Previous" alt="Previous" class="{!If(DisablePrevious,'LDPrevious','LPrevious')}"/> Previous</apex:commandlink>&nbsp; &nbsp;
+                                <apex:commandLink onclick="return nextPageJS();"     styleClass="{!If(DisableNext,'lDisabled','lEnabled')}">Next <img src="/s.gif" title="Next" alt="Next" class="{!If(DisableNext,'LDNext','LNext')}"/></apex:commandlink> &nbsp; 
+                                <apex:commandLink onclick="return lastPageJS();"     styleClass="{!If(DisableNext,'lDisabled','lEnabled')}">
+                                     <img src="/s.gif" title="Last" alt="Next" class="{!If(DisableNext,'LDLastNext','LLastNext')}"/>
+                                </apex:commandlink>&nbsp;
+                                
+                                
+                                <!-- 
+                                <apex:commandButton onclick="return firstPageJS();"    title="First"     disabled="{!disablePrevious}" value="<<"/>
+                                <apex:commandButton onclick="return previousPageJS();" title="Previous"  disabled="{!disablePrevious}" value="<" />
+                                <apex:commandButton onclick="return nextPageJS();"     title="Next"      disabled="{!disableNext}"     value=">" />
+                                <apex:commandButton onclick="return lastPageJS();"     title="Last"      disabled="{!disableNext}"     value=">>" />     
+                                 -->                                                                                    
+                                
+                            </td>
+                        </tr>
+                    </table>                   
+                </apex:pageBlock>
+            </apex:outputPanel>        
+        </apex:outputPanel>
+        
+                
+            
+        <apex:outputPanel rendered="{!isShowExport}" id="showReportPanel">
+            <apex:pageBlock id="exportPageBlock" title="Export">
+                <apex:panelGrid columns="2" id="showReportGrid">
+                    <apex:outputLabel value="Merge duplicate Lead" for="mergeCheckbox"/>                    
+                    <apex:inputCheckbox value="{!isMergeDupLead}" id="mergeCheckbox"/>
+                    
+                    <apex:outputPanel id="campaignPanel">
+                        <apex:outputLabel value="Add to campaign (optional)" for="campName"/> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        <apex:actionFunction name="updateOption" rerender="campNameInput"  status="processStatusLoad"/>                 
+                        <apex:inputText value="{!campaignName}" id="campNameInput"/>&nbsp;                      
+                    </apex:outputPanel>
+                    
+                    <apex:outputPanel id="campaignPanel2">
+                        <a href ="" style="cursor: pointer" onclick="javascript:return openRelatedPopup('Campaign', '', '{!$Component.hiddenId}', '{!$Component.hiddenName}')">
+                           <img src="/s.gif" alt="Security Lookup (New Window)" class="lookupIcon" onblur="this.className = 'lookupIcon';"
+                                onfocus="this.className = 'lookupIconOn';" onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';"
+                                onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" title="Lookup (New Window)" />
+                        </a>
+                        <apex:inputHidden value="{!campaignId}" id="hiddenId"/>
+                        <apex:inputHidden value="{!campaignName}" id="hiddenName"/>
+                    </apex:outputPanel>
+                    
+                </apex:panelGrid>
+                <apex:commandButton action="{!doExport}" value="Export"/>
+            </apex:pageBlock>
+        </apex:outputPanel>
+    
+    </apex:form>
+</apex:page>

@@ -1,0 +1,443 @@
+<apex:page sidebar="false"  controller="CtrlArmarEmbarque" docType="html-5.0" standardStylesheets="true">
+ <style>
+ #showStatusDiv { position: fixed; background: rgba(0, 0, 0, 0.43); width: 100%; height: 100%; top: 0; left: 0; z-index: 999999; }
+  
+#showStatusDiv img { position: absolute; top: 50%; left: 50%; margin-right: 25px; }
+.errorClass {
+    background-color: red;
+}
+.normalClass {
+    background-color: green;
+}
+textarea {
+    resize: none;
+}
+.datePicker{
+        position: fixed;
+        z-index:10001;
+        width: auto;
+        height:auto;}
+        ::-webkit-inner-spin-button { display: none; }
+  </style>
+<apex:stylesheet value="{!URLFOR($Resource.popup, 'Css/EstilosPopUp.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.PedidoWizard, 'js/jquery-1.11.1.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.popup, 'js/popUp.js')}"/>
+<script type="text/javascript">ieStylesheetUrl = "{!URLFOR($Resource.PedidoWizard, 'css/PedidoWizardIE.css')}"</script>
+
+      <apex:form id="form" >
+  <apex:pageMessages />
+   <apex:pageBlock id="generales" title="Busqueda Pedidos y Embarques" >
+   <apex:pageBlockButtons location="top" >
+                
+   </apex:pageBlockButtons>
+   <table style="width: 90%;">
+    <tr>
+        <td align="right">Canal:</td>  
+        <td> 
+       <div class="requiredInput">
+       <div class="requiredBlock"></div>
+          <apex:selectList size="1" value="{!Canal}"  >
+            <apex:selectOptions value="{!items}"/>
+        </apex:selectList> 
+        </div>
+      </td>
+        <td align="right">Oficina de Venta:</td> 
+        <td align="left"  style="width: 50px;">
+       <div class="requiredInput">
+           <div class="requiredBlock"></div>
+           <apex:inputText value="{!CodigoAlmacen}" id="inputSearchText" size="3" onblur="SearchProductEmbarque()"/>
+           </div>
+            
+        </td>
+      <td align="left" style="width: 100px;"> 
+            <apex:inputText value="{!NombreAlmacen}"  id="inputSearchText2" html-readOnly="true" style="width: 210px;"  />
+     <!-- <input type="text" id="inputSearchText2" disabled="true" style="width: 100px;"/>--></td>
+      <td align="left"> <input type="button" value="Buscar" class="btn" onclick="openModal('modalOfiVentas')" id="btnModal"/>
+            <apex:inputHidden value="{!AlmacenId}" id="HiddenId"/>
+             <apex:inputHidden value="{!CodigoAlmacen}" id="HiddenNumeroAlmacen"/>
+            <apex:inputHidden value="{!fecha_embarque}" id="HiddenFecha"/>
+            <apex:inputHidden value="{!HoraPlanta}" id="HiddenHoraPlanta"/>
+            <apex:inputHidden value="{!Observaciones}" id="HiddenObservaciones"/>
+            <apex:inputHidden value="{!HoraPlanta2}" id="HiddenHoraPlanta2"/>
+            <apex:inputHidden value="{!Observaciones2}" id="HiddenObservaciones2"/>
+      </td>
+        <td align="right">Fecha Embarque:</td>
+        <td>
+          <div class="requiredInput">
+          <div class="requiredBlock"></div>
+          <apex:inputField value="{!embarque.Fecha_Filtro__c}" id="FechaFiltro"/>
+          </div>
+      </td>
+      <td></td>
+         <td align="right">Frontera: </td>  
+        <td> 
+       
+       <div class="requiredInput">
+       <div class="requiredBlock"></div>
+          <apex:selectList size="1" value="{!Frontera}"  id="frontera"  >
+            <apex:selectOptions value="{!ItemsFrontera}"/>
+        </apex:selectList> 
+        </div>
+      </td>
+    </tr>
+    <tr>
+    <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td><apex:commandButton action="{!getPedidos}" onclick="Consultar()" value="Consultar"  style="width: 100px;color: #fff;background-color: #0275d8;border-color: #0275d8;background-image:none;" id="theButton"  /></td>
+      <td></td>
+    </tr>
+   </table>
+   </apex:pageBlock>
+    <br/><br/>
+    <apex:pageBlock id="Pedidos" title="Pedidos Sin Asignar a un Embarque" rendered="{!Listapedidos.size>0}">
+    <br/>
+        <apex:commandButton action="{!GuardarEmbarque}" onclick="Consultar()" value="Nuevo Embarque" id="theButton2"  style="color: #fff;background-color: #5cb85c;border-color: #5cb85c;background-image:none; width: 100px;" />
+        <apex:commandButton action="{!AgregarPedidoEmbarque}" onclick="Consultar()" value="Agregar Pedido a Embarque" id="theButton3" rendered="{!ListaEmbarques.size>0}" style="width: 200px;background-color: #fff;border-color: #ccc;background-image:none;"/>
+        <br/><br/>
+         <apex:pageBlockTable value="{!Listapedidos}" var="opp">
+               <apex:column style="{!IF(NOT(opp.Seleccionado), 'background-color:grey', '')}">
+                  <apex:inputCheckbox value="{!opp.Seleccionado}" />
+                </apex:column>
+                <apex:column headerValue="Orden">
+                    <apex:input type="number" value="{!opp.Orden}" style="width: 30px;"/>
+                </apex:column>
+               <apex:column headerValue="Folio Pedido">
+                  <apex:outputText value="{!opp.FolioPedido}"/>
+               </apex:column>
+              
+               <apex:column headerValue="Frontera">
+               <apex:outputText value="{!opp.Frontera}"/>
+               </apex:column>
+               <apex:column headerValue="Cliente">
+               <apex:outputText value="{!opp.Cliente}"/>
+               </apex:column>
+               <apex:column headerValue="Sucursal">
+               <apex:outputText value="{!opp.Sucursal}"/>
+               </apex:column>
+               <apex:column headerValue="Ciudad">
+               <apex:outputText value="{!opp.Ciudad}"/>
+               </apex:column>
+               <apex:column headerValue="OCC">
+               <apex:outputText value="{!opp.OCC}"/>
+               </apex:column>
+               <apex:column headerValue="Fecha Entrega">
+               <apex:outputText value="{0,date,dd-MM-yyyy}">
+                    <apex:param value="{!opp.Fecha_Entrega}" />
+               </apex:outputText>
+               </apex:column>
+               <apex:column headerValue="Tipo Surtido">
+               <apex:outputText value="{!opp.Tipo_surtido}"/>
+               </apex:column>
+               <apex:column headerValue="Tarimas">
+               <apex:outputText value="{!opp.Tarimas}"/>
+               </apex:column>
+               <apex:column headerValue="Cajas">
+               <apex:outputText value="{!opp.Cajas}"/>
+               </apex:column>
+               <apex:column headerValue="Peso">
+               <apex:outputText value="{!opp.Peso}"/>
+               </apex:column>
+               <apex:column headerValue="Importe">
+               <apex:outputText value="{0, number, ###,##0.00}">
+                    <apex:param value="{!opp.Importe}" />
+                </apex:outputText>
+                  </apex:column>
+             <apex:column headerValue="Observaciones">
+               	<apex:outputText value="{!opp.Observaciones}"/>	
+              </apex:column>
+            </apex:pageBlockTable> 
+            <br/><br/>
+  <apex:pageBlockSection columns="4">
+               <apex:inputText value="{!HoraPlanta}" label="Hora de Carga planta:" style="width: 60px;" />
+               <apex:inputTextarea value="{!Observaciones}" label="Observaciones:" style="width: 600px;" rows="3"/>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    <br/><br/>
+     <apex:pageBlock id="Pedidos2" title="Embarques" rendered="{!ListaEmbarques.size>0}">
+
+         <apex:pageBlockTable value="{!ListaEmbarques}" var="emb" styleClass="pageBlockTablePortafolio2" >
+
+               <apex:column style="width: 2%;">
+                <apex:inputCheckbox value="{!emb.Seleccionado}" styleClass="myChk" onclick="changeValue(this)" />
+                </apex:column>
+               <apex:column headerValue="Folio Embarque" style="width: 10%;">
+                    <apex:outputText value="{!emb.Embarque.Folio_Embarque_SDL__c}" />
+                </apex:column>
+                 <apex:column headerValue="Nombre" style="width: 10%;">
+                    <apex:outputText value="{!emb.Embarque.Nombre__c}" />
+                </apex:column>
+                
+                <apex:column headerValue="Fecha Embarque"  style="width: 10%;">
+                  <apex:outputText value="{0,date,dd-MM-yyyy}">
+                      <apex:param value="{!emb.Embarque.Fecha_Embarque__c}" />
+                 </apex:outputText>
+               </apex:column>
+              <!-- <apex:column headerValue="Ciudades">
+                  <apex:outputText value="{!emb.FolioPedido}"/>
+               </apex:column>-->
+               <apex:column headerValue="# pedidos" style="width: 10%;">
+               <apex:outputText value="{!emb.Embarque.Pedidos__c}"/>
+               </apex:column>
+               <apex:column headerValue="Tarimas" style="width: 10%;">
+               <apex:outputText value="{!emb.Embarque.Tarimas__c}"/>
+               </apex:column>
+               <apex:column headerValue="Cajas" style="width: 10%;">
+               <apex:outputText value="{!emb.Embarque.Cajas__c }"/>
+               </apex:column>
+               <apex:column headerValue="Peso Actual" style="width: 10%;">
+               <apex:outputText value="{!emb.Embarque.Peso__c}"/>
+               </apex:column>
+               <apex:column headerValue="importe" style="width: 10%;">
+                    <apex:outputText value="{0, number, 0,000.00}">
+                    <apex:param value="{!emb.Embarque.Importe__c}" />
+                </apex:outputText>
+               </apex:column>
+               <apex:column headerValue="" style="width: 20%;">
+                  <apex:commandButton value="Detalle" onclick="openModalConfig('ConfigEmbarque','{!emb.Embarque.Folio_Embarque_SDL__c}')" action="{!DetalleEmbarque}"    style="color: #fff;background-color: #5bc0de;border-color: #5bc0de;background-image:none;"/>
+                   <apex:commandButton value="Eliminar" onclick="validarSeleccionado('{!emb.Embarque.Folio_Embarque_SDL__c}')"  action="{!EliminarEmbarque}" rendered="{!IF(NOT(emb.Embarque.Embarque_cerrado__c), true, false)}" style="color: #fff;background-color: #d9534f;border-color: #d9534f;background-image:none;"/>
+                   <apex:commandButton value="Cerrar" onclick="validarSeleccionado('{!emb.Embarque.Folio_Embarque_SDL__c}')"  action="{!CerrarEmbarque}" rendered="{!IF(NOT(emb.Embarque.Embarque_cerrado__c), true, false)}" style="color: #fff;background-color: #5cb85c;border-color: #5cb85c;background-image:none;"/>
+                   <apex:commandButton value="Abrir" onclick="validarSeleccionado('{!emb.Embarque.Folio_Embarque_SDL__c}')"  action="{!AbrirEmbarque}" rendered="{!If(emb.Embarque.Embarque_cerrado__c ==true ,true,false)}" style="color: #fff;background-color: #0275d8;border-color: #0275d8;background-image:none;" />
+
+               </apex:column>
+               
+            </apex:pageBlockTable>
+    </apex:pageBlock>
+    <br/><br/>
+
+<div id="ConfigEmbarque" style="display:{!Display}">
+   <apex:pageBlock id="Detalle" title="Configuración de Embarque" >
+    <br/>
+           <apex:pageBlockTable value="{!ListaEmbarquesDet}" var="emb" styleClass="pageBlockTablePortafolio2" title="Informacion de Embarque">
+
+               
+               <apex:column headerValue="Folio Embarque" style="width: 10%;">
+                    <apex:outputText value="{!emb.Embarque.Folio_Embarque_SDL__c}" />
+                </apex:column>
+               
+                <apex:column headerValue="Fecha Embarque"  style="width: 10%;">
+                  <apex:outputText value="{0,date,dd-MM-yyyy}">
+                      <apex:param value="{!emb.Embarque.Fecha_Embarque__c}" />
+                 </apex:outputText>
+               </apex:column>
+
+               <apex:column headerValue="# pedidos" style="width: 10%;">
+               <apex:outputText value="{!emb.Embarque.Pedidos__c}"/>
+               </apex:column>
+               <apex:column headerValue="Tarimas" style="width: 10%;">
+               <apex:outputText value="{!emb.Embarque.Tarimas__c}"/>
+               </apex:column>
+               <apex:column headerValue="Cajas" style="width: 10%;">
+                   <apex:outputText value="{!emb.Embarque.Cajas__c }"/>
+               </apex:column>
+               <apex:column headerValue="Peso Actual" style="width: 10%;">
+               <apex:outputText value="{!emb.Embarque.Peso__c}"/>
+               </apex:column>
+               <apex:column headerValue="importe" style="width: 10%;">
+
+               <apex:outputText value="{0, number, 0,000.00}">
+                    <apex:param value="{!emb.Embarque.Importe__c}" />
+                     </apex:outputText>
+               </apex:column>
+            
+               
+            </apex:pageBlockTable>
+            <br/>
+             <apex:pageBlockSection columns="4">
+               <apex:inputText value="{!HoraPlanta2}" label="Hora de Carga planta:" style="width: 60px;" />
+               <apex:inputTextarea value="{!Observaciones2}" label="Observaciones:" style="width: 500px;"  rows="2"  />
+              
+
+
+
+        </apex:pageBlockSection>
+        <div style="overflow-y: scroll; width: 100%; height: 150px;">
+        <apex:pageBlockTable value="{!ListaDetEmbarques}" var="det" title="Detalle de Embarque" id="ConfigDet">
+               
+                <apex:column headerValue="Orden" style="width: 50px;">
+                    <apex:inputField type="number" value="{!det.DetalleEmbarque.Orden__c}"  style="width: 50px;" />
+                </apex:column>
+               <apex:column headerValue="Folio" value="{!det.DetalleEmbarque.Folio_pedido_SDL__c}">
+               </apex:column>
+               <apex:column headerValue="Frontera">
+                  <apex:outputText value="{!det.DetalleEmbarque.Frontera__c}"/>
+               </apex:column>
+               <apex:column headerValue="Cliente">
+               <apex:outputText value="{!det.DetalleEmbarque.Cliente__c}"/>
+               </apex:column>
+               <apex:column headerValue="Sucursal">
+               <apex:outputText value="{!det.DetalleEmbarque.Sucursal__c}"/>
+               </apex:column>
+               <apex:column headerValue="Ciudad">
+               <apex:outputText value="{!det.DetalleEmbarque.Ciudad__c}"/>
+               </apex:column>
+               <apex:column headerValue="Fecha Entrega">
+                <apex:outputText value="{0,date,dd-MM-yyyy}">
+                    <apex:param value="{!det.DetalleEmbarque.Fecha_Surtido__c}" />
+               </apex:outputText>
+               
+               </apex:column>
+               <apex:column headerValue="Peso">
+               <apex:outputText value="{!det.DetalleEmbarque.Peso__c}"/>
+               </apex:column>
+               <apex:column headerValue="Fecha Cita">
+                <c:noDateLink >
+                  <apex:inputField value="{!det.DetalleEmbarque.Fecha_Cita__c}" rendered="{!DisplayGuardar}"/>
+                  <apex:outputField value="{!det.DetalleEmbarque.Fecha_Cita__c}" rendered="!{!DisplayGuardar}"/>
+               </c:noDateLink> 
+               </apex:column>
+               <apex:column headerValue="Hora Cita">
+                  <apex:inputField value="{!det.DetalleEmbarque.Hora_Cita__c}" style="width: 60px;"  rendered="{!DisplayGuardar}"/>
+                   <apex:outputField value="{!det.DetalleEmbarque.Hora_Cita__c}" style="width: 60px;"  rendered="!{!DisplayGuardar}"/>
+                   a
+                   <apex:inputField value="{!det.DetalleEmbarque.HoraCitaFin__c}" style="width: 60px;" rendered="{!DisplayGuardar}"/>
+                   <apex:outputField value="{!det.DetalleEmbarque.HoraCitaFin__c}" style="width: 60px;" rendered="!{!DisplayGuardar}"/>
+               </apex:column>
+               <apex:column headerValue="Folio Cita">
+                <apex:inputText value="{!det.DetalleEmbarque.Folio_Cita__c}" style="width: 60px;" />
+               </apex:column>
+               <apex:column headerValue="Eliminar">
+                <apex:inputCheckbox value="{!det.Eliminar}" />
+               
+               </apex:column> 
+               
+            </apex:pageBlockTable>
+            </div>
+
+            <div align="center">
+            <input type="button" value="Cancelar" class="btn" onclick="closeModal('ConfigEmbarque')" style="width: 100px;background-color: #fff;border-color: #ccc;background-image:none;" />
+            <apex:commandButton action="{!ModificarEmbarque}" onclick="Consultar()" value="Guardar" id="theButton7"  style="color: #fff;background-color: #5cb85c;border-color: #5cb85c;background-image:none; width: 100px;" rendered="{!DisplayGuardar}"/>
+            </div>
+            
+    </apex:pageBlock>
+</div>
+    <div id="modalOfiVentas" style="display:none">
+            <apex:pageBlock title="Búsqueda de Almacen">
+                <apex:pageBlockButtons location="top">
+                    <label class="labelCol">Nombre del producto:</label>
+                    <input type="text" id="inputSearchText2" onkeyup="filterProductsEmbarque()"/>
+                </apex:pageBlockButtons>
+                <table class="list pageBlockTablePortafolio" border="0" cellpadding="0" cellspacing="0">
+                    <tr class="headerRow">
+                        <td>Código del producto</td>
+                        <td>Descripción del producto</td>
+                        <td style="display:none"></td>
+                    </tr>
+                    <apex:repeat value="{!MapAlmacenes}" var="productCode">
+                        <tr class="dataRow" onclick="selectItem('{!MapAlmacenes[productCode].Codigo__c}','{!MapAlmacenes[productCode].name}','{!MapAlmacenes[productCode].Id}','modalOfiVentas')" onmouseover="rowOn(this)" onmouseout="rowOff(this)">
+                            <td>{!MapAlmacenes[productCode].Codigo__c}</td>
+                            <td>{!MapAlmacenes[productCode].name}</td>
+                            <td style="display:none">
+                                {!MapAlmacenes[productCode].id}
+                                <input type="hidden" id="IdProducto" value="'{!MapAlmacenes[productCode].Id}'"/>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+              
+                <apex:pageBlockButtons location="bottom">
+                    <input type="button" value="Cerrar" class="btn" onclick="closeModal('modalOfiVentas')"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+    </div>
+    <!-- style="display: {!Display}"-->
+      <div id="overlay"  style="display: {!Display}"/>
+       <div id="showStatusDiv" style="display: none;">
+          <apex:image value="{!$Resource.spinner}" width="100" height="100"/>
+        </div>
+        <script type="text/javascript">
+       function SearchProductEmbarque() {
+              var encontrado = false;
+              var MasterID =$('[id$=inputSearchText]').val()
+              if(MasterID != '')
+              {
+                  $(".pageBlockTablePortafolio tr.dataRow").each(function() {
+                      if($(this).find("td:nth-child(1)").text().toLowerCase().trim() == MasterID){
+                         
+                            $('[id$=inputSearchText]').val($(this).find("td:nth-child(1)").text());
+                            $('[id$=inputSearchText2]').val($(this).find("td:nth-child(2)").text());
+                            var id = $(this).find("td:nth-child(3)").text().trim();
+                            $('[id$=HiddenId]').val(id);
+                             encontrado = true;
+                           
+                           
+                      }
+                
+                    
+                  });
+                   if(!encontrado)
+                    {
+                      $('[id$=inputSearchText2]').val('No se encontro el Producto');
+                     
+                    }
+              }
+                
+             
+      }   
+   
+    function changeValue(checkButton) {
+        var chk = document.getElementsByClassName('myChk');
+        console.log(checkButton.value);
+
+       for (var i=0; i<chk.length; i++) {
+
+              if(chk[i].name != checkButton.name)
+              {
+                chk[i].checked = false;
+              }
+             
+           
+        }
+    }
+   function openModalConfig(elementId, row) {
+
+  $('[id$=showStatusDiv]').show();
+  $('[id$=HiddenFecha]').val( $('[id$=FechaFiltro]').val());
+  $('[id$=HiddenNumeroAlmacen]').val( $('[id$=inputSearchText]').val());
+  $(".pageBlockTablePortafolio2 tr.dataRow").each(function() {
+      var inputCheckbox = $(this).find("td:nth-child(1)");
+      var seleccionado = inputCheckbox[0].childNodes;
+      
+      if($(this).find("td:nth-child(2)").text() == row )
+      {
+        
+        seleccionado[0].checked = true;
+            
+      }
+      else{ seleccionado[0].checked = false;}
+      
+    
+      
+    });
+}
+function validarSeleccionado(IsValido)
+{
+    $(".pageBlockTablePortafolio2 tr.dataRow").each(function() {
+      var inputCheckbox = $(this).find("td:nth-child(1)");
+      var seleccionado = inputCheckbox[0].childNodes;
+      
+      if($(this).find("td:nth-child(2)").text() == IsValido )
+      {
+        
+        seleccionado[0].checked = true;
+            
+      }
+      else{ seleccionado[0].checked = false;}
+      
+    
+      
+    });
+    Consultar();
+}
+
+</script>
+  </apex:form>
+
+</apex:page>

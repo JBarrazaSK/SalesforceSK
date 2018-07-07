@@ -1,0 +1,204 @@
+<apex:page sidebar="false" controller="ctrlAjusteDispo" tabStyle="AjusteDispo__tab">
+    <script>
+        function loading(name,visble){
+            var el = document.getElementById(name);
+            el.style.display = (visble)?'':'none';
+        }
+        
+        function cambiaDispo(e){
+            var vAjuste= e.value;
+            var vOrigen = obtenerValorOrigen(e);
+            var vNuevoD = vOrigen;
+            if(isFinite(vAjuste) && isFinite(vOrigen))
+                vNuevoD = Number(vOrigen) + Number(vAjuste);
+            insertaNuevoValor(e,vNuevoD);
+        }
+        
+        function insertaNuevoValor(e,valorN){
+            var renglon = getParentByTagName(e, 'tr');
+            var celda = renglon.children[4].children[0];
+            celda.innerHTML = valorN;
+            if(!isFinite(valorN) || Number(valorN) < 0){
+                renglon.children[4].style.color = "#F00";
+                renglon.children[4].style.fontWeight = "bold";
+            }else{
+                renglon.children[4].style.color = "#000";
+                renglon.children[4].style.fontWeight = "normal";
+            }   
+        }
+        
+        function obtenerValorOrigen(e){
+            var renglon = getParentByTagName(e, 'tr');
+            var celda = renglon.children[2].children[0];
+            return celda.innerHTML;
+        }
+        
+        function getParentByTagName(obj, tagName){
+            tagName = tagName.toLowerCase();
+            while (obj!= null && obj.tagName!=null && obj.tagName.toLowerCase() != tagName)
+                obj=obj.parentNode;
+            return obj;
+        }
+        
+        function borraInputs(){
+            var inputs = document.getElementsByClassName('clinpt');
+            for(var i = 0; inputs.length > i;i++)
+                inputs[i].value = '';   
+        
+        }
+    </script>
+    <style>
+        body input.btnGreen{
+                color: #fff;
+                background-color: GREEN;
+                border-color: #5cb85c;
+                background-image: none;
+                padding: 6px;
+        }
+        body input.btnBlue{
+                color: #fff;
+                background-color: BLUE;
+                border-color: #6e5cb8;
+                background-image: none;
+                padding: 6px;
+        }
+        
+        body input.btnOrange{
+                color: #fff;
+                background-color: #ff6a00;
+                border-color: #fb8c3e;
+                background-image: none;
+                padding: 6px;
+        }
+        .ajuste{width: 5em;}
+        .centro{text-align: center;}
+        .dataCell .errorMsg{display:none;}
+        body .bPageBlock h2 {font-size: 1em !important;}
+        body .pbBody table.list tr.dataRow td.bordeIzq{border-left: 1px solid #e3deb8;}
+        .loader{
+            z-index: 9999;
+            position: fixed;
+            padding: 0;
+            margin: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.6) no-repeat center URL(/img/loading32.gif);
+        }
+    </style>
+    <div id="cargando" style="display:none;" class="loader"></div>
+    <apex:form id="form" >
+        <apex:pageMessages id="messages" />
+        <apex:pageBlock title="Configuración Ajuste Disponibilidad">
+            <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton reRender="busqueda,resultados,messages" oncomplete="loading('cargando',false);" onclick="loading('cargando',true);" action="{!consultaDispo}" value="Consultar" styleClass="btnBlue"/>
+                    <apex:commandButton reRender="busqueda,resultados,messages" oncomplete="loading('cargando',false);" onclick="loading('cargando',true);" action="{!guardar}" value="Guardar" styleClass="btnGreen" />
+                    <apex:commandButton reRender="busqueda,resultados,userExternal,messages" oncomplete="borraInputs();loading('cargando',false);" onclick="loading('cargando',true);" action="{!init}" immediate="true" value="Limpiar" styleClass="btnOrange" />
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection columns="3" id="busqueda">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Oficina Venta" />
+                    <apex:outputPanel >
+                        <apex:actionRegion immediate="true">
+                            <apex:outputPanel layout="block" style="width: 295px;" id="regProductos">
+                                <apex:outputPanel layout="block" style="float: left;">
+                                    <apex:inputText styleClass="clinpt" id="codigoTXT" style="width: 3em;float:left;margin-right: 10px;" value="{!codigoOficina}">
+                                        <apex:actionSupport event="onchange" action="{!obtenerOficina}" rerender="officeLK,messages" oncomplete="loading('loadOffice',false);" onsubmit="loading('loadOffice',true);"/>
+                                    </apex:inputText>
+                                    <apex:inputField id="officeLK" value="{!filtroObj.Oficina_Venta__c}">
+                                        <apex:actionSupport event="onchange" action="{!obtenerCodigoOficina}" rerender="codigoTXT,messages" oncomplete="loading('loadOffice',false);" onsubmit="loading('loadOffice',true);"/>
+                                    </apex:inputField>
+                                </apex:outputPanel>
+                                <img src="/img/loading.gif" id="loadOffice" height="16" style="display:none;" />
+                            </apex:outputPanel>
+                        </apex:actionRegion>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:inputField label="Fechas" value="{!filtroObj.Fecha_Embarque__c}" />
+                <apex:inputField label="Hasta" value="{!filtroObj2.Fecha_Embarque__c}" />
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Productos" />
+                    <apex:outputPanel >
+                        <apex:actionRegion immediate="true">
+                            <apex:outputPanel layout="block" style="width: 295px;" id="regProductos">
+                                <apex:outputPanel layout="block" style="float: left;">
+                                    <apex:inputText styleClass="clinpt" id="codigoPTXT" style="width: 3em;float:left;margin-right: 10px;" value="{!codigoProducto}">
+                                        <apex:actionSupport event="onchange" action="{!obtenerProducto}" rerender="regProductos,messages" oncomplete="loading('loadProduct',false);" onsubmit="loading('loadProduct',true);"/>
+                                    </apex:inputText>
+                                    <apex:inputField id="prodLK" value="{!filtroObj.Producto__c}">
+                                        <apex:actionSupport event="onchange" action="{!obtenerCodigoProducto}" rerender="regProductos,messages" oncomplete="loading('loadProduct',false);" onsubmit="loading('loadProduct',true);"/>
+                                    </apex:inputField>
+                                </apex:outputPanel>
+                                <apex:commandButton action="{!aniadirProducto}" value=" + "  rerender="regProductos,listaProductos,messages" oncomplete="loading('loadProduct',false);" onclick="loading('loadProduct',true);" />
+                                <img src="/img/loading.gif" id="loadProduct" height="16" style="display:none;" />
+                            </apex:outputPanel>
+                            <apex:selectList id="listaProductos" style="width: 245px;" value="{!productoSelec}" multiselect="false" size="5">
+                                <apex:selectOptions value="{!opProductos}"/>
+                            </apex:selectList>
+                            <apex:commandButton style="margin: 6px;" styleClass="removeOption" action="{!removerProducto}" value=" - " rerender="regProductos,listaProductos,messages" oncomplete="loading('loadProduct',false);" onclick="loading('loadProduct',true);"/>
+                        </apex:actionRegion>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                 <apex:outputPanel layout="block" style="width: 295px;" id="userExternal">
+                    <table class="detailList" border="0" cellpadding="0" cellspacing="0">
+                        <tbody>
+                            <tr>
+                                <th class="labelCol vfLabelColTextWrap  first " scope="row"><label>Usuario</label></th>
+                                <td class="dataCol  first ">
+                                    <apex:selectList styleClass="clinpt" label="Usuario" value="{!Usuario0}" multiselect="false" size="1">
+                                        <apex:selectOptions value="{!ExternalUsuarios}"/>
+                                    </apex:selectList>
+                                </td>
+                            </tr><tr>
+                                <th class="labelCol vfLabelColTextWrap  first " scope="row"><label>Contraseña</label></th>
+                                <td class="dataCol  first ">
+                                    <apex:inputSecret value="{!Password}" label="Contraseña"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:pageBlock title="Resultado Consulta Ajuste Disponibilidad" id="resultados">
+            <apex:pageBlockSection columns="1">
+                <apex:outputPanel layout="block" rendered="{!resTabla.size > 0}">
+                    <table class="list" border="0" cellpadding="0" cellspacing="0">
+                        <thead class="">
+                            <tr class="headerRow">
+                                <th class="headerRow" rowspan="1" scope="col" colspan="1">Producto</th>
+                                <th class="headerRow centro" style="width: 110px;" rowspan="1" scope="col" colspan="1">Fecha</th>
+                                <th class="headerRow centro" style="width: 110px;" rowspan="1" scope="col" colspan="1">Dispo. Actual</th>
+                                <th class="headerRow centro" style="width: 130px;" rowspan="1" scope="col" colspan="1">Ajuste</th>
+                                <th class="headerRow centro" style="width: 110px;" rowspan="1" scope="col" colspan="1">Nueva Dispo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat value="{!resTabla}" var="pro">
+                                <apex:repeat value="{!pro.DispXFecha}" var="disp">
+                                    <tr class="dataRow odd">
+                                        <td style="{!if(disp = pro.DispXFecha[0],'','display:none;')}" class="dataCell" rowspan="{!pro.Tamanio}"><apex:outputText value="{!pro.Producto.Name}" /></td>
+                                        <td class="dataCell bordeIzq centro" colspan="1"><apex:outputText value="{0,date,dd/MM/yyyy}"><apex:param value="{!disp.ajusteDispo.Fecha_Embarque__c}" /></apex:outputText></td>
+                                        <td class="dataCell bordeIzq centro" colspan="1"><apex:outputText styleClass="dActual" value="{!disp.ajusteDispo.Disponibilidad_Actual__c}" /></td>
+                                        <td class="dataCell bordeIzq centro" colspan="1">
+                                            <apex:inputField rendered="{!elementosGuardados = false}" onkeyup="cambiaDispo(this);" styleClass="ajuste" value="{!disp.ajusteDispo.Ajuste_Cajas__c}"/>
+                                            <apex:outputText rendered="{!elementosGuardados = true}" value="{0, number, ###,###,##0}">
+                                                <apex:param value="{!disp.ajusteDispo.Ajuste_Cajas__c}" />
+                                            </apex:outputText>
+                                        </td>
+                                        <td class="dataCell bordeIzq centro" colspan="1">
+                                            <apex:outputText style="{!if(disp.ajusteDispo.Nueva_Disponiblidad__c != null && disp.ajusteDispo.Nueva_Disponiblidad__c < 0,'color:#F00;font-weight: bold;','')}" styleClass="dNueva" value="{0, number, ###,###,##0}">
+                                                <apex:param value="{!disp.ajusteDispo.Nueva_Disponiblidad__c}" />
+                                            </apex:outputText>
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>    
+</apex:page>

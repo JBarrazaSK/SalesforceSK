@@ -1,0 +1,1043 @@
+<apex:page showHeader="false" sidebar="false" controller="BLDS.ProfilerGridController" action="{!checkCompanyStatus}">
+	<apex:styleSheet value="{!URLFOR($Resource.BLDS__ProfilerResources,'Styles/Broadlook_New.css')}"/>
+	<script type="text/javascript" src="../../soap/ajax/24.0/connection.js" ></script>
+	<script type="text/javascript" src="../../soap/ajax/24.0/apex.js" ></script>
+	<apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryDraggable, 'jquery-1.9.1.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryDraggable, 'jquery-ui.js')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.BLDS__JQueryDraggable, 'jquery-ui.css')}"/>
+	<!-- 
+		<apex:styleSheet value="{!URLFOR($Resource.ProfilerResources,'Styles/Profiler_PM.css')}" />
+		 -->
+	<style type="text/css">
+		.contactRow {
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		}
+		ul {
+		list-style: none;
+		}
+		.piped2 {
+		padding-left:0px;
+		}
+		.piped2 .lastItem {
+		border-right: none;
+		}
+		.piped2 li {
+		float: left;
+		border-right: 1px solid #cfcece;
+		padding-left: 0;
+		padding-right: 3px;
+		margin-left: 3px;
+		margin-top: 2px;
+		margin-bottom: 2px;
+		vertical-align:middle;
+		}
+		.custPopup{
+		background-color: white;
+		border-width: 2px;
+		border-style: solid;
+		z-index: 9999;
+		left: 50%;
+		padding:10px;
+		position: absolute;
+		overflow: auto;
+		max-height: 300px;
+		width: 800px;
+		margin-left: -400px;
+		top:100px;
+		}
+		.popupBackground{
+		background-color:black;
+		opacity: 0.20;
+		filter: alpha(opacity = 20);
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		top: 0;
+		left: 0;
+		z-index: 9998;
+		}
+		.missingDataTR
+		{
+		width:100%; 
+		background-color: orange; 
+		height: 25px;
+		}
+		.iconPositionDiv
+		{
+		left:1px; 
+		top:1px; 
+		width:100%; 
+		text-align:center; 
+		vertical-align: middle; 
+		background-color: #dcdcdc; 
+		opacity:0.7;
+		filter:alpha(opacity=60);
+		}
+		.iconPositionDivTest
+		{
+		left:1px; 
+		top:1px; 
+		width:100%; 
+		height:100%;
+		text-align:center; 
+		vertical-align: middle; 
+		background-color: #F3F2F2; 
+		opacity:0.7;
+		filter:alpha(opacity=60);
+		}
+		.iconPostionTable
+		{
+		width: 100%; 
+		height: 30%;
+		}
+	</style>
+	<script type="text/javascript">     
+		$().ready(function(){
+		   	deleteAttachmentJS();
+		   	var tdarray = $("table[id*='pbtResult']").find('td');
+		   	
+		   	if(tdarray.size() > 0)
+		   	{
+		   		tdarray[1].click();
+		   	}
+		   	
+		   });
+		   
+		   /*
+		       select all items when the checkbox is selected 
+		   */
+		    /* To show javascript error message in standard VF style*/
+		   function showError(e)
+		   {
+		       if(e.message == 'Undefined' || e.message == '' || e.message == undefined)
+		           afDisplayJSErrorMessage(e);
+		       else
+		           afDisplayJSErrorMessage(e.message);
+		   }
+		   
+		   function checkAll(cb)
+		   {
+		       try{
+		      var inputElem = document.getElementsByTagName("input");
+		      for(var i=0;i<inputElem.length;i++)
+		        {
+		           if(inputElem[i].id.indexOf("selectLine")!=-1)
+		               inputElem[i].checked = cb.checked;
+		         } 
+		         }catch(e){
+		           showError(e);
+		         }
+		   }
+		   
+		   // Based on custom setting collapse/expand company info section
+		   function customToggleSection(el)
+		   {
+		       try{            
+		       if(typeof twistSection === 'function'){
+		           var theTwist = document.getElementById(el);
+		           var secImg = document.getElementById('img_'+el);
+		           
+		           secImg.onclick = function() { twistSection(secImg); };
+		           
+		           if(theTwist && '{!blnExpandCompProfileSection}' == 'false' ){
+		               // twistSection expects you to click on the IMG link, this targets that img HTMLelement    
+		               twistSection(theTwist.childNodes[0].childNodes[0]);
+		           }
+		        }
+		       uncheckCheckAll();
+		       }catch(e){
+		           showError(e);
+		       }
+		   }
+		   
+		   /* Unchecking the check all checkbox */
+		   function uncheckCheckAll(){
+		       try{
+		       var inputElem = document.getElementsByTagName("input");
+		       
+		       for(var i=0;i<inputElem.length;i++)
+		       {
+		           if(inputElem[i].id.indexOf("checkAll") != -1)
+		               inputElem[i].checked = false;
+		       }
+		       }catch(e){
+		           showError(e);
+		       }
+		   }
+		   
+		   function openRecord(url)
+		   {
+		       window.open(url, "_blank");
+		   }
+		   // Called if missing phone number or email checkbox is selected/deselected
+		   function updateValue(inputId)
+		   {
+		       try{
+		       var blnValue = document.getElementById(inputId).value;
+		       if(blnValue == 'false' )
+		           document.getElementById(inputId).value = true;
+		       else
+		           document.getElementById(inputId).value = false;
+		       }catch(e){
+		           showError(e);
+		       } 
+		   }
+		 
+		   // Called from converto to conatact/lead and pass the info to capture result page
+		   function redirect(parentId, objectName, isRedirectToMerge)
+		   {   
+		       try{
+		       //var redirectTemp = document.getElementById(hiddenId).value;
+		       if(isRedirectToMerge == 'true' || isRedirectToMerge == true)
+		           window.top.location = '/apex/CaptureResult?source=Profiler&parenId='+parentId+'&convertTo='+objectName;
+		       }catch(e){
+		           showError(e);
+		       } 
+		   }
+		   
+		// get the id of filterselect if Hidden will confirm user to ultimate delete the record.
+		   function confirmUltimateDelete()
+		   {
+		       try
+		           {
+		       var spans = document.getElementsByTagName("select");
+		       var targetObject;
+		       for(var i =0; i< spans.length;i++)
+		           {
+		               if(spans[i].id.indexOf("filterselect") != -1)
+		                   {
+		                       targetObject = spans[i];
+		                       break;
+		                   }
+		           }
+		       var selValue = targetObject.options[targetObject.selectedIndex].value;
+		       
+		       if(selValue == "Hidden")
+		           {
+		               var isConfirm = confirm("Do you want to delete these records?");
+		               if(isConfirm)
+		                   {
+		                      deleteRecordJS();
+		                       return false;
+		                       }
+		               else
+		                   return false;
+		               
+		               }
+		       else
+		           {
+		               deleteRecordJS();
+		                return false;
+		               }
+		               }catch(e)
+		                   {
+		                       showError(e);
+		                       
+		                       }
+		   }
+		  
+		   //Js funntion to change value of Hide Button
+		   function ChangeHideButtonValue(buttonValue)
+		   {
+		       try{
+		       var inputElem = document.getElementsByTagName("input");
+		       var button,ultimateButton ;
+		       for(var i=0;i<inputElem.length;i++)
+		       {
+		           if(inputElem[i].id.indexOf("btnDeleteAccount") != -1)
+		               button = inputElem[i];
+		           if(inputElem[i].id.indexOf("btnUltimateDeleteAccount") != -1)
+		               ultimateButton = inputElem[i];
+		       }
+		       }catch(e){
+		           showError(e);
+		       }
+		       //var button = document.getElementById("btnDeleteAccount");
+		       //button.value = buttonValue;
+		       if(buttonValue == "Hidden")
+		           {
+		               button.value = "Unhide";
+		               
+		               }
+		       else
+		           {
+		               //Display Delete Button
+		               }
+		   }
+		   
+		   /* function to change style of the selected link */
+		   function changeMyStyle(thisDoc, link, selectedLinkNum, visitThisPage)
+		   {
+		       try{
+		       setSelectedBiosAF(parseInt(selectedLinkNum));
+		       if(link != 'Information / Bio')
+		       {
+		           var a = document.createElement('a');
+		           var linkText = document.createTextNode(visitThisPage + link);
+		           a.appendChild(linkText);
+		           a.title = visitThisPage;
+		           a.href = link;
+		           a.target = "blank";
+		       }
+		       
+		       document.getElementById("biosUrlHolder").innerHTML = '';
+		       if(link != '' && link != null)
+		       {
+		           if(link != 'Information / Bio')
+		               document.getElementById("biosUrlHolder").appendChild(a);
+		       }
+		       
+		       var rows = document.getElementById('LinkHolderTable').getElementsByTagName('tr');
+		       
+		       for (var i = 0; i < rows.length; i++)
+		       {
+		           var cols = rows[i].getElementsByTagName('td');
+		           for (var j = 0; j < cols.length; j++)
+		           {
+		               cols[j].style.backgroundColor = "#F8F8F8";
+		               cols[j].style.color = "#000000";
+		           }
+		       }
+		       
+		       thisDoc.style.backgroundColor = "#D6E6FD";
+		       thisDoc.style.color = "#00000";
+		       }catch(e){
+		           showError(e);
+		       }
+		   }
+		   
+		   function focusGrid()
+		   {
+		       try{
+		       var parentUrl = document.referrer;
+		       
+		       if(parentUrl.indexOf("FocusGrid") != -1)
+		           document.getElementById('focusHere').focus();
+		       var parentUrl = document.referrer;
+		       if(parentUrl.lastIndexOf('pageNumber=') != -1)
+		       {
+		           parentUrl = (parentUrl.split('pageNumber=')[1]);
+		           redirectToCurrentPage(parentUrl);
+		       }      
+		       }catch(e){
+		           showError(e);
+		       }
+		   }
+		  
+		var timer;
+		var status = 1;
+		  function showEditContactPopup() {
+		   clearTimeout(timer);
+		   status = 0;
+		      $("#overlay").css("visibility", "visible");
+		      $("#editContact").show();
+		  }
+		  
+		  function hideEditContactPopup() {
+		status = 1;
+		       $("#overlay").css("visibility", "hidden");
+		       $("#editContact").hide();
+		  }
+		  function showLoadingAnimation() {
+		       $("#divButton1").css("visibility", "visible");
+		   }
+		   function hideLoadingAnimation() {
+		       $("#divButton1").css("visibility", "hidden");
+		   }
+		  
+		  function openBioJS(thisTdId,Score,Name,Title,Phone,Email)
+		   {
+		   	showLoadingAnimation();
+		   	highlightThisRow(thisTdId);
+		   	timer = setTimeout(function() {
+		         if (status == 1) {
+		             try{
+		           var bgCompare = "rgb(224, 240, 253)";
+		           var bgValue = document.getElementById(thisTdId).parentNode.style.background;
+		            if (navigator.appName == "Microsoft Internet Explorer")
+		            {
+		                   colorToCompare = "#e0f0fd";
+		            }
+		               
+		           if(bgValue != bgCompare)    
+		               {
+		           openBio(parseInt(Score),Name,Title,Phone,Email);
+		           
+		           //highlightThisRow(thisTdId);
+		                   }
+		       } catch(e){}
+		         }
+		         hideLoadingAnimation();
+		    	}, 3500);
+		   }
+		
+		   // Function for highlighting the current selected row
+		   function highlightThisRow(thisTdId)
+		   {
+		       try{
+		       for (var i=0; i<document.getElementById(thisTdId).parentNode.parentNode.childNodes.length; i++) {
+		           document.getElementById(thisTdId).parentNode.parentNode.childNodes[i].style.background="#FFFFFF";
+		       }
+		       
+		       document.getElementById(thisTdId).parentNode.style.background="#D6E6FD";
+		       //document.getElementById(thisTdId).parentNode.className = 'contactRow';
+		       }catch(e){
+		           //showError(e);
+		       }
+		   }
+		
+		   function reDirectAfterCreateUpdate(recIdNew,components)
+		   {
+		       try{
+		                 var spans = document.getElementsByTagName("select");
+		                   var targetObject;
+		                   for(var i =0; i< spans.length;i++)
+		                       {
+		                           if(spans[i].id.indexOf("filterAction") != -1)
+		                               {
+		                                   targetObject = spans[i];
+		                                   break;
+		                               }
+		                       }
+		           var selValue = targetObject.options[targetObject.selectedIndex].value;
+		           if(selValue == "Lead")
+		               {
+		                 
+		                  redirect(recIdNew, "Lead", components);
+		                   
+		                   }
+		           else if(selValue =="Contact")
+		               {
+		                   
+		                   redirect(recIdNew, "Contact", components);
+		                   
+		                   }
+		                   else if(selValue != '')
+		           {
+		           	  redirect(recIdNew, selValue, components);
+		           }
+		           }catch(e){
+		               showErrow(e);
+		               }
+		   }    
+		    function accountUpdateRedirectFromFillMissingPopUp(displayPopUp, hhdId){
+		       try{
+		       var pgNo = document.getElementById(hhdId).value ;
+		       
+		      if(displayPopUp == 'false')
+		       window.location='/apex/profilergrid_plan?planAccountid={!JSENCODE(PlanCompanyID)}&pageNumber='+pgNo;
+		       }catch(e){
+		           showError(e);
+		       }
+		   }
+		
+		   function makeDraggable(){
+		       try{
+		       $("#draggable").draggable();
+		       document.getElementById('draggable').style.position = 'fixed';
+		       document.getElementById('draggable').style.top = '-1px';
+		       document.getElementById('draggable').style.left = '646px';
+		       document.getElementById('draggable').style.zIndex = '9999';
+		       }catch(e){
+		           showError(e);
+		       }
+		   }
+	</script>
+	<!-- div for showing loading icon on top of grid -->
+	<body class="Custom235Tab" style="margin:-5px -2px 0 -2px;">
+		<apex:form id="frmMain">
+			<apex:actionFunction name="deleteAttachmentJS" action="{!deleteAttachment}" rerender="msg,errorMessage">    	
+			</apex:actionFunction>
+			<apex:actionFunction name="afDisplayJSErrorMessage" action="{displayBlanketError}" rerender="msg,errorMessage">
+				<apex:param name="jsErrorMsg" value="" assignTo="{!strErrorMessage}"/>
+			</apex:actionFunction>
+			<apex:actionFunction name="callProfilerAPI" action="{!callProfilerAPI}" oncomplete="reloadPage();" status="processStatusLoad" />
+			<apex:actionFunction name="deleteRecordJS" action="{!ultimateDeteleRecord}" oncomplete="uncheckCheckAll()" reRender="pbtResult, buttonId, currentRecordsCount,msg,errorMessage"/>
+			<apex:actionFunction name="setSelectedBiosAF" action="{!setSelectedBios}" rerender="biosUrlTextHolder,msg,errorMessage,noDataSection" oncomplete="document.getElementById('mainDivId').style.display = 'block'; document.getElementById('tableID').style.display = 'block';" status="loading">
+				<apex:param assignTo="{!intSelectedLinkNum}" name="sc" value=""/>
+			</apex:actionFunction>
+			<apex:actionFunction name="reloadAndProfileNowAF" action="{!deleteProfilerData}" oncomplete="profileNowButtonJS();" />
+			<apex:actionFunction name="openBio" action="{!openBiosPopup}" rerender="convertPopUpLead,msg,errorMessage,noDataSection" status="processStatusLoad">
+				<apex:param assignTo="{!intScore}" name="sc" value=""/>
+				<apex:param assignTo="{!strName}" name="nm" value=""/>
+				<apex:param assignTo="{!strTitle}" name="tit" value=""/>
+				<apex:param assignTo="{!strPhoneBios}" name="ph" value=""/>
+				<apex:param assignTo="{!strEmailBios}" name="em" value=""/>
+			</apex:actionFunction>
+			<apex:actionFunction name="redirectToCurrentPage" action="{!bindData}" rerender="buttonId,msg,errorMessage,pbtResult" >
+				<apex:param assignTo="{!intCurrentPageSelected}" name="sc" value=""/>
+			</apex:actionFunction>
+			<apex:actionFunction name="updateExpandCustomSettingAF" action="{!updateExpandCustomSetting}" rerender="msg,errorMessage" />
+			<!-- this section contains all the grid data and their headers -->
+			<apex:pageBlock id="pbResult">
+				<!-- rendered="{!NOT(IsDisplayResult)}" -->
+				<apex:pageMessages id="msg" escape="false"/>
+				<!-- displays all the error/validation message -->
+				<div id="content">
+					<div id="header" class="Details" style="margin-top:-5px;padding:5px;">
+						<table>
+							<tr>
+								<td style="font-size:1.3em; font-weight:bold;">{!$CurrentPage.Parameters.planAccountName}</td>
+								<!--  Buttons -->                   
+								<td align="center" valign="middle">
+									<span style="white-space: nowrap;">
+										<apex:outputText style="text-align:center;" value=" Filter : "/>
+										<apex:selectList value="{!selectedLevel}" size="1" id="filterselect">
+											<apex:actionSupport event="onchange" action="{!filterContactsByLevel}" reRender="frmMain,pbtResult,convertPopUpLead,msg,errorMessage,recordCount" oncomplete="customToggleSection('{!$Component.frmMain.pbResult.theSection}');ChangeHideButtonValue(this.value);" />
+											<apex:selectOptions value="{!levelOptions}"/>
+										</apex:selectList>
+									</span>
+									<apex:commandButton id="btnFillMissingData" value="Fill Data"   action="{!showPopup}" rerender="tstpopup,msg,errorMessage"/>
+									&nbsp;
+									<apex:commandButton id="btnDeleteAccount" value="Hide" action="{!deleteRecord}" oncomplete="uncheckCheckAll()" reRender="pbtResult, buttonId, currentRecordsCount,msg,errorMessage"/>
+									&nbsp;
+									<!--<input type="button" class="btnUltimateDeleteAccount" value="Delete" onclick="return confirmUltimateDelete();"/>&nbsp;-->
+									<apex:commandButton id="btnUltimateDeleteAccount" value="Delete" rendered="{!displayDeleteButton}" onclick="return confirmUltimateDelete();"/>
+									&nbsp;
+								</td>
+								<td valign="middle" align="right">
+									<apex:outputText style="text-align:center;" value=" Create / Update : "/>
+									<apex:selectList value="{!selectedAction}" size="1" id="filterAction">
+										<apex:selectOptions value="{!actionOptions}"/>
+									</apex:selectList>
+									&nbsp;
+									<apex:commandButton id="btnCreateUpdate" value="Go" action="{!mergeActions}" onComplete="reDirectAfterCreateUpdate('{!JSENCODE(strRecIdNew)}','{!isRedirecTToMerge}');" rerender="convertPopUp,msg,hdden,errorMessage"/>
+								
+									<input type="button" value="Close" onclick="window.parent.CloseCompanyDetails()" class='btn'/>
+								</td>
+							</tr>
+							<tr>
+								<td valign="top" colspan="3">
+									<!-- this section contains the company info pulled from JSON -->
+									<apex:pageBlockSection columns="2" dir="LTR" collapsible="true" title="Company Detail" id="theSection" onclick="customToggleSection('{!$Component.frmMain.pbResult.theSection}');">
+										<!--  Account Address -->
+										<apex:pageBlockSectionItem >
+											<apex:outputLabel value="Address"   for="account_address"/>
+											<apex:outputLabel value="{!profilerCompany.Address}" id="account_address" />
+										</apex:pageBlockSectionItem>
+										<!--  Account Industry -->
+										<apex:pageBlockSectionItem >
+											<apex:outputLabel value="Industry"  for="account_industry"/>
+											<apex:outputLabel value="{!profilerCompany.Industry}" id="account_industry" />
+										</apex:pageBlockSectionItem>
+										<!--  Account City -->
+										<apex:pageBlockSectionItem >
+											<apex:outputLabel value="City"      for="account_city"/>
+											<apex:outputLabel value="{!profilerCompany.City}" id="account_city" />
+										</apex:pageBlockSectionItem>
+										<!--  Account Employees -->
+										<apex:pageBlockSectionItem >
+											<apex:outputLabel value="Employees" for="account_employees"/>
+											<apex:outputText value="{0, number, integer}" id="account_employees" rendered="{!profilerCompany.Employees != null}">
+												<apex:param value="{!Value(profilerCompany.Employees)}" />
+											</apex:outputText>
+										</apex:pageBlockSectionItem>
+										<!--  Account State -->
+										<apex:pageBlockSectionItem >
+											<apex:outputLabel value="State"     for="account_state"/>
+											<apex:outputLabel value="{!profilerCompany.State}" id="account_state" />
+										</apex:pageBlockSectionItem>
+										<!--  Account Revenue -->                                                                                                                                                                                           
+										<apex:pageBlockSectionItem >
+											<apex:outputLabel value="Revenue" for="account_revenue"/>
+											<apex:outputText value="{0, number, currency}" id="account_employees" rendered="{!profilerCompany.Revenue != null}">
+												<apex:param value="{!Value(profilerCompany.Revenue)}" />
+											</apex:outputText>
+										</apex:pageBlockSectionItem>
+										<!--  Account Phone -->
+										<apex:pageBlockSectionItem >
+											<apex:outputLabel value="Phone"     for="account_phone"/>
+											<apex:outputLabel value="{!profilerCompany.Phone}" id="account_phone" />
+										</apex:pageBlockSectionItem>
+										<!--  Account Website -->
+										<apex:pageBlockSectionItem >
+											<apex:outputLabel value="Website"   for="account_website"/>
+											<apex:outputLink value="http://{!profilerCompany.WWW}" id="account_website" target="_blank">{!profilerCompany.WWW}</apex:outputLink>
+										</apex:pageBlockSectionItem>
+									</apex:pageBlockSection>
+								</td>
+							</tr>
+						</table>
+					</div>
+					<!-- this section contains all the grid data pulled from JSON -->
+					<apex:pageBlockTable id="pbtResult" value="{!contactList}" var="item" rowclasses="Profiler_Contact">
+						<apex:column width="3%" >
+							<apex:facet name="header">
+								<apex:inputCheckbox id="checkAll" onclick="checkAll(this)"/>
+							</apex:facet>
+							<apex:inputCheckbox value="{!item.selected}" id="selectLine"/>
+						</apex:column>
+						<apex:column headerValue="Source" width="4%" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" style="cursor : pointer;">
+							<apex:actionSupport event="ondblclick" action="{!onEditContact}" rerender="editContactForm" oncomplete="showEditContactPopup();">
+								<apex:param name="selectedContactId1" value="{!item.Id}" assignTo="{!selectedContactId}"></apex:param>
+							</apex:actionSupport>
+							<div  style="text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+								<apex:outputPanel rendered="{!item.isBioPresent}" >
+									<apex:image id="theBioImage" value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Images/bioTrue.png')}" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" title="Bio" style="cursor : pointer;" />
+									&nbsp;   
+								</apex:outputPanel>
+								<apex:repeat value="{!item.Contexts}" var="chk">
+									<apex:outputPanel rendered="{!if(contains(chk.Type, 'exec'), true, false)}" >
+										<apex:image id="thestar" value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Images/sourceExec.png')}" title="Management" style="cursor : pointer;" />
+										&nbsp;  
+									</apex:outputPanel>
+									<apex:outputPanel rendered="{!if(contains(chk.Type, 'lin'), true, false)}" >
+										<apex:image id="theperson" value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Images/sourceSocial.png')}" title="Social network" style="cursor : pointer;" />
+										&nbsp;  
+									</apex:outputPanel>
+								</apex:repeat>
+							</div>
+						</apex:column>
+						<apex:column headervalue="Status" width="4%" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" style="cursor : pointer;">
+							<apex:actionSupport event="ondblclick" action="{!onEditContact}" rerender="editContactForm" oncomplete="showEditContactPopup();">
+								<apex:param name="selectedContactId2" value="{!item.Id}" assignTo="{!selectedContactId}"></apex:param>
+							</apex:actionSupport>
+							{!item.strStatus}
+						</apex:column>
+						<apex:column width="3%" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" style="cursor : pointer;">
+							<apex:actionSupport event="ondblclick" action="{!onEditContact}" rerender="editContactForm" oncomplete="showEditContactPopup();">
+								<apex:param name="selectedContactId3" value="{!item.Id}" assignTo="{!selectedContactId}"></apex:param>
+							</apex:actionSupport>
+							<apex:outputText value="{!item.Score}" />
+							<apex:facet name="header">
+								<apex:commandLink id="cmdSortScore" action="{!sortGrid}" value="Score" reRender="pbtResult,buttonId,msg,errorMessage">
+									<apex:outputText rendered="{!AND(sortExpression=='Score', sortDirection='DESC')}">&#9660;</apex:outputText>
+									<apex:outputText rendered="{!AND(sortExpression=='Score', sortDirection!='DESC')}">&#9650;</apex:outputText>
+									<apex:param value="Score" name="column" assignTo="{!sortExpression}" ></apex:param>
+								</apex:commandLink>
+							</apex:facet>
+						</apex:column>
+						<apex:column width="12%" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" style="cursor : pointer;">
+							<apex:actionSupport event="ondblclick" action="{!onEditContact}" rerender="editContactForm" oncomplete="showEditContactPopup();">
+								<apex:param name="selectedContactId4" value="{!item.Id}" assignTo="{!selectedContactId}"></apex:param>
+							</apex:actionSupport>
+							<apex:facet name="header">
+								<apex:commandLink action="{!sortGrid}" value="Name" id="cmdSortName" reRender="pbtResult,buttonId,msgerrorMessage">
+									<apex:outputText rendered="{!AND(sortExpression=='Name', sortDirection='DESC')}">&#9660;</apex:outputText>
+									<apex:outputText rendered="{!AND(sortExpression=='Name', sortDirection!='DESC')}">&#9650;</apex:outputText>
+									<apex:param value="Name" name="column" assignTo="{!sortExpression}" ></apex:param>
+								</apex:commandLink>
+							</apex:facet>
+							<div style="width:100%;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+								<apex:outputText value="{!item.Name}" ></apex:outputText>
+							</div>
+						</apex:column>
+						<apex:column width="20%" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" style="cursor : pointer;">
+							<apex:actionSupport event="ondblclick" action="{!onEditContact}" rerender="editContactForm" oncomplete="showEditContactPopup();">
+								<apex:param name="selectedContactId5" value="{!item.Id}" assignTo="{!selectedContactId}"></apex:param>
+							</apex:actionSupport>
+							<apex:facet name="header">
+								<apex:commandLink action="{!sortGrid}" value="Job Title" id="cmdSortTitle" reRender="pbtResult,buttonId,msg,errorMessage">
+									<apex:outputText rendered="{!AND(sortExpression=='JobTitle', sortDirection='DESC')}">&#9660;</apex:outputText>
+									<apex:outputText rendered="{!AND(sortExpression=='JobTitle', sortDirection!='DESC')}">&#9650;</apex:outputText>
+									<apex:param value="JobTitle" name="column" assignTo="{!sortExpression}" ></apex:param>
+								</apex:commandLink>
+							</apex:facet>
+							<div style="width:200px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+								<apex:outputText value="{!item.Title}" ></apex:outputText>
+							</div>
+						</apex:column>
+						<apex:column width="12%" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" style="cursor : pointer; font-style:{!if(Or(item.blnIsEmailUpdated = true,item.blnIsAutoEmail = true), 'italic', 'normal')};">
+							<apex:actionSupport event="ondblclick" action="{!onEditContact}" rerender="editContactForm" oncomplete="showEditContactPopup();">
+								<apex:param name="selectedContactId6" value="{!item.Id}" assignTo="{!selectedContactId}"></apex:param>
+							</apex:actionSupport>
+							<apex:facet name="header" >
+								<apex:commandLink action="{!sortGrid}" value="Email" id="cmdSortEmail" reRender="pbtResult,buttonId,msg,errorMessage">
+									<apex:outputText rendered="{!AND(sortExpression=='Email', sortDirection='DESC')}">&#9660;</apex:outputText>
+									<apex:outputText rendered="{!AND(sortExpression=='Email', sortDirection!='DESC')}">&#9650;</apex:outputText>
+									<apex:param value="Email" name="column" assignTo="{!sortExpression}" ></apex:param>
+								</apex:commandLink>
+							</apex:facet>
+							<div style="width:100%;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+								<apex:outputText value="{!item.Email}" ></apex:outputText>
+							</div>
+						</apex:column>
+						<apex:column width="6%" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" style="cursor : pointer; font-style:{!if(Or(item.blnIsPhoneUpdated = true, item.blnIsAutoPhone = true), 'italic', 'normal')};">
+							<apex:actionSupport event="ondblclick" action="{!onEditContact}" rerender="editContactForm" oncomplete="showEditContactPopup();">
+								<apex:param name="selectedContactId7" value="{!item.Id}" assignTo="{!selectedContactId}"></apex:param>
+							</apex:actionSupport>
+							<apex:facet name="header">
+								<apex:commandLink action="{!sortGrid}" value="Phone" id="cmdSortPhone" reRender="pbtResult,buttonId,msg,errorMessage">
+									<apex:outputText rendered="{!AND(sortExpression=='Phone', sortDirection='DESC')}">&#9660;</apex:outputText>
+									<apex:outputText rendered="{!AND(sortExpression=='Phone', sortDirection!='DESC')}">&#9650;</apex:outputText>
+									<apex:param value="Phone" name="column" assignTo="{!sortExpression}" ></apex:param>
+								</apex:commandLink>
+							</apex:facet>
+							<div style="width:150px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+								<apex:outputText value="{!item.Phone}" ></apex:outputText>
+							</div>
+						</apex:column>
+						<apex:column width="8%" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" style="cursor : pointer;">
+							<apex:actionSupport event="ondblclick" action="{!onEditContact}" rerender="editContactForm" oncomplete="showEditContactPopup();">
+								<apex:param name="selectedContactId8" value="{!item.Id}" assignTo="{!selectedContactId}"></apex:param>
+							</apex:actionSupport>
+							<apex:facet name="header">
+								<apex:commandLink action="{!sortGrid}" value="City" id="cmdCity" reRender="pbtResult,buttonId,msg,errorMessage">
+									<apex:outputText rendered="{!AND(sortExpression=='City', sortDirection='DESC')}">&#9660;</apex:outputText>
+									<apex:outputText rendered="{!AND(sortExpression=='City', sortDirection!='DESC')}">&#9650;</apex:outputText>
+									<apex:param value="City" name="column" assignTo="{!sortExpression}" ></apex:param>
+								</apex:commandLink>
+							</apex:facet>
+							<div style="width:80px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+								<apex:outputText value="{!item.strCity}" ></apex:outputText>
+							</div>
+						</apex:column>
+						<apex:column width="3%" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" style="cursor : pointer;">
+							<apex:actionSupport event="ondblclick" action="{!onEditContact}" rerender="editContactForm" oncomplete="showEditContactPopup();">
+								<apex:param name="selectedContactId9" value="{!item.Id}" assignTo="{!selectedContactId}"></apex:param>
+							</apex:actionSupport>
+							<apex:outputText value="{!item.strState}" />
+							<apex:facet name="header">
+								<apex:commandLink action="{!sortGrid}" value="St" id="cmdState" reRender="pbtResult,buttonId,msg,errorMessage">
+									<apex:outputText rendered="{!AND(sortExpression=='State', sortDirection='DESC')}">&#9660;</apex:outputText>
+									<apex:outputText rendered="{!AND(sortExpression=='State', sortDirection!='DESC')}">&#9650;</apex:outputText>
+									<apex:param value="State" name="column" assignTo="{!sortExpression}" ></apex:param>
+								</apex:commandLink>
+							</apex:facet>
+						</apex:column>
+						<apex:column headerValue="Connections" width="5%" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" style="cursor : pointer;">
+							<apex:actionSupport event="ondblclick" action="{!onEditContact}" rerender="editContactForm" oncomplete="showEditContactPopup();">
+								<apex:param name="selectedContactId10" value="{!item.Id}" assignTo="{!selectedContactId}"></apex:param>
+							</apex:actionSupport>
+							<apex:outputPanel rendered="{!if(item.strContactId != '', true, false)}" >
+								<apex:image id="theImage1" value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Images/crmcontact.png')}" title="View Connected Contact" style="cursor : pointer;" onclick="openRecord('{!JSINHTMLENCODE(item.strContactId)}');"/>
+								&nbsp;
+							</apex:outputPanel>
+							<apex:outputPanel rendered="{!if(item.strLeadId != '', true, false)}" >
+								<apex:image id="theImage2" value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Images/crmlead.png')}" title="View Connected Lead" style="cursor : pointer;" onclick="openRecord('{!JSINHTMLENCODE(item.strLeadId)}');"/>
+								&nbsp;
+							</apex:outputPanel>
+						</apex:column>
+						<apex:column headerValue="Context Company"   width="8%" onClick="openBioJS(this.id,'{!JSINHTMLENCODE(Text(item.Score))}', '{!JSINHTMLENCODE(item.Name)}', '{!JSINHTMLENCODE(item.Title)}', '{!JSINHTMLENCODE(item.Phone)}', '{!JSINHTMLENCODE(item.Email)}');" style="cursor : pointer;">
+							<apex:actionSupport event="ondblclick" action="{!onEditContact}" rerender="editContactForm" oncomplete="showEditContactPopup();">
+								<apex:param name="selectedContactId11" value="{!item.Id}" assignTo="{!selectedContactId}"></apex:param>
+							</apex:actionSupport>
+							<div style="width:100px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+								<apex:outputText value="{!item.CompanyName}" ></apex:outputText>
+							</div>
+						</apex:column>
+					</apex:pageBlockTable>
+					<apex:outputPanel rendered="{!IsDisplayResult}" >
+						<!-- <div style="height: 132px"></div> -->
+						<table>
+							<tr>
+								<td style="text-align: center;">
+									<apex:outputpanel rendered="{!IsDisplayNotRegistered}" style="text-align: center;">You don?t have the full version of the Data Suite. In order to take advantage of all the benefits of Profiler, Contact Capture, and Data Shield contact a sales rep today!
+										<a href="#" title="Contact Us" onclick="openRecord('http://www.RingLead.com/help/')">Contact Us!</a>
+									</apex:outputpanel>
+									<apex:outputText value="{!HTMLENCODE(ProfilerMessage)}" escape="false"  rendered="{!IsDisplayResult}" style="text-align: center;" />
+								</td>
+							</tr>
+						</table>
+						<!-- <div style="height: 132px"></div> -->
+						<!-- <div id="btnId">
+							<apex:outputPanel id="buttonIdNEw">
+								<div align="center" id="ButtonListNew">
+									<apex:outputText value="Page" />
+									&nbsp;
+									0 
+									&nbsp;of&nbsp;
+									<apex:outputLabel value="0"/>
+									&nbsp;&nbsp;
+									<apex:commandButton value="Previous"    action="{!previousPage}"    disabled="{!previousButtonEnabled}" status="processStatusLoad" reRender="pbtResult,buttonId,convertPopUpLead,msg,errorMessage" onclick="uncheckCheckAll()" ></apex:commandButton>
+									<apex:commandButton value="Next"        action="{!nextBtnClick}"    disabled="{!nextButtonDisabled}"    status="processStatusLoad" reRender="pbtResult,buttonId,convertPopUpLead,msg,errorMessage" onclick="uncheckCheckAll()" ></apex:commandButton>
+								</div>
+							</apex:outputPanel>
+						</div> -->
+						<script>
+							document.getElementById('prflAgain').onclick = null;
+							document.getElementById('reloadAgain').onclick = null;
+							if(document.getElementById('span1Id') != null && document.getElementById('span1Id') != 'null')
+							    document.getElementById('span1Id').innerHTML = 'Data has not yet been profiled';
+							if(document.getElementById('span2Id') != null && document.getElementById('span2Id') != 'null')
+							    document.getElementById('span2Id').innerHTML = 'Data has not yet been profiled';
+							document.getElementById('{!$Component.filterselect}').disabled = 'true';
+							document.getElementById('{!$Component.btnFillMissingData}').disabled = 'true';
+							document.getElementById('{!$Component.btnConvertToQuote}').disabled = 'true';
+							document.getElementById('{!$Component.btnConvertToLead}').disabled = 'true';
+							document.getElementById('{!$Component.btnUpdateAccount}').disabled = 'true';
+							document.getElementById('{!$Component.btnDeleteAccount}').disabled = 'true';
+							var pageMsg = '{!JSENCODE(ProfilerMessage)}';
+							if(pageMsg.indexOf(Constants.MSG_PROFILER_SUBMITTED) != -1)
+							    document.getElementById('btnId').style.display = 'none';
+						</script>
+					</apex:outputPanel>
+					<!-- this section/panel contains all the buttons displayed on grid header -->
+					<apex:outputPanel id="buttonId">
+						<table width="100%">
+							<tr>
+								<td width="220px"></td>
+								<td align="center" style="display:{!IF(NOT(OR(ISNULL(profilerCompany.Contacts), profilerCompany.Contacts.size == 0)), 'block', 'none')}" id="ButtonList">
+									Page &nbsp;
+									<apex:selectList value="{!selectedPage}" size="1" multiselect="false"  >
+										<apex:SelectOptions value="{!pagesOptions}"></apex:SelectOptions>
+										<apex:actionSupport event="onchange" action="{!nextPage}" reRender="pbtResult,buttonId,convertPopUpLead,msg,errorMessage" oncomplete="uncheckCheckAll()" status="processStatusLoad" />
+									</apex:selectList>
+									&nbsp; of &nbsp;
+									<apex:outputLabel value="{!totalPageNumber}"/>
+									&nbsp;&nbsp;
+									<apex:commandButton value="Previous"    action="{!previousPage}"    disabled="{!previousButtonEnabled}" reRender="pbtResult,buttonId,convertPopUpLead,msg,errorMessage" onclick="uncheckCheckAll()" status="processStatusLoad"></apex:commandButton>
+									<apex:commandButton value="Next"        action="{!nextBtnClick}"    disabled="{!nextButtonDisabled}"    reRender="pbtResult,buttonId,convertPopUpLead,msg,errorMessage" onclick="uncheckCheckAll()" status="processStatusLoad"></apex:commandButton>
+								</td>
+								<td width="220px" align="right" style="font-weight:bold;">
+									<apex:outputPanel rendered="{!IsDisplaySecurity}">
+										<apex:outputPanel rendered="{!if(strCurrentwebsiteName != '', true, false)}">
+											<span style="color: red"> Website changed</span> |&nbsp;
+											<a href="#" title="Request Broadlook Profiler to process this website" onclick="confirmProfileNow()">Profile New Website</a>
+										</apex:outputPanel>
+										<apex:outputPanel rendered="{!if(strCurrentwebsiteName != '', false, true)}" id="recordCount">
+											<apex:outputPanel id="InitialRecordsCount" rendered="{!if(intInitialRecords > 0,true,false)}">{!intInitialRecords} initial &nbsp;&nbsp;</apex:outputPanel>
+											<apex:outputPanel id="currentRecordsCount" rendered="{!if(intInitialRecords =0,true,false)}">{!intTotalRecords} current&nbsp;&nbsp;|&nbsp;&nbsp;{!intNewRecords} new</apex:outputPanel>
+											<!--Temp remove for better reason-->
+											<!--<a href="#" title="Click to refresh with original data pulled from Profiler" onclick="reloadAndProfileNowAF();" id="reloadAgain">Reload</a>-->
+										</apex:outputPanel>
+									</apex:outputPanel>
+								</td>
+							</tr>
+						</table>
+					</apex:outputPanel>
+					
+				</div>
+			</apex:pageBlock>
+			<script>window.onload=focusGrid;</script>
+			<!-- this panel contains a popup window which is visible on click 'Fill Missing Data' button -->
+			<apex:outputPanel id="errorMessage">
+				<script>
+					var actualMsg = '{!JSENCODE(strErrorMessage)}';
+					if(actualMsg != '' && actualMsg != null) 
+					{
+					    var errorTag =  document.getElementsByClassName('msgIcon');
+					    errorTag[0].title = actualMsg;
+					}
+				</script>
+			</apex:outputPanel>
+			<apex:outputPanel id="tstpopup">
+				<apex:outputPanel styleClass="popupBackground" layout="block" rendered="{!displayPopUp}"/>
+				<div id="draggable" >
+					<apex:outputPanel styleClass="custPopup" layout="block" rendered="{!displayPopUp}">
+						<script>makeDraggable();</script>
+						<apex:pageBlock >
+							<apex:outputPanel id="msgInPopUpPgMsg" >
+								<apex:pageMessage title="Error:" strength="3" severity="Error"  escape="false" id="msgInPopUp" rendered="{!blnIsError}" summary="{!HTMLENCODE(fillMissingDataErrorMessage)}"/>
+							</apex:outputPanel>
+							<table width="100%">
+								<tr class="missingDataTR">
+									<td style="color: white;"><b>Fill Missing Data</b></td>
+								</tr>
+								<tr style="width:100%;">
+									<td>
+										<b>Profiler can attempt to fill in missing data</b>
+									</td>
+								</tr>
+							</table>
+							<table width="100%">
+								<tr width="100%">
+									<td width="30%" style="vertical-align: middle;">Missing Phone Number</td>
+									<td width="10%" style="vertical-align: middle;">
+										<apex:inputCheckbox value="{!isPhoneSelected}" id="isPhoneSelected"/>
+									</td>
+									<td></td>
+									<td>
+										<apex:inputText value="{!strPhone}" id="Phone"/>
+									</td>
+								</tr>
+								<tr>
+									<td style="vertical-align: middle;">Missing Email Address</td>
+									<td style="vertical-align: middle;">
+										<apex:inputCheckbox value="{!isEmailSelected}" id="isEmailSelected"/>
+									</td>
+									<td></td>
+									<td>
+										<apex:selectList size="1" value="{!strSelectedEmail}" >
+											<apex:selectOptions value="{!lstEmailOption}" />
+										</apex:selectList>
+										@
+										<apex:inputText value="{!strDomainName}" id="Domain"/>
+									</td>
+								</tr>
+							</table>
+							<!-- Contains two buttons of fill missing popup -->        
+							<apex:outputPanel style="margin-left:205px">
+								<apex:commandButton value="Ok" action="{!updateMissingData}"  rerender="tstpopup,pbtResult,msgInPopUpPgMsg" />
+								&nbsp;
+								<apex:commandButton value="Close" action="{!closePopup}" rerender="tstpopup,msg,errorMessage"/>
+								<apex:inputHidden value="{!selectedPage}" id="hiddenTempId"/>
+							</apex:outputPanel>
+						</apex:pageBlock>
+					</apex:outputPanel>
+				</div>
+			</apex:outputPanel>
+			<!-- Bios Section which is only visible if user click on any rows -->
+			<div id="divButton1" style="height:5px; visibility:hidden;">
+				<center>
+					<img src="/img/loading.gif" title="Loading..."/>
+				</center>
+			</div>
+			<div id="divButton" style="height:5px">
+				<apex:actionStatus startText="Loading..." startStyle="color:#ff0000;font-size:16px;font-weight:bold" id="processStatusLoad">
+					<apex:facet name="start">
+						<center>
+							<img src="/img/loading.gif" title="Loading..."/>
+						</center>
+					</apex:facet>
+				</apex:actionStatus>
+			</div>
+			<div  id="mainDivId" style="height: 125px;">
+			<!-- style="display:none;" -->
+			<apex:outputPanel id="convertPopUpLead">
+				<!-- This section is a holder of loading icon -->
+				<apex:actionstatus id="loading" startText="Requesting...">
+					<apex:facet name="start">
+						<div id="salesforceSource_blurybackground" class="iconPositionDiv"></div>
+						<div id="ManageMembersViewport_loading" class="waitingSearchDiv" style="width: 100%; height: 200%; display: 'block'; ">
+							<div style="width: 144px;vertical-align: middle;" class="waitingHolder">
+								<table align="center" valign="top" class="iconPostionTable">
+									<tr align="center" valign="top" class="iconPostionTable">
+										<td valign="top" style="position: absolute; bottom:0px; padding-left: 350px;"><img src="/img/loading.gif"/><span class="waitingDescription"><b>Loading...</b></span></td>
+									</tr>
+								</table>
+							</div>
+						</div>
+						<div id="ManageMembersViewport_loading" class="waitingSearchDiv" style="width: 100%; height: 100%; display: ''; "/>
+						<script>document.getElementById('ManageMembersViewport_loading').height = window.innerHeight ;</script>
+					</apex:facet>
+					<apex:facet name="stop"></apex:facet>
+				</apex:actionstatus>
+				<!-- this section contains all the bio's link and its related text -->
+				<apex:pageBlock rendered="{!displayBiosPopUp}">
+					<apex:outputPanel rendered="{!if(lstbiosPopup.size > 0, true, false)}">
+						<div style="max-height:100%; min-height:92px;">
+							<!-- overflow: auto; -->
+							<table width="100%" >
+								<tr>
+									<td width="35%" style="vertical-align: top;">
+										<div style= " max-height:92px; min-height:92px; overflow:auto;" >
+											<table width="100%" id="LinkHolderTable"  >
+												<tr>
+													<!-- list only the first item i.e bios information and its header -->
+													<apex:repeat value="{!lstbiosPopup}" var="links" rows="1">
+														<td id="extraInfo" class="pbSubheader brandTertiaryBgr first" style="background-color: #D6E6FD; color:black;" onclick="document.getElementById('tableID').style.display = 'none'; changeMyStyle(this,'{!JSENCODE(links.strLink)}','{!JSENCODE(Text(links.intLinkNum))}','Visit the page: ')" >
+															<h3 style="cursor: pointer;">{!links.strLink}</h3>
+														</td>
+													</apex:repeat>
+												</tr>
+												<!-- list all the items it contains except the first item -->
+												<apex:repeat value="{!lstbiosPopup}" var="links" first="1">
+													<tr width="100%">
+														<td id="extraInfoLinks" class="pbSubheader brandTertiaryBgr first" style="background-color:#f8f8f8; color:black;" onclick="document.getElementById('tableID').style.display = 'none'; changeMyStyle(this,'{!JSENCODE(links.strLink)}','{!JSENCODE(Text(links.intLinkNum))}','Visit the page: ')" >
+															<h3 style="cursor: pointer;" >{!links.strLink}</h3>
+														</td>
+													</tr>
+												</apex:repeat>
+											</table>
+										</div>
+									</td >
+									<td width="100%" style="display: block;" id="biosId" >
+										<div style= " max-height:92px; min-height:92px; overflow:auto;" >
+											<table width="100%" id="tableID" rowspan="2">
+												<tr>
+													<td id="biosUrlHolder">
+													</td>
+												</tr>
+												<tr>
+													<td id="biosUrlTextHolder" >
+														<apex:outputPanel id="biosUrlTextHolder" >
+															<apex:outputText value="{!HTMLENCODE(strSelectedBios)}" escape="false"/>
+														</apex:outputPanel>
+													</td>
+												</tr>
+											</table>
+											<script>
+												document.getElementById('extraInfo').click();
+											</script>
+										</div>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</apex:outputPanel>
+				</apex:pageBlock>
+			</apex:outputPanel>
+			
+			
+			<apex:outputPanel id="noDataSection">
+				<apex:outputpanel rendered="{!!displayBiosPopUp}">
+					<div id="salesforceSource_blurybackground" class="iconPositionDivTest">
+						<br /><br /><br /><br />
+						<span style="margin-top: 20px;"><b>Select a record to see additional information</b></span>
+					</div>
+					<div id="ManageMembersViewport_loading" class="waitingSearchDiv" style="width: 100%; display: ''; ">
+					</div>
+					<div id="ManageMembersViewport_loading" class="waitingSearchDiv" style="width: 100%; display: ''; "/>
+						<script>document.getElementById('ManageMembersViewport_loading').height = window.innerHeight ;</script>
+				</apex:outputpanel>
+			</apex:outputPanel>
+			</div>
+			<div id="focusHere" tabindex="-1"></div>
+		</apex:form>
+		<div id="overlay"></div>
+		<!-- Popup for editing Contacts -->
+		<apex:form id="editContactForm" style="background:FFF">
+			<div class="edtCtPopupStyle" id="editContact" style="visibility:visible; display:none;">
+				<div class="edtCtWrapper" style="width:800px;height:300px;">
+					<apex:outputPanel id="editContact" >
+						<apex:pageBlock title="Contact Edit">
+							<apex:pageBlockButtons >
+								<apex:commandButton value="Save" action="{!onSaveGridContact}" rerender="frmMain" 
+									oncomplete="hideEditContactPopup();customToggleSection('{!$Component.frmMain.pbResult.theSection}');"></apex:commandButton>
+								<apex:commandButton value="Cancel" oncomplete="hideEditContactPopup();"></apex:commandButton>
+							</apex:pageBlockButtons>
+							<apex:pageBlockSection columns="2" title="Contact Information">
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="First Name" for="ctFirstName"/>
+									<apex:inputText size="35"  value="{!selectedContact.Firstname}" id="ctFirstName"/>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="Last Name" for="ctLastName"/>
+									<apex:inputText size="40"  value="{!selectedContact.Lastname}" id="ctLastName"/>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="Score" for="ctScore"/>
+									<apex:inputText size="35"  value="{!selectedContact.Score}" id="ctScore"/>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="Job Title" for="ctTitle"/>
+									<apex:inputText size="40" value="{!selectedContact.Title}" id="ctTitle"/>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="Email" for="ctEmail"/>
+									<apex:inputText size="35"  value="{!selectedContact.Email}" id="ctEmail"/>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="Phone" for="ctPhone"/>
+									<apex:inputText size="40"  value="{!selectedContact.Phone}" id="ctPhone"/>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="City" for="ctCity"/>
+									<apex:inputText size="35"  value="{!selectedContact.strCity}" id="ctCity"/>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="State" for="ctState"/>
+									<apex:inputText size="40"  value="{!selectedContact.strState}" id="ctState"/>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="Company" for="ctCompany"/>
+									<apex:inputText size="35"  value="{!selectedContact.Companyname}" id="ctCompany"/>
+								</apex:pageBlockSectionItem>
+							</apex:pageBlockSection>
+						</apex:pageBlock>
+					</apex:outputPanel>
+				</div>
+			</div>
+		</apex:form>
+		<!-- toggles the company info section if clicked on image -->
+		<script type="text/javascript">
+			customToggleSection('{!$Component.frmMain.pbResult.theSection}');
+		</script> 
+	</body>
+</apex:page>

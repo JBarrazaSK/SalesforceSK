@@ -1,0 +1,11 @@
+<!--
+ - Description: Service console integration utilities.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 07/11/2014
+ -->
+<apex:page >
+<apex:includeScript value="/support/console/31.0/integration.js"/>
+<apex:includeScript value="{!URLFOR($Resource.ConsoleUtils, 'js/ConsoleUtils.js')}"/>
+</apex:page>

@@ -1,0 +1,377 @@
+<!--
+ - Description: 
+ - Author: Jorge Terán
+ - Company: LYNX9
+ - Email: sf@lynx9.com
+ - Created date: 
+ -->
+<apex:component controller="ctrlrPedidoOtrosCanales" allowDML="true">
+    <apex:stylesheet value="{!URLFOR($Resource.PedidoWizard, 'css/PedidoWizard.css')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.PedidoWizard, 'js/jquery-1.11.1.min.js')}"/>
+    
+    <apex:form >
+    	<apex:pageMessages />
+        
+        <apex:pageBlock >
+            <apex:pageBlockButtons >
+                <apex:actionStatus id="actionStatusSubmit" onstart="hideActionButtons()" onstop="showActionButtons()">
+                    <apex:facet name="stop">
+                        <apex:outputPanel styleClass="outputPanelActionButtons">
+                            <apex:outputPanel rendered="true">
+                                <input type="button" value="" class="btn" onclick="guardar()"/>
+                                <apex:commandButton value="Cancelar pedido" onclick="cancelarPedido()" rendered="true"/>
+                            </apex:outputPanel>
+                            <!--<apex:commandButton action="" value="Empezar un nuevo pedido" rendered="true"/>
+                            <apex:commandButton action="" value="Volver" rendered="true"/>-->
+                        </apex:outputPanel>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <input type="button" value="Guardando..." disabled="disabled" class="btnDisabled"/>
+                        <img src="/img/loading.gif" class="imgLoading"/>
+                    </apex:facet>
+                </apex:actionStatus>
+                <!--
+                <apex:outputPanel styleClass="folio" rendered="true">
+                    <label class="labelCol">Folio NSC:</label>{!pedido.Numero_de_Pedido_NSC__c}
+                    <label class="labelCol">Folio Salesforce:</label>{!pedido.Numero_de_pedido_Salesforce__c}
+                </apex:outputPanel>-->
+            </apex:pageBlockButtons>
+        
+        	<div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+            <h3>Generales</h3>
+        </div>
+            <table id="tableGenerales2">
+                <tr>
+                    <td class="labelCol" id="tdCliente">&nbsp;</td>
+                    <td id="tdNumeroClienteSAP">&nbsp;</td>
+                    <td colspan="2">&nbsp;</td>
+                    <td class="labelCol">&nbsp;</td>
+                    <td colspan="4">
+                        <div id="divUser">
+                            <label class="labelCol">Atiende:</label>{!$User.FirstName+' '+$User.LastName}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol" id="tdCliente">Cliente</td>
+                    <td id="tdNumeroClienteSAP">
+                        <apex:inputField value="{!cliente.Numero_Cliente_SAP__c}"/>
+                    </td>
+                    <td colspan="2">
+                        <apex:inputField value="{!cliente.Id}"/>
+                    </td>
+                    <td class="labelCol">Folio Pedido</td>
+                    <td colspan="4">
+                        <apex:outputField value="{!pedido.Numero_de_Pedido_NSC__c}"/>
+                        <div id="divUser">
+                            <label class="labelCol">Cancelado en SAP</label>{!pedido.Cancelado_en_SAP__c}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol" id="tdCliente">Sucursal</td>
+                    <td id="tdNumeroClienteSAP">
+                        <apex:inputField value="{!sucursal.Numero_Cliente_SAP__c}"/>
+                    </td>
+                    <td colspan="2">
+                        <apex:inputField value="{!sucursal.Id}"/>
+                    </td>
+                    <td class="labelCol">Folio Embarque</td>
+                    <td colspan="4">
+                        <apex:outputField value="{!pedido.Id}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol">Canal Factura</td>
+                    <td>
+                        <apex:inputField value="{!pedido.Id}"/>
+                    </td>
+                    <td colspan="2">&nbsp;</td>
+                    <td class="labelCol">&nbsp;</td>
+                    <td colspan="4">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td class="labelCol">Frontera</td>
+                    <td colspan="3">
+                        <apex:selectList value="{!fronteras}" multiselect="false">
+                            <apex:selectOption value="{!pedido.id}"/>
+                        </apex:selectList>
+                    </td>
+                    <td class="labelCol">&nbsp;</td>
+                    <td colspan="2" id="tdFormaPago">&nbsp;</td>
+                    <td class="labelCol">Flete/Libra</td>
+                    <td><apex:inputField value="{!pedido.Id}" /></td>
+                </tr>
+                <tr>
+                    <td class="labelCol">Fecha Embarque</td>
+                    <td colspan="3"><apex:inputField value="{!pedido.Id}" /></td>
+                    <td class="labelCol">&nbsp;</td>
+                    <td colspan="2" id="tdFormaPago">&nbsp;</td>
+                    <td class="labelCol">Fecha Cruce</td>
+                    <td><apex:inputField value="{!pedido.Id}" /></td>
+                </tr>
+                <tr>
+                    <td class="labelCol">Fecha Entrega</td>
+                    <td colspan="3"><apex:inputField value="{!pedido.Id}" /></td>
+                    <td class="labelCol">Hora Embarque</td>
+                    <td colspan="2" ><apex:inputField value="{!pedido.Id}" /></td>
+                    <td class="labelCol">Fecha Inspección</td>
+                    <td><apex:inputField value="{!pedido.Id}" /></td>
+                </tr>
+                <tr>
+                    <td class="labelCol">PO Cliente</td>
+                    <td colspan="3"><apex:inputField value="{!pedido.Id}" /></td>
+                    <td class="labelCol">PO Proveedor</td>
+                    <td colspan="2" ><apex:inputField value="{!pedido.Id}" /></td>
+                    <td class="labelCol">Fecha Emb Bodega</td>
+                    <td><apex:inputField value="{!pedido.Id}" /></td>
+                </tr>
+            </table>
+            
+            <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+                <h3>Productos</h3>
+            </div>
+            <div id="divProductoButtons">
+                <!--
+                <apex:commandButton action="{!pedidoWrapper.addPedidoItem}" status="actionStatusProducto" timeout="60000" value="Agregar producto" rerender="outputPanelProductos"/>
+                <apex:commandButton action="{!pedidoWrapper.clearPedidoItemList}" status="actionStatusProducto" timeout="60000" value="Eliminar todos" onclick="if(!removeAllRows()) return;" rerender="outputPanelProductos"/>
+                -->
+				<apex:actionStatus id="actionStatusProducto">
+                    <apex:facet name="start">
+                        <img src="/img/loading.gif" class="imgLoading"/>
+                    </apex:facet>
+                </apex:actionStatus>
+            </div>
+            <!--
+            <apex:actionFunction action="{!pedidoWrapper.removePedidoItem}" status="actionStatusProducto" timeout="60000" name="removePedidoItem" rerender="outputPanelProductos">
+                <apex:param name="indexToRemove" assignTo="{!pedidoWrapper.indexToRemove}" value=""/>
+            </apex:actionFunction>
+            -->
+            <apex:outputPanel id="outputPanelProductos">
+                <!--
+                <apex:inputHidden value="{!pedidoWrapper.importe}" id="inputImporte"/>
+                <apex:inputHidden value="{!pedidoWrapper.pedido.Pedido_Cancelado__c}" id="inputPedidoCancelado"/>
+                <apex:inputHidden value="{!pedidoWrapper.pedido.Pedido_Cancelado_Por_El_Sistema__c}" id="inputPedidoCanceladoPorElSistema"/>
+                <apex:inputHidden value="{!pedidoWrapper.pedido.StageName}" id="inputEstatusPedido"/>
+                -->
+                <apex:variable var="index" value="{!0}"/>
+                <table class="list pageBlockTableProductos" border="0" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr class="headerRow">
+                            <th class="w2">Acción</th>
+                            <th class="w52">Producto</th>
+                            <th class="w80">Descripción</th>
+                            <th class="w2">Origen</th>
+                            <th class="w2">Peso Promedio</th>
+                            <th class="w30">Cs x Pallet</th>
+                            <th class="w40">Saldo Inv</th>
+                            <th class="w40">UM</th>
+                            <th class="w40">Cantidad</th>
+                            <th class="w40">Volumen</th>
+                            <th class="w40">Pallets</th>
+                            <th class="w40">Precio</th>
+                            <th class="w46">TP</th>
+                            <th class="w35">Importe</th>
+                            <th class="w35">Tipo Inventario</th>
+                            <th class="w80">Rango Surtido</th>
+                            <th>Observaciones</th>
+                            <!--<th class="w35">APr</th>-->
+                        </tr>
+                    </thead>
+                    <apex:repeat value="{!pedido.opportunityLineItems}" var="pedidoItem">
+                        <tr class="dataRow" onclick="showInventario({!index+1})" onmouseover="rowOn(this)" onmouseout="rowOff(this)">
+                            <td>
+                                <input type="button" value="Eliminar" class="btn" onclick="removeRow({!index})"/>
+                                <apex:variable var="index" value="{!index+1}"/>
+                                <!--
+                                <apex:inputHidden value="{!pedidoItem.PricebookEntryId}" id="inputProducto"/>
+                                <apex:inputHidden value="{!pedidoItem.Precio_Unitario_Original__c}" id="inputPrecioUnitarioOriginal"/>
+                                <apex:inputHidden value="{!pedidoItem.Precio_Lista_Precios__c}" id="inputPrecioListaPrecios"/>
+                                <apex:inputHidden value="{!pedidoItem.Moneda__c}" id="inputMoneda"/>
+                                <apex:inputHidden value="{!pedidoItem.Unidad__c}" id="inputUnidad"/>
+                                <input type="hidden" id="inputPrecioUnitarioOriginalPesos"/>
+                                <input type="hidden" id="inputPesoPromedioKg"/>
+                                <apex:inputHidden value="{!pedidoItem.Precio_Requiere_Aprobacion__c}" id="inputPrecioUnitarioRequiereAutorizacion"/>
+                                <apex:inputHidden value="{!pedidoItem.Precio_Aprobado_Supervisor__c}" id="inputPrecioAprobado"/>
+                                -->
+                            </td>
+                            <td class="inputColumn">
+                                <input type="text" value="{!pedidoItem.ProductCode}" class="inputProductCode" onkeypress="integerInputOnly(event)" onchange="preSetProducto(this.value, {!index})"/>
+                            </td>
+                            <td class="columnDescripcion">
+                                <span>{!pedidoItem.Description}</span>
+                                <!--<input type="button" value="Buscar" class="btn" onclick="openModalPortafolio({!index})"/>-->
+                            </td>
+                            <td class="textCenter"/>
+                            <td class="textCenter"/>
+                            <td/>
+                            <td class="inputColumn"><!-- ORIGEN -->
+                                <apex:inputField value="{!pedidoItem.Cajas__c}" onkeypress="integerInputOnly(event)" onchange="processCajasSolicitadas({!index})"/>
+                            </td>
+                            <td class="inputColumn"><!-- PESO PROMEDIO -->
+                                <apex:inputField value="{!pedidoItem.Cajas__c}" styleClass="disabledInput"/>
+                            </td>
+                            <td class="inputColumn"><!-- Cajas x Pallet -->
+                                <apex:inputField value="{!pedidoItem.Piezas__c}" styleClass="disabledInput"/>
+                            </td>
+                            <td class="inputColumn"><!-- Saldo Inventario -->
+                                <apex:inputField value="{!pedidoItem.Piezas__c}" styleClass="disabledInput"/>
+                            </td>
+                            <td class="inputColumn">
+                                <apex:inputField value="{!pedidoItem.Unidad__c}" onchange="processUM({!index})"/>
+                            </td>
+                            <td class="inputColumn">
+                                <apex:inputField value="{!pedidoItem.Quantity}" onkeypress="integerInputOnly(event)" onchange="processCantidadSolicitada({!index})"/>
+                                <!--<apex:inputHidden value="{!pedidoItem.Kilos__c}"/>-->
+                            </td>
+                            <td class="inputColumn"><!-- Volumen -->
+                                <apex:inputField value="{!pedidoItem.Cajas_Conf__c}" onkeypress="integerInputOnly(event)" onchange="processVolumenConfirmadas({!index})"/>
+                            </td>
+                            <td class="inputColumn"><!-- Pallets -->
+                                <apex:inputField value="{!pedidoItem.Piezas_Conf__c}" onkeypress="integerInputOnly(event)" onchange="processPalletsConfirmadas({!index})"/>
+                            </td>
+                            <td class="inputColumn">
+                                <apex:inputField value="{!pedidoItem.Precio_Unitario_Otorgado__c}" onkeypress="floatInputOnly(event, this)" onchange="processPrecioUnitario({!index})"/>
+                                <input type="hidden"/>
+                            </td>
+                            <td class="inputColumn">
+                                <apex:inputField value="{!pedidoItem.Moneda__c}" onchange="processMoneda({!index})"/>
+                            </td>
+                            <td class="textColumn">
+                                <apex:inputField value="{!pedidoItem.TotalPrice}" styleClass="disabledInput"/>
+                            </td>
+                            <td class="inputColumn">
+                                <apex:inputField value="{!pedidoItem.Tipo_de_Inventario__c}" onchange="processTipoInventario({!index})"/>
+                            </td>
+                            <td class="inputColumn">
+                                <apex:inputField value="{!pedidoItem.Rango_Surtido__c}" />
+                            </td>
+                            <td class="inputColumn">
+                                <apex:outputField value="{!pedidoItem.Description}"/>
+                            </td>
+                            
+                            <!--<td class="inputColumn">
+                                <apex:outputField value="{!pedidoItem.Precio_Requiere_Aprobacion__c}"/>
+                            </td>
+                            <td class="inputColumn">
+                                <apex:outputField value="{!pedidoItem.Precio_Aprobado_Supervisor__c}"/>
+                            </td>
+                            <td class="inputColumn">
+                                <apex:outputField value="{!pedidoItem.Precio_Aprobado_Pr__c}"/>
+                            </td>-->
+                        </tr>
+                    </apex:repeat>
+                    <tr class="totalRow">
+                        <th colspan="6">Total</th>
+                        <th/>
+                        <th/>
+                        <th/>
+                        <th/>
+                        <th/>
+                        <th/>
+                        <th colspan="2"/>
+                        <th/>
+                        <th/>
+                        <th/>
+                        <!--<th/>-->
+                    </tr>
+                </table>
+                <script type="text/javascript">
+                    setTableProductos()
+                </script>
+            </apex:outputPanel>
+            <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+                <h3>Inventario</h3>
+            </div>
+            <table class="list pageBlockTableInventario" border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th>Producto</th>
+                    <th width="60px">Producto</th>
+                    <th width="60px">Tipo Inv</th>
+                    <!--DIAS EN ARREGLO
+                    <th width="60px">CompMan</th>
+                    <th width="60px">DispHoy</th>
+                    <th width="60px">Recibir</th>
+                    <th width="60px">ManComp</th>
+                    <th width="60px">ManDisp</th>
+                    <th width="60px">RsvaAlm</th>
+                    <th width="60px">RsvaConf</th>
+					-->
+                </tr>
+				<!--
+                <apex:repeat value="{!product2XproductCodeMap}" var="productDisp">
+                    <tr class="dataRow hidden">
+                        <td>
+                            {!product2XproductCodeMap[productCode].Product2.Name}
+                            <input type="hidden" value="{!productDisp}"/>
+                            <input type="hidden" value="{!productDisp.TipoDeInventario}"/>
+                            <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].TipoInventario}"/>
+                            <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].TipoManejoInventario}"/>
+                            <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].EsPesoEstandar}"/>
+                            <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].Contenido}"/>
+                        </td>
+                        <td>
+                            <apex:outputText value="{0, number, ###,###,##0}">
+                                <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].InvActual}"/>
+                            </apex:outputText>
+                        </td>
+                        <td>
+                            <apex:outputText value="{0, number, ###,###,##0}">
+                                <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].CompAlmHoy}"/>
+                            </apex:outputText>
+                        </td>
+                        <td>
+                            <apex:outputText value="{0, number, ###,###,##0}">
+                                <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].CompAlmMan}"/>
+                            </apex:outputText>
+                        </td>
+                        <td>
+                            <apex:outputText value="{0, number, ###,###,##0}">
+                                <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].DispAlm}"/>
+                            </apex:outputText>
+                        </td>
+                        <td>
+                            <apex:outputText value="{0, number, ###,###,##0}">
+                                <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].InvConf}"/>
+                            </apex:outputText>
+                        </td>
+                        <td>
+                            <apex:outputText value="{0, number, ###,###,##0}">
+                                <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].CompConfMan}"/>
+                            </apex:outputText>
+                        </td>
+                        <td>
+                            <apex:outputText value="{0, number, ###,###,##0}">
+                                <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].DispConf}"/>
+                            </apex:outputText>
+                        </td>
+                        <td>
+                            <apex:outputText value="{0, number, ###,###,##0}">
+                                <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].ResAlm}"/>
+                            </apex:outputText>
+                        </td>
+                        <td>
+                            <apex:outputText value="{0, number, ###,###,##0}">
+                                <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].ResConf}"/>
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                </apex:repeat>
+                -->
+            </table>
+            <script type="text/javascript">
+                setInventarioMap()
+            </script>
+            <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+                <h3>Observaciones</h3>
+            </div>
+            <div id="divObservacion">
+                <apex:inputTextarea value="{!pedido.Description}" rows="5"/>
+            </div>
+            
+        </apex:pageBlock>
+        
+        
+    </apex:form>
+    
+</apex:component>

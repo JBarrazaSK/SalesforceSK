@@ -1,0 +1,268 @@
+<apex:page standardController="Account" extensions="DisplayCustomersController" showHeader="false" sidebar="false" doctype="html-5.0">
+    <style>
+          /*Css for popup and disabling background*/
+        .custPopup{            
+            background-color: white;
+            border-width: 2px;
+            border-style: solid;
+            border-color: #ddb929;
+            border: 2px solid #eaeaea;
+            z-index: 9999;
+            left: 49%;
+            padding: 1px;
+            position: absolute;
+            /* These are the 3 css properties you will need to change so the popup
+            displays in the center of the screen. First set the width. Then set
+            margin-left to negative half of what the width is. You can add
+            the height property for a fixed size pop up if you want.*/
+            width: 98%;
+            margin-left: -48%;
+            top: 10px;
+            max-height: 96%;
+            overflow: auto;
+        }
+        .popupBackground{
+            background-color:black;
+            opacity: 0.20;
+            filter: alpha(opacity = 20);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+        
+        body button{
+            text-align: center;
+            margin-left: 48%;
+            padding: 6px;
+            border-radius: 13px;
+            width: 69px;
+            font-size: inherit;
+        }
+        
+        body .btn{
+            text-align: center;            
+            padding: 6px;
+            border-radius: 13px;
+            width: 72px;
+            font-size: 90%;
+        }
+        
+        body {
+            font-family: "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";
+            font-size: 75%;
+        }
+        
+        div.container { width: 80%;}
+        
+    </style>
+    
+    <script>
+    
+        //alert('account parent ::: ' + '{!Account.Parent.Numero_Cliente_SAP__c}');
+        
+        var parentCustomerNmbr = '{!Account.Parent.Numero_Cliente_SAP__c}';
+        var customerNmbr = '{!Account.Numero_Cliente_SAP__c}';
+        
+        if(!parentCustomerNmbr && !customerNmbr){
+            alert('Please provide Customer Number.');
+            window.top.location.href = '/{!$CurrentPage.parameters.id}';
+        }
+    </script>
+    
+    <apex:includeScript value="{!URLFOR($Resource.JQueryTable, '/js/jQueryMin.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.JQueryTable, '/js/jQueryDataTablesMin.js')}"/>
+    
+    <apex:stylesheet value="{!URLFOR($Resource.JQueryTable,'/css/dataTablesjQueryUI.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.JQueryTable, '/css/jQueryDataTablesMin.css')}"/>
+    
+    <apex:stylesheet value="{!URLFOR($Resource.JQueryDatepicker,'/css/jquery_ui.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.JQueryDatepicker, '/js/jquery_ui.js')}"/> 
+    
+    <apex:form id="frm">
+        <apex:pageBlock >
+           
+            <apex:pageblockButtons location="top"  rendered="{!NOT(ISNULL($CurrentPage.parameters.id))}">
+                <input type="button" class="btn" value="Regresar" onclick="window.top.location.href = '/{!$CurrentPage.parameters.id}'"/>
+                <!-- <apex:commandButton styleClass=".btn" onclick="window.top.location.href = '/{!$CurrentPage.parameters.id}'"  value="Regresar" /> -->
+            </apex:pageblockButtons>
+            
+            <apex:pageMessages />
+            
+            <apex:outputPanel id="searchtimeframe" rendered="{!AND(NOT(isShowTable), NOT(ISNULL($CurrentPage.parameters.id)))}">
+                
+                <script>
+                
+                    j$ = jQuery.noConflict();
+                                    
+                    j$(document).ready(function() { 
+                 
+                        j$(".start_date").datepicker({
+                            defaultDate: "+1w",
+                            changeMonth: true,
+                            changeYear: true,
+                            numberOfMonths: 1,
+                            dateFormat : 'yymmdd',
+                            onClose: function(selectedDate) {
+                                j$(".end_date").datepicker("option", "minDate", selectedDate);
+                            }
+                        });
+                        j$(".end_date").datepicker({
+                            defaultDate: "+1w",
+                            changeMonth: true,
+                            changeYear: true,
+                            numberOfMonths: 1,
+                            dateFormat : 'yymmdd',
+                            onClose: function(selectedDate) {
+                                j$(".start_date").datepicker("option", "maxDate", selectedDate);
+                                
+                            }
+                        });
+                }); 
+                </script>
+            
+               <!-- <label for="from">Start Date :</label>  
+                <input type="text" id="from" class="start_date" name="Start Date"/>
+                                        
+                
+                <label for="to">End Date :</label>  
+                <input type="text" id="to" class="end_date" name="End Date"/>
+                
+                                   -->    
+                
+                
+                <apex:outputLabel >Fecha Inicio:</apex:outputLabel> 
+                <apex:input label="Start Date" styleClass="start_date" type="text" value="{!strStartDate}" required="true" html-placeholder="AAAAMMDD" />                        
+                                          
+                
+                <apex:outputLabel >Fecha Fin:</apex:outputLabel> 
+                <apex:input label="End Date" styleClass="end_date" type="text" value="{!strEndDate}" required="true" html-placeholder="AAAAMMDD"/>
+                
+                        
+                
+                <apex:CommandButton value="Siguiente" styleClass="showCustomerDetails"  id="showtable" action="{!showCustomerDetails}" rerender="frm" status="ProcessStatus"/>
+                       
+                
+                <script type="text/javascript"> 
+                    
+                    //j$ = jQuery.noConflict();
+                    
+                    var today = Date();
+                    today = j$.datepicker.formatDate( "yymmdd",new Date(today));
+                    //alert(today );
+                    j$("input.start_date").val(today);
+                    j$("input.end_date").val(today);                
+                
+                    j$(document).on("keypress", ".start_date", function() {
+                        if (event.keyCode == 13) {
+                
+                            var startDate = j$("input.start_date").val();
+                            var endDate = j$("input.end_date").val();
+                            
+                            if (startDate != NULL && endDate != NULL) {
+                                j$(".showCustomerDetails").click();                                    
+                            }
+                            else{
+                                alert("Start Date and End Date is required.");
+                            }
+                            
+                            return false;
+                        }
+                    });
+                
+                    j$(document).on("keypress", ".end_date", function() {
+                        if (event.keyCode == 13) {
+                        
+                            var startDate = j$("input.start_date").val();
+                            var endDate = j$("input.end_date").val();
+                            
+                            if (startDate != NULL && endDate != NULL) {
+                                j$(".showCustomerDetails").click();
+                            }
+                            else{
+                                alert("Start Date and End Date is required.");
+                            }
+                            
+                            return false;
+                        }
+                    });     
+                </script>
+                <apex:actionStatus id="ProcessStatus" layout="block">
+                    <apex:facet name="start">
+                        <div id="assign-action-spinner-main">
+                            <div id="assign-action-spinner-content">
+                                <img src="/img/analytics/reportbuilder/icons/spinner32.gif" alt="Processing..." title="Processing..." />  
+                                       
+                                <p>Processing...</p>
+                            </div>
+                        </div>
+                    </apex:facet>
+                </apex:actionStatus>
+            </apex:outputPanel>
+            
+            <apex:outputPanel id="tstpopup" style="width:100%">
+                
+                <apex:outputPanel styleClass="popupBackground" layout="block" rendered="{!displayPopUp}"/>
+                
+                <apex:outputPanel styleClass="custPopup"  rendered="{!displayPopUp}" >
+                    <script>
+                
+                        j$ = jQuery.noConflict();
+                        j$(document).ready( function () {
+                            
+                            /*if (j$.fn.DataTable.fnIsDataTable(j$('#myDataTable'))) {
+                                j$('#myDataTable').dataTable().fnDestroy();
+                            }
+                            
+                            j$('#myDataTable').DataTable();
+                            
+                            j$("#myDataTable_previous").text("Anterior");
+                            j$("#myDataTable_next").text('Siguiente');
+                        });*/
+                        
+                        
+                        
+                    </script>
+                    <table style="width:100%" id = "myDataTable" class="display">
+                        <thead>
+                            <tr>
+                                <th>Folio</th>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th>Referencia</th>
+                                <th>FechaVencimiento</th>
+                                <th>Cargos</th>
+                                <th>Abonos</th>
+                                <th>Saldo</th>
+                                <th>NumeroPoliza</th>
+                            </tr>
+                        </thead> 
+                        <tbody>
+                            <apex:repeat value="{!listEstadoDeCuenta}" var="Statement">
+                                <tr>
+                                    <td>{!Statement.Folio}</td>
+                                    <td>{!Statement.Fecha}</td>
+                                    <td>{!Statement.Concepto}</td>
+                                    <td>{!Statement.Referencia}</td>
+                                    <td>{!Statement.FechaVencimiento}</td>
+                                    <td>{!Statement.Cargos}</td>
+                                    <td>{!Statement.Abonos}</td>
+                                    <td>{!Statement.Saldo}</td>
+                                    <td>{!Statement.NumeroPoliza}</td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody> 
+                    </table> 
+                  
+                    <div align="center">
+                        <apex:commandButton value="Regresar" action="{!closePopup}" rerender="tstpopup" status="ProcessStatus"/>
+                    </div>
+                </apex:outputPanel>
+                
+            </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+    
+</apex:page>

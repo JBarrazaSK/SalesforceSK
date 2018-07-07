@@ -1,0 +1,80 @@
+<!--
+ - Description: Startup page for inConcert inbound calls.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 07/08/2014
+ -->
+<apex:page controller="TeleventasAtencionClientesController" tabStyle="Account" title="Salesforce - Atención a Clientes">
+<apex:includeScript value="/support/console/31.0/integration.js"/>
+<apex:includeScript value="{!URLFOR($Resource.InConcertSoftphone, 'js/jquery-1.11.1.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.InConcertSoftphone, 'js/inConcertSDK.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.InConcertSoftphone, 'js/InConcertSoftphone.js')}"/>
+    <script type="text/javascript">
+    	function newCaseDetails(accountId) {
+        	if(interactionId && !callIntervalId) {
+
+            	try {
+                    if(!barAgentControlObject) {
+                        barAgentControlObject = new ActiveXObject("BarAgentControl.BAControl");
+                    }
+
+                    if(barAgentControlObject) {
+                        if(accountId) {
+                        	sforce.console.openPrimaryTab(null, "/"+accountId, true, 'Detalles', null);
+                        } else {
+                            alert("Debe indicar un teléfono.");
+                        }
+                    }
+                } catch(exception) {
+                    if(msieVersion() < 7) {
+                        alert("Para poder realizar llamadas debe usar el navegador Internet Explorer versión 7 o posterior y tener la aplicación BarAgent de inConcert en ejecución e iniciada con su sesión.");
+                    } else {
+                        alert("Ha ocurrido un error. Asegúrese que la aplicación de BarAgent de inConcert esté en ejecución e iniciada con su sesión.");
+                    }
+                }
+        	}
+        }
+	</script>    
+<apex:form >
+    <apex:actionFunction action="{!redirectToNewCase}" name="redirectToNewCase" rerender="null">
+        <apex:param name="accountId" assignTo="{!accountId}" value=""/>
+    </apex:actionFunction>
+</apex:form>
+<apex:pageBlock mode="maindetail" title="Seleccione el cliente que esta realizando la llamada" rendered="{!isOutbound}">
+    <apex:outputText value="No se encontraron clientes con el número telefónico {!telefonoLlamadaInConcert}." rendered="{!AND(accountList.size = 0, NOT(ISNULL(telefonoLlamadaInConcert)))}"/>
+    <apex:outputText value="No se recibieron los parámetros de inConcert correctamente." rendered="{!ISNULL(telefonoLlamadaInConcert)}"/>
+    <apex:pageBlockTable value="{!accountList}" var="accountListItem" rendered="{!AND(NOT(ISNULL(telefonoLlamadaInConcert)), accountList.size > 0)}">
+        <apex:column headerValue="{!$ObjectType.Account.Fields.Name.Label}" onclick="redirectToNewCase('{!accountListItem.Id}')">
+        	<a href="/{!accountListItem.Id}" target="_blank">
+                <apex:outputField value="{!accountListItem.Name}"/>
+        	</a>
+        </apex:column>
+        <apex:repeat value="{!$ObjectType.Account.FieldSets.TeleventasAtencionClientes}" var="accountField" >
+            <apex:column headerValue="{!accountField.label}" onclick="redirectToNewCase('{!accountListItem.Id}')" rendered="{!accountField.FieldPath != 'Name'}">
+            	<apex:outputField value="{!accountListItem[accountField]}"/>
+            </apex:column>
+        </apex:repeat>
+    </apex:pageBlockTable>
+    <a href="javascript:;" onclick="redirectToNewCase('')">Crear un caso para cliente no identificado</a>
+</apex:pageBlock>
+
+    <apex:pageBlock mode="maindetail" title="Seleccione el cliente que esta realizando la llamada" rendered="{!isInbound}">
+        <apex:outputText value="No se encontraron clientes con el número telefónico {!telefonoLlamadaInConcert}." rendered="{!AND(accountList.size = 0, NOT(ISNULL(telefonoLlamadaInConcert)))}"/>
+        <apex:outputText value="No se recibieron los parámetros de inConcert correctamente." rendered="{!ISNULL(telefonoLlamadaInConcert)}"/>
+        <apex:pageBlockTable value="{!accountList}" var="accountListItem" rendered="{!AND(NOT(ISNULL(telefonoLlamadaInConcert)), accountList.size > 0)}">
+            <apex:column headerValue="{!$ObjectType.Account.Fields.Name.Label}" onclick="redirectToNewCase('{!accountListItem.Id}')" >
+                <a href="javascript:;" onclick="newCaseDetails('{!accountListItem.Id}');">
+                    <apex:outputField value="{!accountListItem.Name}"/>
+                </a>
+            </apex:column>
+            <apex:repeat value="{!$ObjectType.Account.FieldSets.TeleventasAtencionClientes}" var="accountField" >
+                <apex:column headerValue="{!accountField.label}" onclick="redirectToNewCase('{!accountListItem.Id}')" rendered="{!accountField.FieldPath != 'Name'}">
+                        <apex:outputField value="{!accountListItem[accountField]}"/>
+                </apex:column>
+            </apex:repeat>
+        </apex:pageBlockTable>
+        <a href="javascript:;" onclick="redirectToNewCase('')">Crear un caso para cliente no identificado</a>
+    </apex:pageBlock>    
+
+</apex:page>

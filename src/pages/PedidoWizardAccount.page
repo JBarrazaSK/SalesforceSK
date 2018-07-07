@@ -1,0 +1,10 @@
+<!--
+ - Description: Opens the PedidoWizard Visualforce using Account's standard controller.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 03/12/2014
+ -->
+<apex:page standardController="Account" cache="false" deferLastCommandUntilReady="true" showHeader="false" sidebar="false" tabStyle="Pedido__c" title="Salesforce - Edición de pedidos">
+<c:PedidoWizard />
+</apex:page>

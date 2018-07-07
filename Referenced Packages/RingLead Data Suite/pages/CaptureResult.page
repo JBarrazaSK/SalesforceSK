@@ -1,0 +1,302 @@
+<apex:page controller="BLDS.CaptureController" action="{!show}">
+
+	<apex:form id="changeDescription">
+		<style>
+.cancelLink {
+	float: right;
+	color: #015BA7;
+	text-decoration: none;
+	padding-top: 5px;
+	padding-left: 8px;
+}
+</style>
+		<script>
+	/* To show javascript error message in standard VF style*/
+    function showError(e)
+    {
+       	afDisplayJSErrorMessage(e.message);
+    }
+        
+    // Called from component on click of delete link and removes the section
+    function deleteRow(count,recName)
+    {
+        try{
+        var confirmRecordDelete = confirm("Delete " + recName + "?" );
+        if(confirmRecordDelete == true)
+        {
+            deleteRow1(count);
+            return false;
+        }
+        else
+        {}
+        }catch(e){
+        	showError(e)
+        }
+        
+    }
+    function rerenderSection(strEmail)
+    {
+    	try{
+    		uncheckSelected(strEmail); 
+    	}
+    	catch(e){
+    		showError(e);
+    	}     
+    }
+    
+    function redirectToMergeNext(e)
+    {
+        try{
+        nextCalled();
+        }catch(e){
+        	showError(e)
+        }
+    }
+    
+       /* Removing buttons from Rich Text Area */
+       window.onload=function(){
+           if('{!JSENCODE(strSectionHeaderSubTitle)}' == 'Capture Results')
+           {
+               if(document.getElementById('cke_9') != null)
+                   removeToolbar();
+               else
+                   setTimeout(removeToolbar, 1000);
+           }
+       };
+       // Removes the toolbar of rich text area section once the page load
+       function removeToolbar()
+       {
+           try{
+           if(document.getElementById('cke_9') != null)
+           {
+               document.getElementById('cke_9').style.display = 'none';
+               document.getElementById('cke_14').style.display = 'none';
+               document.getElementById('cke_17').style.display = 'none';
+               document.getElementById('cke_21').style.display = 'none';
+           }
+           else
+               setTimeout(removeToolbar, 1000);
+           }catch(e){
+        	showError(e)
+        } 
+       }
+       function openRecord(url)
+        {
+            window.open(url, "_blank");
+        }
+    </script>
+		 <apex:actionFunction name="afDisplayJSErrorMessage" action="{displayBlanketError}" rerender="ErrorMessage,errorMessagePnl">
+    		<apex:param name="jsErrorMsg" value="" assignTo="{!strErrorMessage}"/>
+    	</apex:actionFunction>
+    	
+    	<apex:actionRegion >
+			<apex:actionFunction name="updateActualList"
+				action="{!doUpdateMainList}" rerender="ErrorMessage">
+				<apex:param value="" assignTo="{!strUpdatedUrl}" name="del" />
+				<apex:param value="" assignTo="{!strMediaName}" name="Mname" />
+				<apex:param value="" assignTo="{!intUpdatedRecordCount}" name="cnt" />
+			</apex:actionFunction>
+		</apex:actionRegion>
+		<apex:actionFunction name="deleteRow1" action="{!doDelete}"
+			rerender="captcomponenet">
+			<apex:param value="" assignTo="{!intDeleteCount}" name="del" />
+		</apex:actionFunction>
+		<apex:actionFunction name="uncheckSelected" action="{!doUncheck}"
+			rerender="opPanel">
+			<apex:param value="" assignTo="{!intDeleteCount}" name="del" />
+		</apex:actionFunction>
+		<apex:actionFunction name="nextCalled" action="{!navigateToMerge}" />
+		<!-- This section is for displaying Profiler's logo is initial screen is profiler -->
+		<apex:outputPanel rendered="{!if(strSectionHeaderSubTitle == 'Profiler Results', true, false)}">
+			<table rowspan="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td style="height: 14px;"></td>
+				</tr>
+				<tr>
+					<td>
+						<div id="logo-border">
+							<img
+								src="{!URLFOR($Resource.ProfilerResources,'Images/profiler_powered_logo.png')}"
+								alt="Broadlook Profiler" id="logo"
+								style="height: 40px; width: 150px;" />
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td style="height: 14px;"></td>
+				</tr>
+			</table>
+		</apex:outputPanel>
+		<!-- This section is for displaying Capture's logo is initial screen is capture -->
+		<apex:outputPanel rendered="{!if(strSectionHeaderSubTitle == 'Capture Results', true, false)}">
+			<table rowspan="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td style="height: 14px;"></td>
+				</tr>
+				<tr>
+					<td style="width: 18px;"><apex:image id="theIcon"
+							value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Images/contact_capture_crm_logo.png')}"
+							height="auto" /></td>
+				</tr>
+				<tr>
+					<td style="height: 14px;"></td>
+				</tr>
+			</table>
+		</apex:outputPanel>
+
+		<apex:pageMessages id="ErrorMessage" escape="false" />
+		<apex:outputPanel Id="errorMessagePnl">
+				<script>
+					/* Section for displaying error message on mouse hover of error icon*/
+		            var actualMsg = '{!JSENCODE(strErrorMessage)}';
+		            if(actualMsg != '' && actualMsg != null) 
+		            {
+		                var errorTag =  document.getElementsByClassName('msgIcon');
+		                errorTag[0].title = actualMsg;
+		            }
+	            </script>
+		</apex:outputPanel>
+		<apex:pageBlock title="{!strSectionHeaderSubTitle} - {!capturedContacts.size} Record(s)"
+			id="pbNew">
+
+			<!-- top buttons -->
+			<apex:pageBlockButtons location="top">
+			 <apex:actionRegion >
+					<apex:outputPanel rendered="{!if(strSectionHeaderTitle == 'Contact Capture', true, false)}">
+						<apex:commandLink action="{!navigateToContactCapture}"
+							value="Cancel" immediate="true"  id="cancelButton1" styleclass="cancelLink" />
+					</apex:outputPanel>
+					<apex:outputPanel rendered="{!if(strSectionHeaderTitle != 'Contact Capture', true, false)}">
+						<apex:commandLink immediate="true"  action="{!navigateToProfiler}" value="Cancel"
+							id="cancelButtonProfiler" styleclass="cancelLink" />
+					</apex:outputPanel>
+				</apex:actionRegion>								
+				<apex:outputPanel rendered="{!isSaveAs}">
+					<apex:outputText value="Save as" style="font-size: 91%;" />
+				 
+					<apex:actionfunction name="ReloadJS" action="{!reload}" reRender="captcomponenet,ErrorMessage,urlRepeat"/>
+					
+					 
+						
+						<apex:selectList size="1" value="{!selectedObject}" onchange="ReloadJS();">
+							
+							<apex:selectOptions value="{!objectNames}" />
+							<!-- <apex:actionSupport event="onchange" reRender="captcomponenet,ErrorMessage,urlRepeat" action="{!reload}" > -->
+							
+							<!-- apex:actionSupport event="onchange" reRender="captcomponenet,ErrorMessage,urlRepeat" action="{!reload}"  </apex:actionSupport>-->
+							
+								
+							
+						</apex:selectList>
+				
+					
+					
+					<apex:commandButton action="{!navigateToMerge}"
+						disabled="{!isError}" value="Next" id="theButton"
+						style="float:right" />&nbsp; 
+                </apex:outputPanel>
+				<apex:outputPanel rendered="{!!isSaveAs}">
+					<apex:commandButton action="{!navigateToMerge}"
+						disabled="{!isError}" value="Next" id="theButton2"
+						style="float:right" />&nbsp;
+                </apex:outputPanel>
+                <apex:actionRegion >
+					<apex:outputPanel rendered="{!if(strSectionHeaderTitle == 'Contact Capture', true, false)}">
+						<apex:commandButton action="{!navigatetoCapture}" value="Previous"
+							id="previousButtonTop" immediate="true"  style="float:right;" />
+					</apex:outputPanel>
+				</apex:actionRegion>
+			</apex:pageBlockButtons>
+
+			<apex:outputPanel id="opRTA"
+				rendered="{!if(strSectionHeaderSubTitle == 'Capture Results', true, false)}">
+				<apex:pageBlockSection collapsible="true" title="Paste Text Here"
+					id="RTA_Section" rendered="true" columns="1">
+					<apex:inputTextarea id="strCaptureText" cols="80" rows="15"
+						value="{!CaptureText}" richtext="true" />
+					<p />
+				</apex:pageBlockSection>
+			</apex:outputPanel>
+			<!-- Calling the component and passing each captured signature to CaptureContact component -->
+			<apex:outputPanel id="captcomponenet">
+				<apex:repeat value="{!capturedContacts}" var="capturedContact">
+					<c:CaptureContact name="{!capturedContact.FullName}"
+						fname="{!capturedContact.FirstName}"
+						lname="{!capturedContact.LastName}"
+						email="{!capturedContact.Email}"
+						address1="{!capturedContact.Address1}"
+						title="{!capturedContact.JobTitle}"
+						phone1="{!capturedContact.Phone1}"
+						address2="{!capturedContact.Address2}"
+						company="{!capturedContact.CompanyName}"
+						phone2="{!capturedContact.Phone2}" city="{!capturedContact.City}"
+						website="{!capturedContact.Website}"
+						mobile="{!capturedContact.Mobile}"
+						state="{!capturedContact.State}"
+						department="{!capturedContact.Department}"
+						fax="{!capturedContact.Fax}"
+						postalcode="{!capturedContact.PostalCode}"
+						salutation="{!capturedContact.Salutation}" 
+						pager="{!capturedContact.Pager}"
+						country="{!capturedContact.Country}"
+						intRecordcount="{!capturedContact.intRecordcount}"
+						strSocialUrl="{!capturedContact.strSocialUrl}"
+						
+						matchedcontacts="{!capturedContact.matchedContactsANDLeads}"
+						strSource="{!strLeadSource}"
+						isPageLoad="{!capturedContact.isReload}" 
+						selectedObj="{!selectedObject}" 
+						LeadObject="{!capturedContact.LeadObject}"
+						ContactObject="{!capturedContact.ContactObject}"
+						/>
+				</apex:repeat>
+			</apex:outputPanel> 
+
+			<apex:pageBlockButtons location="bottom">
+			<apex:actionRegion >
+				<apex:outputPanel rendered="{!if(strSectionHeaderTitle == 'Contact Capture', true, false)}">
+					<apex:commandLink action="{!navigateToContactCapture}"
+						value="Cancel" immediate="true"  id="cancelButtonContactCapture"
+						styleclass="cancelLink" />
+				</apex:outputPanel>
+				<apex:outputPanel rendered="{!if(strSectionHeaderTitle != 'Contact Capture', true, false)}">
+					<apex:commandLink immediate="true"  action="{!navigateToProfiler}" value="Cancel"
+						id="cancelButtonProfiler" styleclass="cancelLink" />
+				</apex:outputPanel>
+				</apex:actionRegion>
+				<apex:commandButton action="{!navigateToMerge}"
+					disabled="{!isError}" value="Next" id="theButton"
+					style="float:right" />&nbsp;
+            <apex:outputPanel rendered="{!if(strSectionHeaderTitle == 'Contact Capture', true, false)}">
+					<apex:commandButton action="{!navigatetoCapture}" value="Previous"
+						id="previousButtonBottom" immediate="true"  style="float:right;" />
+				</apex:outputPanel>
+			</apex:pageBlockButtons>
+		</apex:pageBlock>
+		<p />
+		<p />
+		<apex:outputPanel rendered="{!if($Setup.Capture_Setting__c.Debug_Mode__c, true, false)}">
+			<apex:pageBlock title="Capture Text Debug">
+				<apex:inputTextarea id="newDesc" cols="150" rows="10"
+					value="{!captureTextDebug}" />
+				<p />
+			</apex:pageBlock>
+		</apex:outputPanel>
+		<script>
+    
+    	/* Hiding Rich Text Area Section */
+       if('{!JSENCODE(strSectionHeaderSubTitle)}' == 'Capture Results')
+           twistSection(document.getElementById('{!$Component.changeDescription.pbNew.opRTA}').getElementsByTagName('img')[0]);
+    	
+    	
+    	/* putting this section down for overwritting the error hover icon text with our custom text*/
+        var actualMsg = '{!JSENCODE(strActualError)}';
+        if(actualMsg != '' && actualMsg != null) 
+        {
+            var errorTag =  document.getElementsByClassName('msgIcon');
+            errorTag[0].title = actualMsg;
+        }
+               
+    </script>
+	</apex:form>
+</apex:page>

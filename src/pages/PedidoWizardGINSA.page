@@ -1,0 +1,12 @@
+<!--
+ - Description: Opens the PedidoWizard Visualforce using Opportunity's standard controller.
+ - Author: Jorge Terán
+ - Company: LYNX9
+ - Email: sf@lynx9.com
+ - Created date: 
+ -->
+<apex:page standardController="Opportunity" extensions="PedidoControllerGINSA" cache="false" deferLastCommandUntilReady="true" showHeader="false" sidebar="false" tabStyle="Opportunity" title="Salesforce - Edición de pedidos">
+    <apex:pageBlock >
+        <c:PedidoWizardGINSA />
+    </apex:pageBlock>
+</apex:page>

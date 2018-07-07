@@ -1,0 +1,218 @@
+<apex:page id="planReportsPage" controller="BLDS.PlanReportsController">
+	<apex:form id="topForm">
+		<apex:sectionHeader title="Profiler Actions" subtitle="Home"/>
+		<apex:pageMessages id="topPageMsg"/>		
+        &nbsp;&nbsp;               
+        <br/><br/>
+        <style>
+        	ol, ul {
+				list-style: none;
+			}
+			
+			.piped2 .lastItem {
+				border-right: none;
+			}
+			
+			.piped2 li {
+				float: left;
+				border-right: 1px solid #cfcece;
+				padding-left: 0;
+				padding-right: 3px;
+				margin-left: 0px;
+				margin-top: 2px;
+				margin-bottom: 2px;
+			}
+
+        </style>
+        
+        <script>
+        
+        	function checkAll(cb)
+	        {
+	            try{
+		           var inputElem = document.getElementsByTagName("input");
+		           for(var i=0;i<inputElem.length;i++)
+		             {
+		                if(inputElem[i].id.indexOf("selectLine")!=-1)
+		                    inputElem[i].checked = cb.checked;
+		             } 
+	              }catch(e){
+	                showError(e);
+	              }
+	        }
+	        
+	          
+			function checkEnableButtons(){
+			
+					var inputElem = document.getElementsByTagName("input");
+					var countS = 0;
+					for(var i=0;i<inputElem.length;i++)
+					{
+						if(inputElem[i].id.indexOf("selectLine")!=-1){
+						if(inputElem[i].checked == true)
+							countS++;
+						}
+						
+					}
+						
+					var editBtn = document.getElementById("editBtn");
+					var copyBtn = document.getElementById("copyBtn");
+					var deleteBtn = document.getElementById("deleteBtn");
+					
+					if(countS == 1){
+						editBtn.disabled=false;
+						editBtn.className="btn";
+							
+						copyBtn.disabled= false;
+						copyBtn.className="btn";							          
+						
+						
+														
+					} else {
+						editBtn.disabled=true;
+						editBtn.className="btnDisabled";
+						
+						copyBtn.disabled=true;
+						copyBtn.className="btnDisabled";
+						
+						
+					}  
+					
+					if(countS >= 1){
+						deleteBtn.disabled=false;
+						deleteBtn.className="btn";	
+					
+					} else {
+						deleteBtn.disabled=true;
+						deleteBtn.className="btnDisabled";
+					
+					} 
+												
+					
+			}
+	        /*
+        	function editReportJS(){
+        		
+        		window.top.location = '/apex/CreateReport?reportId=' +reportId;
+        		
+        	}
+        	*/
+        	
+        	function copyReportJS(){
+        	
+        	}
+        	
+        	function deleteReportConfirmJS(){
+        		var isConfirm = confirm("Do you want to delete selected Report(s)?");
+	            if(isConfirm)
+	            {
+	               deleteReportJS();
+	               return false;
+	            }
+	            
+	            return false;
+        	}
+        	
+        	
+        	
+        </script>
+        
+        <!-- div for showing loading icon on top of grid -->                      
+		<div id="divButton" style="height:5px">            
+		        <apex:actionStatus startText="Loading..." startStyle="color:#ff0000;font-size:16px;font-weight:bold" id="processStatusLoad"> 
+		             <apex:facet name="start">
+		                 <center>
+		                     <img src="/img/loading.gif" title="Loading..."/>
+		                 </center>
+		             </apex:facet> 
+		        </apex:actionStatus>
+		</div>
+			
+            
+        <apex:actionFunction name="editReportJS" action="{!editReport}" rerender="">
+        </apex:actionFunction>
+        <apex:actionFunction name="copyReportJS" action="{!copyReport}" rerender="">
+        </apex:actionFunction>
+        <apex:actionFunction name="deleteReportJS" action="{!deleteReports}" rerender="topPageBlock" status="processStatusLoad">
+        </apex:actionFunction>
+        
+        <!--  
+        <apex:actionFunction name="redirectToCreateReportsJS" action="{!redirectToCreateReports}" rerender="">
+        </apex:actionFunction>
+         -->
+        
+        
+   
+		<!-- table of all reports by plan above -->
+		<apex:pageBlock id="topPageBlock" title="All Actions ">
+			<!-- 
+			<apex:pageBlockButtons location="top">
+				<apex:commandButton value="New" action="{!redirectToCreateReports}"/>				
+			</apex:pageBlockButtons>
+			 -->
+			<apex:outputPanel id="ControlButtons">
+					        
+		        <apex:commandButton value="New"    action="{!redirectToCreateReports}" id="newBtn" />&nbsp;				
+		        <input type="button" value="Edit"   onclick="return editReportJS();" id="editBtn" disabled="true" class="btnDisabled"/>&nbsp;				
+		        <input type="button" value="Copy"   onclick="return copyReportJS();" id="copyBtn" disabled="true" class="btnDisabled"/>&nbsp;		        
+		        <input type="button" value="Delete" onclick="return deleteReportConfirmJS();" id="deleteBtn" disabled="true" class="btnDisabled"/>&nbsp;
+		        
+		        <!-- 
+		         <ul class="piped2">
+		         	<li>
+		         		<apex:commandButton value="New"    action="{!redirectToCreateReports}" id="newBtn" />
+		         	</li>
+		         	<li>
+		         		<input type="button" value="Edit"   onclick="return editReportJS();" id="editBtn" disabled="true" class="btnDisabled"/>
+		         	</li>
+		         	<li>
+		         		<input type="button" value="Copy"   onclick="return copyReportJS();" id="copyBtn" disabled="true" class="btnDisabled"/>
+		         	</li>
+		         	<li class="lastItem">
+		         		<input type="button" value="Delete" onclick="return deleteReportConfirmJS();" id="deleteBtn" disabled="true" class="btnDisabled"/>
+		         	</li>
+		         </ul>
+		          -->
+		         	         
+		    </apex:outputPanel>
+		    
+			<apex:outputPanel rendered="{!lstReports.size == 0}">
+				There is no report.
+			</apex:outputPanel>
+			
+			<apex:pageBlockTable id="reportsTable" rendered="{!lstReports.size > 0}" value="{!lstReports}" var="rep">
+				<apex:column style="width:3%"> 
+	                <apex:facet name="header">
+	                    <apex:inputCheckbox id="checkAll" onclick="checkAll(this); checkEnableButtons();"/>
+	                </apex:facet>
+	                    <apex:inputCheckbox value="{!rep.checked}" id="selectLine" onclick="checkEnableButtons();"/>
+	            </apex:column>
+				<apex:column >
+					<apex:facet name="header">Name</apex:facet>
+					<apex:outputLink value="/apex/PlanReportDetail?reportId={!rep.report.Id}" id="theLink">					
+						<apex:outputText value="{!rep.report.Name}"></apex:outputText>
+					</apex:outputLink>
+					
+				</apex:column>
+				<apex:column >
+					<apex:facet name="header">Number of Contacts</apex:facet>
+					<apex:outputText value="{!rep.report.BLDS__Total__c}"></apex:outputText>
+				</apex:column>
+				<apex:column >
+					<apex:facet name="header">Owner</apex:facet>
+					<apex:outputText value="{!rep.report.Owner.Name}"></apex:outputText>
+				</apex:column>
+				<apex:column >
+					<apex:facet name="header">Status</apex:facet>
+					<apex:outputText value="{!rep.report.BLDS__Status__c}"></apex:outputText>
+				</apex:column>
+				<apex:column >
+					<apex:facet name="header">Created Date</apex:facet>
+					<apex:outputText value="{!rep.report.createdDate}"></apex:outputText>
+				</apex:column>
+			</apex:pageBlockTable>		
+		</apex:pageBlock>
+		
+	</apex:form>
+
+</apex:page>

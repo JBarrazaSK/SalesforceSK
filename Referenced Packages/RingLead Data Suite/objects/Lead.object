@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fields>
+        <fullName>Profiled_Last_Date__c</fullName>
+        <deprecated>false</deprecated>
+        <description>to contain the last profiled Date</description>
+        <externalId>false</externalId>
+        <label>Profiled Last Date</label>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Date</type>
+    </fields>
+    <fields>
+        <fullName>Profiled_Website__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Profiled Website</label>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>Skype__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Skype</label>
+        <length>255</length>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Social_Blog__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Blog</label>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>Social_Facebook__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Facebook</label>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>Social_GooglePlus__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Google+</label>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>Social_LinkedIn__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>LinkedIn</label>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>Social_Socl__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>So.cl</label>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>Social_Twitter__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Twitter</label>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>Social_Xing__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Xing</label>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>Social_YouTube__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>YouTube</label>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>Web_Bio__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Web Bio</label>
+        <length>32768</length>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <type>Html</type>
+        <visibleLines>25</visibleLines>
+    </fields>
+    <webLinks>
+        <fullName>Add_To_Profile_Plan</fullName>
+        <availability>online</availability>
+        <description>This will add this lead to profile</description>
+        <displayType>massActionButton</displayType>
+        <height>600</height>
+        <linkType>page</linkType>
+        <masterLabel>Add to Profiler Plan</masterLabel>
+        <openType>sidebar</openType>
+        <page>Profiler_Plan_Mass_Insert</page>
+        <protected>false</protected>
+        <requireRowSelection>true</requireRowSelection>
+    </webLinks>
+    <webLinks>
+        <fullName>Mass_Profile</fullName>
+        <availability>online</availability>
+        <description>List button to profile multiple lead records in one go</description>
+        <displayType>massActionButton</displayType>
+        <linkType>javascript</linkType>
+        <masterLabel>Profile Selected</masterLabel>
+        <openType>onClickJavaScript</openType>
+        <protected>false</protected>
+        <requireRowSelection>true</requireRowSelection>
+        <url>{!REQUIRESCRIPT(&quot;/soap/ajax/26.0/connection.js&quot;)} 
+{!REQUIRESCRIPT(&quot;/soap/ajax/26.0/apex.js&quot;)} 
+
+// get the selected record ids
+records= {!GETRECORDIDS($ObjectType.Lead)};
+if (records[0] == null)
+{
+    alert(&quot;Please select at least one Lead&quot;);
+} 
+else{
+var webPresent = sforce.apex.execute(&quot;BLDS.ProfilerAPI&quot;, &quot;WebsitePresent&quot;, {accIds: records}); 
+if(webPresent == false || webPresent == &apos;false&apos;) 
+{ 
+var left = (screen.width/2)-240; 
+var top = (screen.height/2)-105; 
+
+window.open(&apos;apex/blds__ProfilerMissingWebsitePopupWindow?leadid=&apos; + &apos;{!Lead.Id}&apos; + &apos;&amp;Found1=Limit&apos;, &quot;_blank&quot;,&quot;width=365, height=205, dependent=no, toolbar=no, status=no, directories=no, menubar=no, scrollbars=1, resizable=no&quot;+&quot;, top=&quot;+top+&quot;, left=&quot;+left, true); 
+
+} 
+else 
+{ 
+var tempRet = sforce.apex.execute(&quot;BLDS.ProfilerAPI&quot;, &quot;requestCompaniesByLeadIds&quot;, {leadIds: records}); 
+if(tempRet == &apos;Success&apos;) 
+{
+window.alert(&apos;Profiling for selected lead(s) has been initiated successfully!&apos;); 
+}
+else
+{
+var left = (screen.width/2)-240;
+   var top = (screen.height/2)-105;
+
+window.open(&apos;apex/BLDS__ProfilerMissingWebsitePopupWindow?id=&apos; + &apos;{!JSENCODE(Lead.Id)}&apos; + &apos;&amp;Err=&apos;+tempRet+&apos;massProfile&apos;, &quot;_blank&quot;,&quot;width=365, height=205, dependent=no, toolbar=no, status=no, directories=no, menubar=no, scrollbars=1, resizable=no&quot;+&quot;, top=&quot;+top+&quot;, left=&quot;+left, true);
+}
+}
+}</url>
+    </webLinks>
+    <webLinks>
+        <fullName>Mass_Shield_Update</fullName>
+        <availability>online</availability>
+        <displayType>massActionButton</displayType>
+        <height>600</height>
+        <linkType>page</linkType>
+        <masterLabel>Mass Shield Update</masterLabel>
+        <openType>sidebar</openType>
+        <page>ShieldMassUpdate_Lead</page>
+        <protected>false</protected>
+        <requireRowSelection>true</requireRowSelection>
+    </webLinks>
+    <webLinks>
+        <fullName>Profile</fullName>
+        <availability>online</availability>
+        <description>Button to profile one lead lead</description>
+        <displayType>button</displayType>
+        <linkType>javascript</linkType>
+        <masterLabel>Profile Now</masterLabel>
+        <openType>onClickJavaScript</openType>
+        <protected>false</protected>
+        <url>{!REQUIRESCRIPT(&quot;/soap/ajax/24.0/connection.js&quot;)}
+{!REQUIRESCRIPT(&quot;/soap/ajax/24.0/apex.js&quot;)}
+
+
+sforce.connection.sessionId = &apos;{!$Api.Session_ID}&apos;;
+var sessionTimeLeft = 1;
+
+
+
+
+try
+{ 
+  var currentTime=new Date().getTime();
+  sessionTimeLeft=7200-((currentTime-lastPageActivityTime)/1000); 
+}
+catch(err){} 
+if(sessionTimeLeft &lt; 0)
+{
+window.location.href=&quot;http://login.salesforce.com/&quot;
+} 
+else
+{
+var recId = &quot;{!Lead.Id}&quot;;
+var companyURL = &quot;{!Lead.Website}&quot;;
+var companyEmail = &quot;{!Lead.Email}&quot;;
+var isTest = &quot;false&quot;;
+var testResponse = &apos;&apos;;
+var proceed = true;
+var domainName = &apos;&apos;;
+var isConfirm = false;
+
+
+//if(companyURL  == &apos;&apos;){
+//    var domain = &apos;{!Lead.Email}&apos;.split(&apos;@&apos;);
+//  if(domain.length &gt; 1){
+//	companyURL  = &apos;http://&apos; + domain[1];
+//    }
+//}
+
+
+//if( companyURL == null || companyURL == &apos;&apos; ) {
+//     if( companyEmail == null || companyEmail == &apos;&apos; ){
+         //window.alert(&apos;Company cannot be profiled without website. Please enter website and try again!&apos;); 
+         
+         var left = (screen.width/2)-240;
+         var top = (screen.height/2)-105;
+
+         window.open(&apos;apex/BLDS__ProfilerMissingWebsitePopupWindow?id=&apos; + &apos;{!Lead.Id}&apos;, &quot;_blank&quot;,&quot;width=365, height=205, dependent=no, toolbar=no, status=no, directories=no, menubar=no, scrollbars=1, resizable=no&quot;+&quot;, top=&quot;+top+&quot;, left=&quot;+left, true);
+//         proceed = false;
+//    }
+//}else{
+//  isConfirm = confirm(&quot;Please confirm to profile with website - &quot; + companyURL);
+
+//}
+
+
+
+if(isConfirm){
+
+ if( proceed ) {
+    if( companyURL == null || companyURL == &apos;&apos; ) 
+         domainName = companyEmail.split(&quot;@&quot;)[1];
+    else{
+        domainName = companyURL.slice(companyURL.indexOf(&apos;.&apos;) + 1,companyURL.length);
+    }
+
+  var result = sforce.apex.execute(&quot;BLDS.ProfilerAPI&quot;, &quot;urlValid&quot;,{companyURL: domainName});     
+
+ // var qr = sforce.connection.query(&quot;SELECT Id,Name,Domain__c FROM Profiler_Free_Email_Domain__c  WHERE    //Domain__c = \&apos;&quot; + domainName + &quot;\&apos;&quot;);
+  //  var records = qr.getArray(&quot;records&quot;);
+    //if (qr.size &gt; 0){
+     if(result == &apos;false&apos; || result == false){ 
+        alert(&apos;Profiler cannot be used with free email domains.&apos;);
+    }else{
+      
+        if(companyURL.indexOf(&apos;http://&apos;) != -1)
+              companyURL = companyURL.replace(&apos;http://&apos;, &apos;&apos;);
+        if(companyURL.indexOf(&apos;https://&apos;) != -1) 
+              companyURL = companyURL.replace(&apos;https://&apos;, &apos;&apos;);
+        if( companyURL == null || companyURL == &apos;&apos; )
+              companyURL = &quot;www.&quot; + domainName;
+
+
+        if(companyURL != &apos;&apos; &amp;&amp; companyURL.indexOf(&apos;www.&apos;) == -1)
+              companyURL = &apos;www.&apos; + companyURL ; 
+        
+        var tempRet = sforce.apex.execute(&quot;BLDS.ProfilerAPI&quot;, &quot;requestCompany&quot;, {accId: recId, companyURL: companyURL, isTest: isTest, testResponse: testResponse });
+
+if(tempRet == &apos;Success&apos;)
+{
+  window.location.href = &apos;/{!Lead.Id}&apos;;
+}
+else
+{
+var left = (screen.width/2)-240;
+var top = (screen.height/2)-105;
+
+window.open(&apos;apex/BLDS__ProfilerMissingWebsitePopupWindow?id=&apos; + &apos;{!Lead.Id}&apos; + &apos;&amp;Err=&apos;+tempRet, &quot;_blank&quot;,&quot;width=365, height=205, dependent=no, toolbar=no, status=no, directories=no, menubar=no, scrollbars=1, resizable=no&quot;+&quot;, top=&quot;+top+&quot;, left=&quot;+left, true); 
+}
+}
+}
+}
+
+
+}</url>
+    </webLinks>
+    <webLinks>
+        <fullName>Search_Company</fullName>
+        <availability>online</availability>
+        <displayType>button</displayType>
+        <linkType>javascript</linkType>
+        <masterLabel>Search Company (Beta)</masterLabel>
+        <openType>onClickJavaScript</openType>
+        <protected>false</protected>
+        <url>{!REQUIRESCRIPT(&quot;/soap/ajax/24.0/connection.js&quot;)} 
+{!REQUIRESCRIPT(&quot;/soap/ajax/24.0/apex.js&quot;)} 
+{!REQUIRESCRIPT(&apos;//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js&apos;)}
+{!REQUIRESCRIPT(&apos;//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js&apos;)}
+sforce.connection.sessionId = &apos;{!$Api.Session_ID}&apos;;
+try{
+ 
+  jQuery(function() {
+    
+    /*Append the jQuery CSS CDN Link to the Head tag.*/
+    jQuery(&apos;head&apos;).append(&apos;&lt;link rel=&quot;stylesheet&quot; href=&quot;//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/start/jquery-ui.css&quot; type=&quot;text/css&quot; /&gt;&apos;);
+
+    var SearchData = {
+&quot;aid&quot;:&quot;{!Lead.Id}&quot;,
+&quot;Company&quot;:&quot;{!Lead.Company}&quot;,
+&quot;Website&quot;: &quot;{!Lead.Website}&quot;,
+&quot;Email&quot;: &quot;{!Lead.Email}&quot;,
+&quot;City&quot; : &quot;{!Lead.City}&quot;,
+&quot;State&quot;: &quot;{!Lead.State}&quot;,
+&quot;PostalCode&quot; :&quot;{!Lead.PostalCode}&quot;
+};
+
+    var eObject = sforce.apex.execute(&quot;BLDS.CompanySearchServices&quot;,&quot;CompanySearchService&quot;,{jSonText:JSON.stringify(SearchData)});
+    jQuery(&apos;[id=dialog]&apos;).remove();
+    /*Create the HTML(DIV Tag) for the Dialog.*/
+    var html1 = &apos;&lt;div id=&quot;dialog&quot; title=&quot;Search Account&quot; style=&quot;position:absolute;background:White;display:block; box-shadow: 5px 5px 5px #888888; padding:10px 10px; border-radius:5px;margin-left:-300px;z-index:2; &quot;&gt;&lt;table id=&quot;result&quot; style=&quot;width:1000px;margin:0 auto;&quot; class=&quot;list&quot; border=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;0&quot;&gt;&lt;thead class=&quot;rich-table-thead&quot;&gt;&lt;tr class=&quot;headerRow&quot;&gt;&lt;th scope=&quot;col&quot; class=&quot;headerRow  &quot;&gt;Company Name&lt;/th&gt;&lt;th scope=&quot;col&quot;  class=&quot;headerRow  &quot;&gt;Zip&lt;/th&gt;&lt;th scope=&quot;col&quot;  class=&quot;headerRow  &quot;&gt;Address&lt;/th&gt;&lt;th scope=&quot;col&quot;  class=&quot;headerRow  &quot;&gt;ST&lt;/th&gt;&lt;th scope=&quot;col&quot;  class=&quot;headerRow  &quot;&gt;City&lt;/th&gt;&lt;th scope=&quot;col&quot;  class=&quot;headerRow  &quot;&gt;Contry&lt;/th&gt;&lt;th scope=&quot;col&quot;  class=&quot;headerRow  &quot;&gt;Phone&lt;/th&gt;&lt;th scope=&quot;col&quot;  class=&quot;headerRow  &quot;&gt;Year&lt;/th&gt;&lt;th scope=&quot;col&quot;  class=&quot;headerRow  &quot;&gt;Sales($Mil)&lt;/th&gt;&lt;th scope=&quot;col&quot;  class=&quot;headerRow  &quot;&gt;Employess&lt;/th&gt;&lt;th scope=&quot;col&quot;  class=&quot;headerRow  &quot;&gt;Website&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody id=&quot;tbodyCompany&quot;&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&apos;;
+    
+    /*Check if the Dialog(DIV Tag) already exists if not then Append the same to the Body tag.*/
+    if(!jQuery(&apos;[id=dialog]&apos;).size()){
+      
+      var buttonExcute = $(&apos;input[name=&quot;blds__search_company&quot;]&apos;)[0];
+      $(html1).insertAfter(buttonExcute);
+      DrawTable(eObject);
+    }
+ 
+
+    $(document).mouseup(function(e) {
+    var container = $(&quot;#dialog&quot;);
+
+    if (!container.is(e.target) &amp;&amp; container.has(e.target).length===0) {
+    	
+    		container.hide();
+    	
+    	//alert(e.target.id);
+    }
+});
+    //jQuery( &quot;#dialog&quot; ).show();
+
+    /*Open the jQuery Dialog.*/ 
+    /*jQuery( &quot;#dialog&quot; ).dialog({
+      autoOpen: true,
+      modal: true,
+      height: 300,
+      width: 800,
+      buttons: {
+        &quot;Continue&quot;: function() {
+          location.replace(&apos;/home/home.jsp&apos;);
+          jQuery( this ).dialog( &quot;close&quot; );
+        },
+        Cancel: function() {
+          jQuery( this ).dialog( &quot;close&quot; );
+        }
+      }
+    });*/
+  }); 
+}
+catch(e){
+alert(&apos;An Error has Occured. Error: &apos; + e);
+}
+function DrawTable(list)
+{
+var data = $(&quot;#tbodyCompany&quot;);
+$(data).empty();
+var obj = eval (&quot;(&quot; + list + &quot;)&quot;); 
+
+if (obj==null || obj.length == 0) {
+	var tr = $(&apos;&lt;tr&gt;&apos;);
+	var td = $(&apos;&lt;td class=&quot;dataCell&quot; colspan=&quot;11&quot; align=&quot;center&quot; style=&quot;font-size: medium;&quot;&gt;&apos;);
+	$(td).text(&quot;No results&quot;);
+	$(tr).append(td);
+	$(data).append(tr);
+} else {
+	$.each(obj,function(i,comRow){
+		var tr = $(&apos;&lt;tr&gt;&apos;);
+		$(tr).hover(
+		function() {
+		  $(this).css(&quot;background&quot;,&quot;#E0F0FD&quot;);
+		},
+		function() {
+		
+		  $(this).css(&quot;background&quot;,&quot;&quot;);
+		}
+		);
+	   $(tr).click(
+		function(){
+		  SaveData(&apos;{!Lead.Id}&apos;,comRow);
+		}
+		);
+
+		var compName = &apos;{!Lead.Company}&apos;;
+		var td_CompanyName = $(&apos;&lt;td class=&quot;dataCell&quot;&gt;&apos;);
+
+		if(comRow.companyName.indexOf(compName) != -1)
+			 $(td_CompanyName).css({&quot;font-weight&quot;:&quot;bold&quot;,&quot;color&quot;:&quot;blue&quot;});
+		$(td_CompanyName).text(comRow.companyName);
+		$(tr).append(td_CompanyName);
+
+		var compZip = &apos;{!Lead.PostalCode}&apos;;
+		var td_Zip = $(&apos;&lt;td class=&quot;dataCell&quot;&gt;&apos;);
+
+		if(comRow.location.zip5 != null &amp;&amp; compZip != null &amp;&amp; compZip != &apos;&apos;)
+		   if(compZip.indexOf(comRow.location.zip5) != -1)
+				$(td_Zip).css({&quot;font-weight&quot;:&quot;bold&quot;,&quot;color&quot;:&quot;blue&quot;});
+
+		$(td_Zip).text((comRow.location.zip5 == null?&apos;&apos;:comRow.location.zip5));
+		$(tr).append(td_Zip);
+
+		var compAddress =  &apos;{!JSENCODE(Lead.Street)}&apos;;  
+		var td_Address = $(&apos;&lt;td class=&quot;dataCell&quot;&gt;&apos;);
+		
+		
+		if(comRow.location.addressLine1 != null &amp;&amp; compAddress != null &amp;&amp; compAddress!= &apos;&apos;)
+		   if(comRow.location.addressLine1.indexOf(compAddress) != -1)
+				$(td_Address).css({&quot;font-weight&quot;:&quot;bold&quot;,&quot;color&quot;:&quot;blue&quot;});    
+
+		$(td_Address).text((comRow.location.addressLine1 == null?&apos;&apos;:comRow.location.addressLine1));
+		$(tr).append(td_Address);
+
+		var compState =  &apos;{!Lead.State}&apos;;
+		var td_state  = $(&apos;&lt;td class=&quot;dataCell&quot;&gt;&apos;);
+
+		if(comRow.location.state != null &amp;&amp; compState != null &amp;&amp; compState != &apos;&apos;)
+		   if(comRow.location.state.indexOf(compState) != -1)
+				$(td_state).css({&quot;font-weight&quot;:&quot;bold&quot;,&quot;color&quot;:&quot;blue&quot;});
+		
+		$(td_state).text((comRow.location.state==null?&apos;&apos;:comRow.location.state));
+		$(tr).append(td_state);
+		
+		var compCity = &apos;{!Lead.City}&apos;;
+		var td_City = $(&apos;&lt;td class=&quot;dataCell&quot;&gt;&apos;);
+
+		 if(comRow.location.city != null &amp;&amp; compCity != null &amp;&amp; compCity != &apos;&apos;)
+		   if(comRow.location.city.indexOf(compCity) != -1)
+				$(td_City).css({&quot;font-weight&quot;:&quot;bold&quot;,&quot;color&quot;:&quot;blue&quot;});
+
+		
+		$(td_City).text((comRow.location.city==null?&apos;&apos;:comRow.location.city));
+		$(tr).append(td_City);
+
+		var compCountry = &apos;{!Lead.Country}&apos;;
+		var td_Country = $(&apos;&lt;td class=&quot;dataCell&quot;&gt;&apos;);
+
+		if(comRow.location.country != null &amp;&amp; compCountry != null &amp;&amp; compCountry != &apos;&apos;)
+		   if(comRow.location.country.indexOf(compCountry) != -1)
+				$(td_Country).css({&quot;font-weight&quot;:&quot;bold&quot;,&quot;color&quot;:&quot;blue&quot;});
+
+		$(td_Country).text((comRow.location.country==null?&apos;&apos;:comRow.location.country));
+		$(tr).append(td_Country);
+
+		var td_Phone = $(&apos;&lt;td class=&quot;dataCell&quot;&gt;&apos;);
+		if(comRow.phoneNumbers != null &amp;&amp; comRow.phoneNumbers.lenght &gt; 0)
+		  $(td_Phone).text(comRow.phoneNumbers[0]);
+		else
+		   $(td_Phone).text(&apos;&apos;);
+
+		$(tr).append(td_Phone);
+
+		var td_Year= $(&apos;&lt;td class=&quot;dataCell&quot;&gt;&apos;);
+		$(td_Year).text((comRow.foundedYear==null?&apos;&apos;:comRow.foundedYear));
+		$(tr).append(td_Year);
+
+		var td_Sales= $(&apos;&lt;td class=&quot;dataCell&quot;&gt;&apos;);
+		$(td_Sales).text((comRow.revenue==null?&apos;&apos;:comRow.revenue));
+		$(tr).append(td_Sales);
+
+		var td_Employees= $(&apos;&lt;td class=&quot;dataCell&quot;&gt;&apos;);
+		$(td_Employees).text((comRow.employees==null?&apos;&apos;:comRow.employees));
+		$(tr).append(td_Employees);
+
+		var compWebsite = &apos;{!Lead.Website}&apos;;
+		
+		var td_Website= $(&apos;&lt;td class=&quot;dataCell&quot;&gt;&apos;);
+		if(comRow.urls != null &amp;&amp; comRow.urls.length &gt; 0)
+		{
+		  
+		  $(td_Website).text(comRow.urls[0]);
+		  if(compWebsite != null &amp;&amp; compWebsite !=&apos;&apos;)
+		  {
+			if(comRow.urls[0].indexOf(compWebsite) != -1)
+				$(td_Website).css({&quot;font-weight&quot;:&quot;bold&quot;,&quot;color&quot;:&quot;blue&quot;});
+		  }
+		}
+		else
+		  $(td_Website).text(&apos;&apos;);
+
+		$(tr).append(td_Website);
+
+		
+		$(data).append(tr);
+	});
+}
+}
+
+function SaveData(accID,saveOBject)
+{
+  var confirmSave = confirm(&quot;Do you want to copy selected company details to Lead?&quot;);
+  if(confirmSave)
+{
+  sforce.apex.execute(&quot;BLSD.CompanySearchServices&quot;,&quot;SaveLead&quot;,{lID:accID,JsonData:JSON.stringify(saveOBject)});
+ location.reload();
+}
+else
+{
+  return false;
+}
+}</url>
+    </webLinks>
+</CustomObject>

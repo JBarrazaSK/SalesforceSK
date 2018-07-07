@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>Custmize</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>CustmizeApps</shortDescription>
+        <value>4. Customize Apps</value>
+    </labels>
+    <labels>
+        <fullName>CustmizeApp1</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>CustmizeApp1</shortDescription>
+        <value>Add &quot;Contact Capture&quot; tab to apps</value>
+    </labels>
+    <labels>
+        <fullName>CustmizeLead</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>CustmizeLead</shortDescription>
+        <value>1. Customize Leads</value>
+    </labels>
+    <labels>
+        <fullName>CustomizeAccount1</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>CustomizeAccount1</shortDescription>
+        <value>Add Profiler VisualForce component and button to the page layout</value>
+    </labels>
+    <labels>
+        <fullName>CustomizeAccount2</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>CustomizeAccount2</shortDescription>
+        <value>Add &apos;Profile Selected&apos; button to list views</value>
+    </labels>
+    <labels>
+        <fullName>CustomizeAccounts</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>CustomizeAccounts</shortDescription>
+        <value>2. Customize Accounts</value>
+    </labels>
+    <labels>
+        <fullName>CustomizeLead1</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>CustomizeLead1</shortDescription>
+        <value>Add Profiler VisualForce component and button to page layouts</value>
+    </labels>
+    <labels>
+        <fullName>CustomizeLead2</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>CustomizeLead2</shortDescription>
+        <value>Add Profile Selected button to list views</value>
+    </labels>
+    <labels>
+        <fullName>CustomizeLead3</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>CustomizeLead3</shortDescription>
+        <value>Add Shield History related list to page layouts</value>
+    </labels>
+    <labels>
+        <fullName>CustomizeLead4</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>CustomizeLead4</shortDescription>
+        <value>Override standard buttons</value>
+    </labels>
+    <labels>
+        <fullName>Customize_Contact1</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Customize Contact1</shortDescription>
+        <value>Add the Shield History related list to the layout</value>
+    </labels>
+    <labels>
+        <fullName>Customize_Contact2</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Customize Contact2</shortDescription>
+        <value>Override standard buttons</value>
+    </labels>
+    <labels>
+        <fullName>Customize_Contacts</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Customize Contacts</shortDescription>
+        <value>3. Customize Contacts</value>
+    </labels>
+    <labels>
+        <fullName>Export_Settings_Heading</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Export Settings</shortDescription>
+        <value>Exports</value>
+    </labels>
+    <labels>
+        <fullName>Finish_Screen_Line_1</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Finish Screen Line 1</shortDescription>
+        <value>You&apos;re almost finished!</value>
+    </labels>
+    <labels>
+        <fullName>Finish_Screen_Line_2</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Finish Screen Line 2</shortDescription>
+        <value>Before you can start leveraging the CRM Data Suite, you will need to take a few additional steps to configure the product:</value>
+    </labels>
+    <labels>
+        <fullName>Finish_Screen_Line_3</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Finish Screen Line 3</shortDescription>
+        <value>1. For optimum performance, ensure the profiler component has been added to Account and Leads page layouts.</value>
+    </labels>
+    <labels>
+        <fullName>Finish_Screen_Line_4</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Finish Screen Line 4</shortDescription>
+        <value>2. Add the Contact Capture tab to all Standard and Custom Apps users will utilize the tools on.</value>
+    </labels>
+    <labels>
+        <fullName>License_Key_Screen_Header_1</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>License Key Screen Header 1</shortDescription>
+        <value>If you have purchased the full version of this product, please take a moment to input the license key provided to you for your products by clicking Upgrade.</value>
+    </labels>
+    <labels>
+        <fullName>License_Key_Screen_Header_2</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>License Key Screen Header 2</shortDescription>
+        <value>If you have not purchased the full version and would like to also, please click upgrade. If you wish to continue with the trial version go to the next page.</value>
+    </labels>
+    <labels>
+        <fullName>Org_Id</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Org Id</shortDescription>
+        <value>Organization ID</value>
+    </labels>
+    <labels>
+        <fullName>Popup_Header</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Popup Header1</shortDescription>
+        <value>If you&apos;ve received a license key please enter below. If you are interested in hearing more about full product click</value>
+    </labels>
+    <labels>
+        <fullName>Popup_Header2</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Popup Header2</shortDescription>
+        <value>to get in touch with a CRM Data suite support specialist.</value>
+    </labels>
+    <labels>
+        <fullName>Profiler_Heading</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Profiler Heading</shortDescription>
+        <value>Profiler Settings</value>
+    </labels>
+    <labels>
+        <fullName>Profiler_Scoring</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Profiler Scoring</shortDescription>
+        <value>Profiler Scoring</value>
+    </labels>
+    <labels>
+        <fullName>Registration_Screen_Header</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Registration Screen Header</shortDescription>
+        <value>Welcome to the CRM Data Suite set-up guide! We will guide you through step by step setting up your new product. Please take a moment to register your product.</value>
+    </labels>
+    <labels>
+        <fullName>Setting_Screen_Header_1</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Setting Screen Header 1</shortDescription>
+        <value>We&apos;ve already defaulted your CRM Data suite settings for optimal performance, if you have questions about modifying the product settings please navigate to</value>
+    </labels>
+    <labels>
+        <fullName>Setting_Screen_Header_2</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Setting Screen Header 2</shortDescription>
+        <value>or reach out to your CRM data suite support specialist.</value>
+    </labels>
+    <labels>
+        <fullName>Shield_Heading</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Shield Heading</shortDescription>
+        <value>Data Shield</value>
+    </labels>
+</CustomLabels>

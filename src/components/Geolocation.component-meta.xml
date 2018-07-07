@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ApexComponent xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>31.0</apiVersion>
+    <description>Componente para actualizar el campo de Geolocalización, tanto en una cuenta, como en un prospecto.</description>
+    <label>Geolocation</label>
+</ApexComponent>

@@ -1,0 +1,305 @@
+<apex:page controller="BLDS.CaptureController" action="{!checkRegistered}">
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryCS, 'jquery-1.9.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryCS, 'jquery-ui-1.10.3.custom.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryCS, 'analytics.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryBlockUI)}" />
+    <script src="https://na15.salesforce.com/soap/ajax/28.0/connection.js"></script>
+    <apex:form id="changeDescription">
+    	
+        <script>
+         /* To show javascript error message in standard VF style*/
+        function showError(e)
+        { 
+            afDisplayJSErrorMessage(e.message);
+        }
+        
+        /* Opens a new tab on click of feedback link */
+        function imageClick()
+        {           
+                window.open("https://webapp.broadlook.com/dev/?action=feedback.show&uid=186cb&plat=SalesforceCRM&app=ContactCapture&ver=1.0&return=window.close()");           
+        }
+        
+        function clearTextArea()
+        {
+                clearText();
+        } 
+        
+        window.onload=function(){
+        removeToolbar();
+        };
+        
+        function removeToolbar()
+        {
+            try
+            {
+                if(document.getElementById('cke_21') != null){
+                    document.getElementById('cke_9').style.display = 'none';
+                    document.getElementById('cke_14').style.display = 'none';
+                    document.getElementById('cke_17').style.display = 'none';
+                    document.getElementById('cke_21').style.display = 'none';
+                    document.getElementById('mainDiv').style.display = 'block';
+                }
+                else
+                    setTimeout(removeToolbar,1000);
+            }
+            catch(e){
+                showError(e);
+            }
+        }
+        function redirect(hddn)
+        {
+            var countRecord = document.getElementById(hddn).value;
+            if(countRecord == false || countRecord == 'false')
+            {
+                callPageReference();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        function reloadPage()
+        {
+            document.getElementById('popupPanel').style.display = 'none';
+            callPageReference();
+            return true;
+        }
+        function showDisablingDiv()
+        {     
+           // alert('in disabling div');
+            document.getElementById('disablingDiv').style.display='block';
+        } 
+        
+        function hideDisablingDiv()
+        {
+            //alert('in hide disabling div');
+            document.getElementById('disablingDiv').style.display='none';
+        }
+        
+        $( document ).ready(function() {
+		//$("#lookout-div").hide();
+		//$("#inner-div").hide();
+		//check if UnRegistered
+	
+		//checkRegistered();
+		var isCheck = "{!isRegistered}";
+		//alert(isCheck);
+		if(isCheck==0)
+		{
+		$("#lookout-div").show();
+		$("#inner-div").show();
+		}
+		});
+    </script>
+
+        <style>
+            .fontSize {
+                font-size: 91%;
+                color: #015ba7;
+                text-decoration: none;
+            }
+            
+            .links {
+                color: #015ba7;
+                text-decoration: none;
+                font-size: 91%;
+            }
+           .custPopup{
+               background-color: white;
+               border-width: 2px;
+               border-style: solid;
+               z-index: 9999;
+               left: 50%;
+               padding:10px;
+               position: absolute;
+               overflow: auto;
+               max-height: 300px;
+               width: 800px;
+               margin-left: -400px;
+               top:100px;
+           }
+           .popupBackground{
+               background-color:black;
+               opacity: 0.20;
+               filter: alpha(opacity = 20);
+               position: absolute;
+               width: 100%;
+               height: 100%;
+               top: 0;
+               left: 0;
+               z-index: 9998;
+           }
+           .disablingDiv
+            {
+                /* Do not display it on entry */
+                display: none;
+             
+                /* Display it on the layer with index 1001.
+                   Make sure this is the highest z-index value
+                   used by layers on that page */
+                z-index:3001;
+                 
+                /* make it cover the whole screen */
+                position: absolute;
+                top: 0%;
+                left: 0%;        
+                width: 112%;
+                height: 102%;
+                     
+                /* make it white but fully transparent */
+                background-color: #6D7B8D;
+                opacity:.30;
+                filter: alpha(opacity=20);
+            }
+            
+        #lookout-div
+        {
+        height:99.3%;
+        width:82.7%;
+        position:absolute;
+        z-index:5;
+        background-color: black;
+        opacity: 0.7;
+    	}
+    	#inner-div
+        {
+        	opacity: 1;
+        	background:black;
+        	position:absolute;
+        	width: 700px;
+			height: 120px;
+			z-index: 15;
+			top: 30%;
+			left: 27%;
+			font-size: 137%;
+    	}
+        </style>
+        <div id="lookout-div" style ="display: none;"></div>
+    	<div id="inner-div" style ="display: none;">
+    	<table width="100%" class="mainTable">
+	            <tr>
+	                <td height="10%" style="color: rgba(203, 199, 199, 1);padding-top: 15PX;padding: 27px;padding-bottom: 15px;text-align: center;">
+	                    <!-- <apex:pageMessage summary="Your organization has not registered for this feature.To enable this feature contact your RingLead sales representative or sales@ringlead.com."/>-->
+	                    Thanks for installing! Before you can use the application you need to register your product.  It only takes a minute, <apex:outputLink value="/apex/Registration">click here</apex:outputLink>. If you do not have access, please contact your System Administrator.
+	                </td>
+	            </tr>
+	    </table>
+		</div>
+    	<apex:actionFunction name="checkRegistered" action="{!checkRegistered}"></apex:actionFunction>
+    	
+        <div align="left" class="disablingDiv" id="disablingDiv"></div>
+        <div style="position:absolute;top: 50%;left: 50%; z-index:3002;margin: -50px 0px 0px -50px;">
+            <apex:actionStatus startText="Please wait .." stopText="" id="counterStatusSave" >
+                <apex:facet name="start">
+                     <apex:outputPanel > <!-- style="padding-left:50%;" -->
+                        <apex:image value="{!URLFOR($Resource.BLDS__Utilities, 'Images/ccanimated.gif')}" width="100%" height="100%"/>
+                        
+                     </apex:outputPanel>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+         <apex:actionFunction name="checkValidation" action="{!dummy}" status="counterStatusSave" rerender="msg,errorMessage,hddnId,tstpopup" oncomplete="redirect('{!$Component.hddnId}')"/>
+         <apex:actionFunction name="callPageReference" action="{!capture}" />
+         <apex:actionFunction name="afDisplayJSErrorMessage" action="{displayBlanketError}" rerender="msg,errorMessage">
+            <apex:param name="jsErrorMsg" value="" assignTo="{!strErrorMessage}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="clearText" action="{!clearRichTextArea}" />
+        <div style="display: none;" id="mainDiv">
+            <table width="100%">
+                <tr width="100%">
+                    <td>
+                        <table rowspan="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td style="height: 14px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 18px;"><apex:image id="theIcon"
+                                        value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Images/contact_capture_crm_logo.png')}"
+                                        height="auto" /></td>
+                            </tr>
+                            <tr>
+                                <td style="height: 14px;"></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="vertical-align: middle; text-align: right"><apex:outputLink value="https://www.broadlook.com/contactcapture/contactcapture2.htm"
+                            id="theLink3" target="_blank" styleClass="fontSize">Samples</apex:outputLink>
+                        | <img
+                        src="http://www.sfdcstatic.com/common/assets/img/opinionlab-orange.gif"
+                        alt="Feedback" style="cursor: pointer;" onClick="imageClick()" />
+                        <span style="width: 5px;" /> <apex:outputLink styleClass="rate fontSize"
+                            value="https://webapp.broadlook.com/dev/?action=feedback.show&uid=186cb&plat=SalesforceCRM&app=ContactCapture&ver=1.0&return=window.close();"
+                            id="theLink2" target="_blank">Feedback</apex:outputLink> |&nbsp;
+                        <apex:outputLink StyleClass="links"
+                            value="http://www.RingLead.com/help/" id="theLink1"
+                            target="_blank" title="Help for this Page (New Window)">Help for this page</apex:outputLink>
+                        <a target="_blank" href="http://www.RingLead.com/help/"> <img src="/s.gif"
+                            title="Help" alt="" class="helpIcon" />
+                    </a></td>
+                </tr>
+            </table>
+            <div style="padding-bottom: 6px;">
+                <apex:commandButton value="Capture!" rerender="hddnId,pageBlock" onclick="showDisablingDiv();return checkValidation();"/>
+                &nbsp;
+                <apex:commandButton value="Clear" immediate=""
+                    onClick="clearTextArea();" id="clearBtn" reRender="idd" />
+            </div>
+            <apex:inputHidden value="{!isLimitExceed}" id="hddnId"/>
+            <apex:pageBlock id="pageBlock">
+                <apex:pageMessages Id="msg"/>
+                <apex:outputPanel Id="errorMessage">
+                    <script>
+                        /* Section for displaying error message on mouse hover of error icon*/
+                        var actualMsg = '{!JSENCODE(strErrorMessage)}';
+                        if(actualMsg != '' && actualMsg != null) 
+                        {
+                            var errorTag =  document.getElementsByClassName('msgIcon');
+                            errorTag[0].title = actualMsg;
+                        }
+                    </script>
+                </apex:outputPanel>
+                <apex:outputPanel id="idd" />
+                <apex:inputTextarea id="newDesc" cols="80" rows="15"
+                    value="{!CaptureText}" richtext="true" />
+                <p />
+                <apex:inputCheckbox value="{!IsChecked}" disabled="{!!Ischecked}">
+                    <b>Shield On</b>
+                </apex:inputCheckbox>
+
+            </apex:pageBlock>
+        </div>
+        
+        <div id="popupPanel">
+        <apex:outputPanel id="tstpopup" >
+        <apex:outputPanel styleClass="popupBackground" layout="block" rendered="{!isLimitExceed}"/>
+            <apex:outputPanel styleClass="custPopup" layout="block" rendered="{!isLimitExceed}">
+            
+            
+                <table rowspan="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td style="height: 14px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 18px;"><apex:image id="theIconNew"
+                                value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Images/contact_capture_crm_logo.png')}"
+                                height="auto" /></td>
+                    </tr>
+                    <tr>
+                        <td style="height: 14px;"></td>
+                    </tr>
+                </table>  
+                <apex:pageBlock >
+                <br />
+                <b>The number of records pasted exceeded the maximum limit of 100, only the first 100 records were imported</b>  
+                <br /><br /><br />
+                    <apex:outputPanel style="margin-left:330px">
+                        <apex:commandButton value="OK" onclick="return reloadPage();" rerender="msg"/>
+                    </apex:outputPanel>
+            </apex:pageBlock>
+         </apex:outputPanel>
+         
+     </apex:outputPanel>
+     </div>
+    </apex:form>    
+</apex:page>

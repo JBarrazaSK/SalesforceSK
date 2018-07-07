@@ -1,0 +1,2 @@
+<apex:page controller="ctrlManageSurveyCase" sidebar="false" action="{!updateSCase}" showHeader="false">
+</apex:page>

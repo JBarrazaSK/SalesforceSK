@@ -1,0 +1,684 @@
+<apex:page standardController="Opportunity" tabStyle="Pedidos_OC__tab" extensions="ctrlrPedidoOtrosCanales" sidebar="false" docType="html-5.0" >
+    <script language="javascript" type="text/javascript"> 
+        function stopRKey(evt) {
+           var evt = (evt) ? evt : ((event) ? event : null);
+           var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null);
+           if ((evt.keyCode == 13) && (node.type=="text")) {return false;}
+        }
+        function ConsultarPedidosOC(opcion) {
+          var bloqueo = {!isLocked}; 
+          if(opcion == 1)
+          {
+
+              if(!bloqueo)
+              { 
+                  openModal('ConfigPedidos');
+                  return;
+              }
+
+          }
+          if(opcion == 2)
+          {
+              if(!bloqueo)
+              {
+                openModal('ConfirmPedidos');
+                return;
+              }
+          }
+          else if(!bloqueo) {
+                  $('[id$=showStatusDiv]').show();
+               }
+
+        }
+        function OcultarSpinner() {
+          $('[id$=showStatusDiv]').hide();
+        }
+
+
+    	document.onkeypress = stopRKey;
+
+        function disableSave() {
+        	j$ = jQuery.noConflict();
+         	j$(".buttonGuardar").prop("disabled","true");
+            j$(".buttonGuardar").val("Generando...");
+
+            j$(".buttonGuardar").css( "border-color", "#c4c4c4" );
+            j$(".buttonGuardar").css( "color", "#909090" );
+        }
+    	function disableCancel() {
+            j$ = jQuery.noConflict();
+        	j$(".buttonCancel").prop("disabled","true");
+            j$(".buttonCancel").val("Cancelando...");
+
+            j$(".buttonCancel").css( "border-color", "#c4c4c4" );
+            j$(".buttonCancel").css( "color", "#909090" );
+        }
+    	function disableBackButton() {
+        	window.history.forward();
+        }
+        setTimeout("disableBackButton()", 0);
+       
+        
+    </script>
+    <style>
+ #showStatusDiv { position: fixed; background: rgba(0, 0, 0, 0.43); width: 100%; height: 100%; top: 0; left: 0; z-index: 999999; }
+
+#showStatusDiv img { position: absolute; top: 50%; left: 50%; margin-right: 25px; }
+
+textarea {
+    resize: none;
+}
+.Botones
+{
+	padding-left:250px;
+}
+.BotonesConfirm
+{
+	padding-left:100px;
+}
+#ConfigPedidos {
+    display: none;
+    height: 300px;
+    width: 700px;
+    margin-left: 25%;
+    margin-top: -200px;
+    position: fixed;
+    top: 50%;
+    z-index: 999;
+}
+#ConfigPedidos .pbHeader table {
+    padding: 0 !important;
+}
+#ConfigPedidos .pbTitle {
+    padding-top: 9px !important;
+    width: auto;
+}
+#ConfigPedidos .pbBody table {
+    border: 0;
+}
+#ConfigPedidos .pbButton {
+    display: inline-block;
+    float: right;
+    padding: 7px !important;
+}
+#ConfigPedidos .labelCol {
+    vertical-align: middle;
+}
+#ConfigPedidos .pbBody {
+    height: 250px;
+    overflow-y: auto;
+}
+#ConfigPedidos .pbTitle {
+    display: inline-block;
+}
+#ConfigPedidos .pbButtonb {
+    padding-right: 3px !important;
+}
+#ConfigPedidos .pbButtonb .btn {
+    float: center;
+}
+/**/
+#ConfirmPedidos {
+    display: none;
+    height: 100px;
+    width: 400px;
+    margin-left: 25%;
+    margin-top: -200px;
+    max-height: 200px;
+    position: fixed;
+    top: 50%;
+    z-index: 999;
+}
+#ConfirmPedidos .pbHeader table {
+    padding: 0 !important;
+}
+#ConfirmPedidos .pbTitle {
+    padding-top: 9px !important;
+    width: auto;
+}
+#ConfirmPedidos .pbBody table {
+    border: 0;
+}
+#ConfirmPedidos .pbButton {
+    display: inline-block;
+    float: right;
+    padding: 7px !important;
+}
+#ConfirmPedidos .labelCol {
+    vertical-align: center;
+}
+#ConfirmPedidos .pbBody {
+    height: 110px;
+    overflow-y: auto;
+}
+#ConfirmPedidos .pbTitle {
+    display: inline-block;
+}
+#ConfirmPedidos .pbButtonb {
+    padding-right: 0px !important;
+}
+#ConfirmPedidos .pbButtonb .btn {
+    float: center;
+}
+/**/
+
+/**/
+#ConfirmCancelacion {
+    display: none;
+    height: 200px;
+    width: 700px;
+    margin-left: 25%;
+    margin-top: -200px;
+    position: fixed;
+    top: 50%;
+    z-index: 999;
+}
+#ConfirmCancelacion .pbHeader table {
+    padding: 0 !important;
+}
+#ConfirmCancelacion .pbTitle {
+    padding-top: 9px !important;
+    width: auto;
+}
+#ConfirmCancelacion .pbBody table {
+    border: 0;
+}
+#ConfirmCancelacion .pbButton {
+    display: inline-block;
+    float: right;
+    padding: 7px !important;
+}
+#ConfirmCancelacion .labelCol {
+    vertical-align: middle;
+}
+#ConfirmCancelacion .pbBody {
+    height: 250px;
+    overflow-y: auto;
+}
+#ConfirmCancelacion .pbTitle {
+    display: inline-block;
+}
+#ConfirmCancelacion .pbButtonb {
+    padding-right: 3px !important;
+}
+#ConfirmCancelacion .pbButtonb .btn {
+    float: center;
+}
+ </style>
+    <div id="my-timeline" style="height:800px; width:100%; border: 1px solid #aaa; valign:fixed;" >
+<!-- <div id="my-timeline" style="height:100%; width:100%; border: 1px solid #aaa; valign:fixed;" > -->
+	<apex:stylesheet value="{!URLFOR($Resource.PedidoWizard, 'css/PedidoWizard.css')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.PedidoWizard, 'js/jquery-1.11.1.min.js')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.PedidoWizard, 'js/PedidoWizard.js')}"/>
+
+    <apex:includeScript value="{!URLFOR($Resource.popup, 'js/popUp.js')}"/>
+
+    <apex:form id="form" >
+    	<apex:pageMessages />
+        <apex:pageBlock id="generales">
+            <apex:pageBlockButtons location="top" >
+                <apex:actionStatus id="actionStatusSubmit" onstart="hideActionButtons()" onstop="showActionButtons()">
+                    <apex:facet name="stop">
+                        <apex:outputPanel styleClass="outputPanelActionButtons">
+                            <apex:outputPanel rendered="true">
+                            
+                            <apex:outputPanel rendered="{!pedido.Id != null}" >
+                                <input type="button" class="btn" onclick="ConsultarPedidosOC(1)" value= "Guardar" name="btnModificado" style="color: #fff;background-color: GREEN;border-color: #5cb85c;background-image:none;font-weight=bold;" ></input>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!pedido.Id == null}">
+                                    <input type="button" class="btn" onclick="ConsultarPedidosOC(2)" value= "Guardar" name="btnModificado22" style="color: #fff;background-color: GREEN;border-color: #5cb85c;background-image:none;font-weight=bold;" ></input>
+                                    </apex:outputPanel> 
+                                 <apex:commandButton styleclass="btn"  onclick="ConsultarPedidosOC()" action="{!guardarPedido}" value="Guardar" status="actionStatusDispo"  id="btnGuardarOC" timeout="60000" style="background: GREEN; color:white; font-weight=bold; display:none;"   />
+                               
+                <apex:outputPanel rendered="{!pedido.Id!=null&&!pedido.Pedido_Cancelado__c}">
+                    <input type="button" class="btn" onclick="openModal('ConfirmCancelacion')" value= "Cancelar pedido" name="btnModificado" style="background: #f68b0e;" ></input>
+                      <!-- <apex:commandButton value="Cancelar pedido" action="{!cancelarPedido}" rendered="{!pedido.Id!=null&&!pedido.Pedido_Cancelado__c}" style="background: #f68b0e;" disabled="{!isLocked}" /> -->
+                    </apex:outputPanel>
+
+                                <apex:commandButton action="{!nuevoPedido}" value="Nuevo pedido" reRender="generales,outputPanelProductos" />
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <input type="button" value="Guardando..." disabled="disabled" class="btnDisabled"/>
+                        <img src="/img/loading.gif" class="imgLoading"/>
+                    </apex:facet>
+                </apex:actionStatus>
+            </apex:pageBlockButtons>
+            <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+                <h3>Generales</h3>
+            </div>
+            <table id="tableGenerales2">
+                <tr>
+                    <td colspan="7" >&nbsp;</td>
+                    <td colspan="2" class="labelCol">
+                        <div id="divUser">
+                            <apex:outputLabel >Atiende:</apex:outputLabel>
+                            {!$User.FirstName+' '+$User.LastName}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelCol" id="tdCliente">Cliente:</td>
+                    <td id="tdNumeroClienteSAP">
+                        <apex:outputText value="{!codigoCliente}" style="width:80px" rendered="{!pedido.Id != null}" />
+                        <apex:inputText id="idCliente" value="{!codigoCliente}" style="width:80px" rendered="{!pedido.Id == null}" >
+                            <apex:actionSupport action="{!buscarSAP}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales,outputPanelProductos" />
+                        </apex:inputText><div class="requiredBlock"></div>
+                    </td>
+                    <td colspan="2">
+                        <apex:outputText value="{!pedido.Cliente__r.Name}" style="width:80px" rendered="{!pedido.Id != null}" />
+                        <div class="requiredInput"><div class="requiredBlock"></div>
+                            <apex:inputField taborderhint="1" value="{!pedido.Cliente__c}" rendered="{!pedido.Id == null}" >
+                                <apex:actionSupport action="{!buscarPorCliente}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales,outputPanelProductos" />
+                            </apex:inputField>
+                        </div>
+                        <apex:actionStatus id="actionStatusSucursal">
+                            <apex:facet name="start">
+                                <img src="/img/loading.gif" class="imgLoading"/>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </td>
+                    <td colspan="2"><apex:pageMessage summary="¡El cliente se encuentra Suspendido!" severity="warning" strength="1" rendered="{! !cteActivo}"/></td>
+                    <td class="labelCol">Folio Pedido:</td>
+                    <td colspan="2">
+                    	<apex:outputField value="{!pedido.Folio_Pedido_SDL__c}"/>
+                    </td>
+                </tr>
+                <tr>
+                	<td class="labelCol">Sucursal:</td>
+                    <td id="tdNumeroClienteSAP">
+                        <apex:outputText value="{!codigoSucursal}" style="width:80px" rendered="{!pedido.Id != null}" />
+						<apex:inputText value="{!codigoSucursal}"  style="width:80px" rendered="{!pedido.Id == null}" >
+                            <apex:actionSupport action="{!buscarSucursal}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales" />
+                        </apex:inputText><div class="requiredBlock"></div>
+                    </td>
+                    <td colspan="2" >
+                        <apex:outputText value="{!pedido.Account.Name}" style="width:80px" rendered="{!pedido.Id != null}" />
+                        <div class="requiredInput"><div class="requiredBlock"></div>
+                            <apex:inputField taborderhint="2" value="{!pedido.SucursalAux__c}" rendered="{!pedido.Id == null}" >
+                                <apex:actionSupport action="{!buscarSucursalPorNombre}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales" />
+                            </apex:inputField>
+                    	</div>
+                    </td>
+                    <td colspan="2"><apex:pageMessage summary="¡La sucursal se encuentra Suspendida!" severity="warning" strength="1" rendered="{! !sucActivo}"/></td>
+                    <td class="labelCol">Folio Embarque:</td>
+                    <td colspan="2">
+                        <apex:outputField value="{!pedido.Folio_Embarque__c}"/>
+                    </td>
+                </tr>
+                <tr>
+                	<td class="labelCol">Canal Factura:</td>
+                    <td>
+                        <apex:outputText value="{!ofiCodigo}" style="width:80px" rendered="{!pedido.Id != null}" />
+                        <apex:inputText value="{!ofiCodigo}"  style="width:80px" rendered="{!pedido.Id == null}">
+                            <apex:actionSupport action="{!buscarOfiCodigo}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales,outputPanelProductos" />
+                        </apex:inputText>
+                    </td>
+                    <td colspan="2" >
+                        <apex:outputText value="{!pedido.Canal_Factura__r.Name}" style="width:80px" rendered="{!pedido.Id != null}" />
+                        <div class="requiredInput"><div class="requiredBlock"></div>
+                            <apex:inputField taborderhint="2" value="{!pedido.Canal_Factura__c}" rendered="{!pedido.Id == null}">
+                                <apex:actionSupport action="{!buscarXOfiVt}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales,outputPanelProductos" />
+                            </apex:inputField>
+                        </div>
+                    </td>
+                    <td colspan="2"><apex:pageMessage summary="¡Este canal factura no puede Surtir a este Cliente!" severity="warning" strength="1" rendered="{!noSurte}"/></td>
+                    <td class="labelCol">Cancelado SAP:</td>
+                    <td colspan="2">
+                        <apex:outputField value="{!pedido.Cancelado_en_SAP__c}" />
+                        <!--<apex:inputField value="{!pedido.Cancelado_en_SAP__c}" rendered="{!pedido.Id!=null}" />-->
+                    </td>
+                </tr>
+                <tr>
+                	<td class="labelCol">Frontera:</td>
+                    <td colspan="2" >
+                        <apex:outputText value="{!pedido.Frontera__c}" rendered="{! esPlanta && pedido.Id != null}" />
+                        <div class="requiredInput"><div class="requiredBlock"></div>
+                            <apex:selectList value="{!pedido.Frontera__c}" size="1" rendered="{!esPlanta && pedido.Id == null}" >
+                                <apex:selectOptions value="{!fronteras}"/>
+                            </apex:selectList>
+                        </div>
+                    </td>
+                    <td colspan="3" >&nbsp;</td>
+                    <td class="labelCol">Flete / Libra:</td>
+                    <td colspan="2" >
+                        <apex:inputField value="{!pedido.Flete__c}" >
+                            <apex:actionSupport action="{!validateInteger}" event="onchange" status="actionStatusSucursal" rerender="generales,outputPanelProductos"  onsubmit="ConsultarPedidosOC()" oncomplete="OcultarSpinner()"/>
+                        </apex:inputField>
+                    </td>
+                </tr>
+                <tr>
+                	<td class="labelCol">Fecha de Embarque:</td>
+                    <td colspan="2">
+                        <div class="requiredInput"><div class="requiredBlock"></div><apex:inputField value="{!pedido.Fecha_de_Embarque__c}">
+                        <apex:actionSupport event="onchange" action="{!validateFecha}" rerender="outputPanelProductos" status="actionStatusDispo" >
+								<apex:param name="fecha" value="{!pedido.Fecha_de_Embarque__c}" assignTo="{!fecha}" />
+                            </apex:actionSupport>
+                            </apex:inputField>
+                        </div>
+                    </td>
+                    <td class="labelCol">Hora de Embarque:</td>
+                    <td colspan="2">
+                    		<apex:inputField value="{!pedido.Hora_de_Embarque__c}" />
+                    		
+                    </td>
+                    <td class="labelCol">Fecha de Cruce:</td>
+                    <td colspan="2">
+                        <div class="requiredInput"><div class="requiredBlock"></div>
+	                    	<apex:inputField value="{!pedido.Fecha_de_Cruce__c}" rendered="{!cruce}" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+					<td class="labelCol">Fecha de Entrega:</td>
+                    <td colspan="2">
+                        <div class="requiredInput"><div class="requiredBlock"></div>
+	                    	<apex:inputField value="{!pedido.Fecha_de_Entrega__c}" />
+                        </div>
+                    </td>
+                    <td colspan="3" >&nbsp;</td>
+                    <td class="labelCol">Fecha de Inspección:</td>
+                    <td colspan="2">
+                        <div class="requiredInput"><div class="requiredBlock"></div>
+	                    	<apex:inputField value="{!pedido.Fecha_de_Inspeccion__c}" rendered="{!esPlanta}" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+					<td class="labelCol">PO Cliente:</td>
+                    <td colspan="2">
+                    	<apex:inputField value="{!pedido.OC__c}" html-maxlength="20" rendered="{! isExportacion == false}"/>
+                        <apex:outputField value="{!pedido.OC__c}" rendered="{!isExportacion}"/>
+                    </td>
+
+                    <td class="labelCol">PO Proveedor:</td>
+                    <td colspan="2">
+                    	<apex:inputField value="{!pedido.PO_Proveedor__c}" />
+                    </td>
+                    <td class="labelCol">Fecha de Embarque Bodega:</td>
+                    <td colspan="2">
+                        <div class="requiredInput"><div class="requiredBlock"></div>
+                    		<apex:inputField value="{!pedido.Fecha_Embarque_Bodega__c}" rendered="{!esPlanta}" />
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <!-- <td class="labelCol">Unidad de Medida</td>
+                    <td colspan="2">
+                    	<apex:outputText value="Cajas" rendered="{! pedido.Unidad__c=='C'&&pedido.Id != null}" /><apex:outputText value="Kilos" rendered="{! pedido.Unidad__c=='K'&&pedido.Id != null}" />
+                        <apex:outputText value="Libras" rendered="{! pedido.Unidad__c=='L'&&pedido.Id != null}" /><apex:outputText value="Piezas" rendered="{! pedido.Unidad__c=='P'&&pedido.Id != null}" />
+                        <apex:selectList value="{!pedido.Unidad__c}" multiselect="false" size="1" style="width:120px" rendered="{! pedido.Id == null}">
+                            <apex:selectOptions value="{!medidas}"/>
+                            <apex:actionSupport event="onchange" action="{!validateUM}" status="actionStatusDispo" rerender="generales,outputPanelProductos" />
+                        </apex:selectList>
+                    </td> -->
+                    <td class="labelCol">Observaciones</td>
+                    <td colspan="4">
+                        <div id="divObservacion"><apex:inputTextarea value="{!pedido.Description}" rows="3" cols="150" /></div>
+                    </td>
+                    <td colspan="2">&nbsp;</td>
+                </tr>
+
+            </table>
+		</apex:pageBlock>
+
+        <apex:pageBlock >
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton action="{!addRow}" value="Agregar Producto" rerender="outputPanelProductos" /> 
+<!--                 <apex:commandButton action="{!consultarDisponibilidad}" value="Precios&Disponibilidad" status="actionStatusDispo" rerender="outputPanelProductos, inventario" /> -->
+                <apex:commandButton action="{!consultarPrecio}" value="Precios" status="actionStatusDispo" rerender="outputPanelProductos, inventario" />
+                <apex:commandButton action="{!consultarDisponibilidad}" value="Disponibilidad" status="actionStatusDispo" rerender="outputPanelProductos, inventario" />
+                <apex:actionStatus id="actionStatusDispo" >
+                    <apex:facet name="start">
+                        <img src="/img/loading.gif" class="imgLoading"/> 
+                    </apex:facet>
+                </apex:actionStatus>
+            </apex:pageBlockButtons>
+
+            <div style="overflow: scroll; width: 100%;" >
+            <apex:actionRegion >
+            <apex:outputPanel id="outputPanelProductos" >
+                <apex:pageMessages />
+                <apex:pageBlockTable columns="19" id="productos" value="{!productos}" var="p" width="100%" rendered="{! cteActivo}">
+                
+                <apex:column >
+                	 <apex:inputCheckbox label="Precio" value="{!p.isPrecio}"/>
+                </apex:column>                
+                    <apex:column headerValue="Acción" onclick="showInventario(parseInt({!p.index})+1)">
+                        <apex:commandButton action="{!removeRow}" value="Eliminar" rerender="outputPanelProductos" style="width:50px" rendered="{!p.showDelete == true}">
+                            <apex:param name="row" assignTo="{!row}" value="{!p.index}" />
+                        </apex:commandButton>
+                    </apex:column>
+                    <apex:column headerValue="Producto" >
+                        <apex:inputText value="{!p.codigo}" style="width:40px" disabled="{!p.DisabledProd}">
+                            <apex:actionSupport action="{!buscarProducto}" event="onchange" status="actionStatusProd" rerender="outputPanelProductos">
+                                <apex:param name="row" assignTo="{!row}" value="{!p.index}"/>
+                            </apex:actionSupport>
+                        </apex:inputText>
+                    </apex:column>
+                    <apex:column headerValue="Descripción" >
+                        <apex:inputField required="false" value="{!p.pbe.Product2Id}" style="width:100px">
+                            <apex:actionSupport action="{!buscarProductoPorNombre}" event="onchange" status="actionStatusProd" rerender="outputPanelProductos">
+                                <apex:param name="row" assignTo="{!row}" value="{!p.index}"/>
+                            </apex:actionSupport>
+                        </apex:inputField>
+                    </apex:column>
+                    <apex:column headerValue="Origen" >
+                        <apex:outputField value="{!p.item.Origen_Surtido__c}" rendered="{!pedido.Id != null}" html-disabled="{!p.DisabledProd}"/>
+                        <apex:inputField required="false" value="{!p.item.Origen_Surtido__c}" style="width:100px"  rendered="{!pedido.Id == null}">
+                            <apex:actionSupport action="{!validarOrigen}" event="onchange" status="actionStatusProd" rerender="outputPanelProductos">
+                                <apex:param name="row" assignTo="{!row}" value="{!p.index}"/>
+                            </apex:actionSupport>
+                        </apex:inputField>
+                    </apex:column>
+                    <apex:column headerValue="Peso Prom." styleClass="textColumn">
+                        <!--<apex:inputField value="{!p.item.Peso_Promedio__c}" style="width:30px;" styleClass="disabledInput"/> -->
+                        <apex:outputField value="{!p.item.Peso_Promedio__c}" style="width:30px"/>
+                    </apex:column>
+                    <apex:column headerValue="Cs x Pallet" >
+                        <apex:outputText value="{!p.cajasxPallet}" style="width:30px"/>
+                    </apex:column>
+                    <apex:column headerValue="Saldo Inv Ant" >
+                      <apex:outputText value="{!p.inventarioAnt}" style="width:30px"/>
+                    </apex:column>
+                    <apex:column headerValue="Saldo Inv" >
+                      <apex:outputText value="{!p.inventario}" style="width:30px"/>
+
+                    </apex:column>
+                    
+                    <apex:column headerValue="UM" >
+                        <!--  <apex:outputText value="{!p.item.Unidad__c}" rendered="{!pedido.Id != null}" style="width:25px" />-->
+                        <apex:selectList value="{!p.item.Unidad__c}" multiselect="false" size="1"  style="width:100px" disabled="{!p.DisabledProd}" >
+                            <apex:selectOptions value="{!medidas}"/>
+                            <apex:actionSupport event="onchange" action="{!validateUM}" rerender="outputPanelProductos" status="actionStatusDispo" >
+                            	<apex:param name="index" value="{!p.index}" assignTo="{!index}" />
+                            </apex:actionSupport>
+                        </apex:selectList><p/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Cantidad" >
+                        <apex:outputText value="{0, number, ###,###,##0}" rendered="{!!p.HabilitaCantidad}" style="width:50px">
+                        	<apex:param value="{!p.item.Cantidad__c}" />
+                    	</apex:outputText>
+                        <apex:inputText value="{!p.item.Cantidad__c}" rendered="{!p.HabilitaCantidad}" style="width:50px" >
+                            <apex:actionSupport event="onchange" action="{!validateCantidad}" rerender="outputPanelProductos" status="actionStatusDispo" onsubmit="ConsultarPedidosOC()" oncomplete="OcultarSpinner()">
+								<apex:param name="index" value="{!p.index}" assignTo="{!index}" />
+								</apex:actionSupport>
+                        </apex:inputText>
+                    </apex:column>
+                    <apex:column headerValue="Volumen" >
+                        <apex:outputText value="{0, number, ###,###,##0.00}" rendered="{!!p.HabilitaVolumen}" style="width:50px">
+                        	<apex:param value="{!p.item.Volumen__c}" />
+                        </apex:outputText>
+                        <apex:inputText value="{!p.item.Volumen__c}" rendered="{!p.HabilitaVolumen}" style="width:50px" >
+                            <apex:actionSupport event="onchange" action="{!validatePeso}" rerender="outputPanelProductos" status="actionStatusDispo" >
+                                <apex:param name="index" value="{!p.index}" assignTo="{!index}" />
+                            </apex:actionSupport>
+                        </apex:inputText>
+                    </apex:column>
+                    <apex:column headerValue="Pallets" >
+                        <!--<apex:inputField value="{!p.item.Pallets__c}" style="width:50px" />-->
+                        <apex:outputText value="{0, number, ###,###,##0.00}" style="width:50px">
+                        	<apex:param value="{!p.item.Pallets__c}" />
+                        </apex:outputText>
+                    </apex:column>
+                    <apex:column headerValue="Precio" >
+                        <!--<apex:inputField value="{!p.item.UnitPrice}" style="width:50px" />-->
+                        <apex:outputText value="{0, number, ###,###,##0.00}" style="width:50px">
+                        	<apex:param value="{!p.item.UnitPrice}" />
+                        </apex:outputText>
+                        <!--<apex:inputText value="{!p.item.UnitPrice}"  />  onkeypress="floatInputOnly(event, this)" onchange="processPrecioUnitario({!p.index})"/> -->
+                    </apex:column>
+                    <apex:column headerValue="TP" >
+                        <apex:outputText value="{!p.item.Tipo_de_Precio__c}" style="width: 40px" />
+                        <!--
+                        <apex:selectList value="{!p.item.Tipo_de_Precio__c}" multiselect="false" size="1" onchange="processMoneda({!p.index})" >
+                            <apex:selectOptions value="{!monedas}"/>
+                        </apex:selectList><p/>
+                        -->
+                    </apex:column>
+                    <apex:column headerValue="Importe" >
+                        <!--<apex:inputField value="{!p.item.Importe__c}" style="width: 60px" />-->
+                        <apex:outputText value="{0, number, ###,###,##0.00}" style="width: 60px">
+                            <apex:param value="{!p.item.Importe__c}" />
+                        </apex:outputText>
+                    </apex:column>
+                    <apex:column headerValue="Tipo Inventario" >
+                        <apex:outputText value="{!p.item.Tipo_de_Inventario__c}" rendered="{!p.item.Id!=null}" />
+                        <apex:selectList value="{!p.item.Tipo_de_Inventario__c}" multiselect="false" size="1" onchange="processTipoInventario({!p.index})" style="width: 100px" rendered="{!p.item.Id==null}">
+                            <apex:selectOptions value="{!inventarios}"/>
+                            <apex:actionSupport event="onchange" action="{!validateInventario}" rerender="outputPanelProductos, inventario" status="actionStatusDispo" >
+                            	<apex:param name="index" value="{!p.index}" assignTo="{!index}" />
+                            </apex:actionSupport>
+                        </apex:selectList><p/>
+                    </apex:column>
+                    <apex:column headerValue="Rango Surtido" >
+                        <apex:selectList value="{!p.item.Rango_Surtido__c}" multiselect="false" size="1" rendered="{!p.fisico}" style="width: 80px" >
+                            <apex:selectOptions value="{!rangos}"/>
+                        </apex:selectList><p/>
+                    </apex:column>
+                    <apex:column headerValue="Observaciones" >
+                        <apex:inputText value="{!p.item.Observaciones__c}" maxlength="100" style="width: 80px"  />
+                    </apex:column>
+                </apex:pageBlockTable>
+            </apex:outputPanel>
+                </apex:actionRegion>
+            </div>
+        </apex:pageBlock>
+
+        <apex:pageBlock >
+
+            <apex:pageBlockSection columns="15" id="inventario" >
+				<!--
+                <apex:pageBlockSection >
+                    <apex:inputTextarea value="{!pedido.Description}" rows="5"/>
+                </apex:pageBlockSection>
+				-->
+                <!--<div style="overflow: scroll; width: 1400px; height: 200px;" >-->
+                        <table width="1400px" height="100px" class="list pageBlockTableInventario" border="0">
+                            <tr>
+                                <th>Inventario</th>
+                            </tr>
+                            <tr>
+
+                                <apex:repeat value="{!mapDispoResp}" var="origen" >
+                                    <apex:pageBlockTable value="{!mapDispoResp[origen]}" var="prods" >
+                                        <apex:column style="align:center;">
+                                            <apex:outputText value="{!prods}" />
+                                        </apex:column>
+                                        <apex:column >
+                                            <apex:repeat value="{!mapDispoResp[origen][prods]}" var="Inv">
+													<table border="1">
+                                                        <tr>
+                                                        	<td width="100px">
+                                                                <apex:outputText value="{!Inv}" />
+                                                            </td>
+                                                            <td  width="1100px" align="right">
+                                                                <table border="1" colspan="2">
+                                                                        <tr>
+                                                                <apex:repeat value="{!mapDispoResp[origen][prods][Inv]}" var="dispo" >
+                                                                    <apex:repeat value="{!dispo}" var="d" >
+                                                                        <td style="align:center;" width="35px">
+                                                                            <apex:outputText value="{0, date, dd'/'MM'/'yy}">
+                                                                                <apex:param value="{!d.fecha}" />
+                                                                            </apex:outputText>
+                                                                            <br/>
+                                                                            <apex:outputText value="{!d.contenido}" />
+                                                                        </td>
+                                                                    </apex:repeat>
+                                                                </apex:repeat>
+                                                                            </tr>
+                                                                    </table>
+                                                            </td>
+                                                        </tr>
+                                                </table>
+                                            </apex:repeat>
+                                        </apex:column>
+                                    <br/><br/><br/>
+                                    </apex:pageBlockTable>
+                                    <br/><br/><br/><br/>
+                                </apex:repeat>
+                            </tr>
+						</table>
+                <!--</div>-->
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+ <div id="ConfigPedidos" style="display:none;" >
+   <apex:pageBlock id="Detalle" title="Motivo de cambio pedido oc" >
+    <br/>
+             <apex:pageBlockSection columns="1">
+               <apex:selectList value="{!MotivoMod}"   size="1" label="Motivo:" disabled="{!isLocked}">
+                            <apex:selectOptions value="{!Motivos}"/>
+                            <apex:actionSupport event="onchange" action="{!suggestionanswer}"  status="actionStatusDispo" rerender="Detalle" />
+               </apex:selectList>
+               <apex:inputTextarea value="{!pedido.Observacion__c}" label="Observaciones:" style="width: 400px;"  rows="7" html-maxlength="250" disabled="{!isLocked}"/>
+                <apex:outputPanel layout="block" styleClass="Botones">
+ 			            <input type="button" value="Cancelar" class="btn" onclick="closeModal('ConfigPedidos')" style="width: 100px;background-color: #fff;border-color: #ccc;background-image:none;" />
+			            <apex:commandButton action="{!guardarPedido}" onclick="ConsultarPedidosOC()" value="Aplicar" id="theButton7"  style="color: #fff;background-color: #5cb85c;border-color: #5cb85c;background-image:none; width: 100px;" disabled="{!showApply}"  />
+                </apex:outputPanel>
+       		 </apex:pageBlockSection>
+    </apex:pageBlock>
+</div>  <!-- Popup Motivo Cambio -->
+<div id="ConfirmPedidos" style="display:none;" >
+  <apex:pageBlock id="Detalle2" title="Confirmación" >
+   <br/>
+            <apex:pageBlockSection columns="1">
+            <apex:outputLabel value="¿Esta seguro de guardar?" />
+
+               <apex:outputPanel layout="block" styleClass="BotonesConfirm">
+                 <input type="button" value="Cancelar" class="btn" onclick="closeModal('ConfirmPedidos')" style="width: 100px;background-color: #fff;border-color: #ccc;background-image:none;" />
+                 <apex:commandButton action="{!guardarPedido}" onclick="ConsultarPedidosOC()" value="Aplicar" id="theButton9"  style="color: #fff;background-color: #5cb85c;border-color: #5cb85c;background-image:none; width: 100px;"  disabled="{!disabledSave}" />
+               </apex:outputPanel>
+          </apex:pageBlockSection>
+   </apex:pageBlock>
+</div>  <!-- Popup Motivo cancelacion -->
+<!-- Popup Motivo Cambio -->
+ <div id="ConfirmCancelacion" style="display:none;" >
+  <apex:pageBlock id="Detalle5" title="Motivo de Cancelacion" >
+   <br/>
+            <apex:pageBlockSection columns="1">
+              <apex:selectList value="{!MotivoCancel}"   size="1" label="Motivo:" disabled="{!isLocked}">
+                           <apex:selectOptions value="{!MotivosCancelacion}"/>
+                           <apex:actionSupport event="onchange" action="{!suggestionanswerCancel}"  status="actionStatusDispo" rerender="Detalle5" />
+              </apex:selectList>
+              <apex:inputTextarea value="{!pedido.Motivo_de_Cancelacion__c}" label="Observaciones:" style="width: 400px;"  rows="7" html-maxlength="250" disabled="{!isLocked}"/>
+               <apex:outputPanel layout="block" styleClass="Botones">
+                 <input type="button" value="Cancelar" class="btn" onclick="closeModal('ConfirmCancelacion')" style="width: 100px;background-color: #fff;border-color: #ccc;background-image:none;" />
+                 <apex:commandButton action="{!cancelarPedido}" onclick="ConsultarPedidosOC()" value="Aplicar" id="theButton99"  style="color: #fff;background-color: #5cb85c;border-color: #5cb85c;background-image:none; width: 100px;" disabled="{!showApply}"  />
+               </apex:outputPanel>
+          </apex:pageBlockSection>
+   </apex:pageBlock>
+</div>  <!-- Popup Motivo Cambio -->  <!-- Popup Motivo cancelacion -->
+<input type = "Hidden" value="{!disabledSave}" id="Disable" style="Disabled"/>
+
+    </apex:form>
+
+    <div id="overlay"  style="display: none"/>
+           <div id="showStatusDiv" style="display: none;">
+              <apex:image value="{!$Resource.spinner}" width="100" height="100"/>
+            </div>
+    </div>
+
+</apex:page>

@@ -1,0 +1,46 @@
+<apex:page controller="BLDS.CreateAccountsController"  >
+	<apex:sectionHeader subtitle="Create Accounts" title="Account Edit"/>
+	<apex:form >
+	<apex:actionFunction name="rerenderSection"
+			action="{!doRerenderSection}" rerender="matchedAccountTable"  status="processStatusLoad"/>
+			
+		<!-- div for showing loading icon on top of grid -->                      
+	    <div id="divButton" style="height:10px;position: absolute;top: 50%;left: 50%;margin-top: -50px;margin-left: -50px;">            
+	        <apex:actionStatus startText="Loading..." startStyle="color:#ff0000;font-size:16px;font-weight:bold" id="processStatusLoad"> 
+	             <apex:facet name="start">
+	                 <center>
+	                     <img src="/img/loading.gif" title="Loading..."/>
+	                 </center>
+	             </apex:facet> 
+	        </apex:actionStatus>
+	    </div>
+	    	
+		<apex:pageBlock >
+			<apex:pageBlockButtons location="top">
+				<apex:commandButton action="{!navigateToMerge}" value="Next" id="nextBtn" style="float:right" disabled="{! !ableToCreateAccount}"/>
+			</apex:pageBlockButtons>
+			<apex:outputPanel id="captcomponenet">
+				<apex:repeat value="{!companies}" var="company">
+					<c:AccountCustom name="{!company.CompanyName}" 
+						website="{!company.WWW}"						
+						industry="{!company.Industry}"
+						employees="{!company.Employees}"
+						revenue="{!company.revenue}"
+						phone="{!company.Phone}"  
+						address="{!company.address}"
+						city="{!company.city}"
+						state="{!company.State}"
+						zip="{!company.zip}"
+						intRecordcount="{!company.intRecordcount}"	
+						MatchedAccounts="{!company.matchedAccounts}"					
+						/>
+						
+						<!--  matchedaccounts="{!company.matchedAccount}"	-->
+						
+				</apex:repeat>
+			</apex:outputPanel>
+		</apex:pageBlock>
+		
+	</apex:form>
+
+</apex:page>

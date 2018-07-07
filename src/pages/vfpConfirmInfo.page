@@ -1,0 +1,41 @@
+<apex:page controller="ctrlManageSurveyCase" sidebar="false" showHeader="false">
+    <apex:pageBlock >
+        <apex:pageBlockSection >
+            <apex:image url="{!$Resource.logoSK}" width="200" height="100"/>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    <apex:pageBlock >
+        <apex:pageBlockSection >
+            <h5>
+                Estimado cliente, en SuKarne nos importa mucho la satisfacción de nuestros clientes, intentarémos brindarle una mejor solución a su caso por lo cual pedimos de su apoyo para confirmar y/o completar su información de contacto. 
+                ¡De antemano muchas gracias!
+            </h5>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    <apex:form >
+        <apex:pageBlock rendered="{!showThanks == false}">
+            <apex:pageBlockButtons >
+                <apex:commandbutton value="Actualizar" action="{!updateContact}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection columns="2">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Nombre: " for="name"/>
+                    <apex:outputField value="{!newC.FirstName}" id="name"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Correo Electrónico: " for="mail"/>
+                    <apex:inputField value="{!newC.Email}" id="mail"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Teléfono:" for="phone"/>
+                    <apex:inputField value="{!newC.Phone}" id="phone"/>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:pageBlock rendered="{!showThanks}">
+            <h1>
+                G R A C I A S!!
+            </h1>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

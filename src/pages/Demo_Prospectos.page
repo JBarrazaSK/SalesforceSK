@@ -1,0 +1,67 @@
+<apex:page sidebar="false"  docType="html-5.0" standardStylesheets="true">
+ <style>
+ #showStatusDiv { position: fixed; background: rgba(0, 0, 0, 0.43); width: 100%; height: 100%; top: 0; left: 0; z-index: 999999; }
+  
+#showStatusDiv img { position: absolute; top: 50%; left: 50%; margin-right: 25px; }
+.errorClass {
+    background-color: red;
+}
+.normalClass {
+    background-color: green;
+}
+textarea {
+    resize: none;
+}
+.datePicker{
+        position: fixed;
+        z-index:10001;
+        width: auto;
+        height:auto;}
+        ::-webkit-inner-spin-button { display: none; }
+  </style>
+  <apex:form id="form" >
+  <apex:pageMessages />
+   <apex:pageBlock id="generales" title="" >
+<apex:pageBlockSection >
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+ </apex:pageBlockSection> 
+  </apex:pageBlock>  
+   
+  </apex:form>
+
+</apex:page>

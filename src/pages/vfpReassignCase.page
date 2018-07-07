@@ -1,0 +1,2 @@
+<apex:page standardController="Case" extensions="ctrlManageCasesAC" sidebar="false" action="{!returnCase}" showHeader="false">
+</apex:page>

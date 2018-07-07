@@ -1,0 +1,10 @@
+<!--
+ - Description: New Visita with geolocation data assignments accessed from Account's Nueva visita publisher action.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 09/09/2014
+ -->
+<apex:page standardController="Account" action="{!URLFOR($Action.Visita__c.New, null, ['CF00N500000030O6r_lkid'=Account.Id, 'CF00N500000030O6r'=Account.Name, 'retURL'='/'+Account.Id])}">
+<apex:outputPanel layout="none">{!Account.Name}</apex:outputPanel>
+</apex:page>

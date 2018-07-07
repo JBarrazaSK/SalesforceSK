@@ -1,0 +1,515 @@
+<apex:page showHeader="true" sidebar="false" controller="OpportunityParserController">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" />
+    <script src="https://cdn.tinymce.com/4/tinymce.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800" rel="stylesheet" />
+    <html>
+        <head>
+            <style>
+                *{margin:0; padding:0; box-sizing:border-box; font-family: 'Open Sans', sans-serif; }
+                h1, h2, h3, h4, h5, h6{font-weight: 600; font-family: 'Open Sans', sans-serif !important;}
+                table#opportunityTable tr td{font-family: 'Open Sans', sans-serif ; font-size:13px;}
+                label{font-size: 14px; font-weight: 600; padding:15px 0;display:block; }
+                h1.headerSection{font-size: 18px;}
+                .container{max-width:1100px; margin:0 auto; padding:15px;}
+                .headcontainer { padding: 25px 0 15px; text-align:center; }
+                ul.selctList li { margin: 0; list-style: none; display: inline-block; padding-right: 30px; }
+                .selectOptionCls {  padding: 0 0 15px;}
+                input[type="radio"] { vertical-align: middle; -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50px; border: 1px solid #a8c4cd; box-shadow: inset 1px 1px 3px rgba(168, 196, 205, 0.4); -webkit-box-shadow: inset 1px 1px 3px rgba(168, 196, 205, 0.4); -moz-box-shadow: inset 1px 1px 3px rgba(168, 196, 205, 0.4); }
+                input[type="radio"]:checked{background: #2196F3; box-shadow: inset 0 0 0px 4px #fff;}
+                .procesBtn{ padding-top: 0; background: #2196F3; border: 1px solid #2196F3; padding: 5px 25px; color: #fff; font-weight: 700; font-size: 14px; text-transform: capitalize; border-radius: 3px; cursor: pointer; }
+                .procesBtn:hover{background:#017fe2; border: 1px solid #017fe2;}
+                #errorMsg { display:none; border: 1px solid #ccc; padding: 10px; border-radius: 1px; box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.15);  -moz-box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.15);  border-left: 3px solid red; }
+                #showStatusDiv { position: fixed; background: rgba(0, 0, 0, 0.43); width: 100%; height: 100%; top: 0; left: 0; z-index: 999999; }
+                #showStatusDiv img { position: absolute; top: 50%; left: 50%; margin-right: 25px; }
+                /*.warningM2{border-left: 3px solid #f90 !important;}
+                .custom-wrng { background: url('{!URLFOR($Resource.DataImportServiceResource,'Images/warning.svg')}'); background-repeat: no-repeat; background-size: 30px; background-position: 4% 50%; padding: 10px 15px 10px 43px; }
+                .custom-success { border-left: 3px solid #41ad49 !important; background: url('{!URLFOR($Resource.DataImportServiceResource,'Images/tickMark.svg')}'); background-repeat: no-repeat; background-size: 30px; background-position: 4% 50%; padding: 10px 15px 10px 43px; }
+                .custom-error{ background: url('{!URLFOR($Resource.DataImportServiceResource,'Images/error.svg')}'); background-repeat: no-repeat; background-size: 30px; background-position: 4% 50%; padding: 10px 15px 10px 43px; }*/
+                select, input { border: 1px solid #ccc; box-shadow: 0 0 3px rgba(0, 0, 0, 0.08)inset; border-radius: 3px; padding: 2px; }
+                input{padding: 2px 5px;}
+                .list .headerRow th, table.dataTable.no-footer, .list td, .list th, body.oldForecast .list .last td, body.oldForecast .list .last th{border-bottom:1px solid #ccc; }
+                table#opportunityTable { padding: 0 0 31px; }
+                table#opportunityTable tbody{border-left: 1px solid #ccc; border-right: 1px solid #ccc;  }
+                table#opportunityTable tr.even td{background:#f5f4f4;}
+                table#opportunityTable tr:hover td { background: #edf7ff; }
+                .excel_table{ padding-top: 10px; }
+                .dataTables_wrapper .dataTables_paginate .paginate_button{padding: 4px 10px;}
+                .excel_table{ border: 1px solid #ccc; padding: 14px; margin: 20px 0; border-top: 3px solid #c0c0c0; border-radius: 3px; }
+                .mce-branding-powered-by { display:none; !important}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="headcontainer"><h1 class="headerSection">Data Import Service</h1></div>
+                
+                <div id="errorMsg" class=""/>
+                <div id="showStatusDiv" style="display:none;">
+                    <apex:image value="{!$Resource.spinner}" width="100" height="100"/>
+                </div> 
+                <div>
+                    <textarea id="excel_data" style="width:100%;height:150px;" class="mceEditor" /><br/>
+                </div>
+                <div class="processBlk" align="center"><input type="button" onClick="generateTable(event);" value="Process data" class="procesBtn"/></div>
+                <div class="excel_table" style="display:none">
+                     <h1 style="font-size: 15px; font-weight: bold; text-align: center; display: block;">Pedidos</h1>
+                     <table class="list slds-table slds-table--bordered" border="0" cellspacing="0" cellpadding="0" id="opportunityTable" width="100%">
+                        
+                        <thead>
+                            <tr class="headerRow">
+                                <th scope="col" class="noRowsHeader">Folio Temporal</th>
+                                <th scope="col" class="noRowsHeader">Mensaje</th>
+                                <th scope="col" class="noRowsHeader">Folio Salesforce.com</th>
+                                <th scope="col" class="noRowsHeader">Folio Pedido(SDL)</th>
+                                <th scope="col" class="noRowsHeader">Nombre Pedido</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="excel_table" style="display:none">
+                    <h1 style="font-size: 15px; font-weight: bold; text-align: center; display: block;">Opportunity Products</h1>
+                    <table class="list slds-table slds-table--bordered" border="0" cellspacing="0" cellpadding="0" id="opportunityProductTable" width="100%">
+                        
+                        <thead>
+                            <tr class="headerRow">
+                                <th scope="col" class="noRowsHeader">Folio Temporal</th>
+                                <th scope="col" class="noRowsHeader">Mensaje</th>
+                                <th scope="col" class="noRowsHeader">Nombre Producto</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </body>
+    </html>
+    
+    <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <apex:stylesheet value="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
+    
+    <script type="text/javascript">
+      Visualforce.remoting.timeout = 120000; // Set timeout at page level
+      var parsedResult = [];
+      var parsedResult2 = [];
+      var missingExternalIdsOpportunities = [];
+      var contador = 0;
+      var Respuesta = 0;
+      var tiempoEspera = 10000;
+    // Set timeout at page level
+        tinymce.init({
+            selector: "#excel_data",
+            menubar:false,
+            height: 200,
+            theme: 'modern',
+            plugins: [
+            'advlist autolink lists link image charmap print preview hr anchor pagebreak',
+            'searchreplace wordcount visualblocks visualchars code fullscreen',
+            'insertdatetime media nonbreaking save table contextmenu directionality',
+            'emoticons template paste textcolor colorpicker textpattern imagetools'
+            ],
+            image_advtab: true,
+            templates: [
+            { title: 'Test template 1', content: 'Test 1' },
+            { title: 'Test template 2', content: 'Test 2' }
+            ],
+            content_css: [
+            '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+            '//www.tinymce.com/css/codepen.min.css'
+            ]
+        });
+        var mapOppLabelToAPIName;
+        var mapOppProductLabelToAPIName;
+        getCustomSettingValues();
+        
+        function getCustomSettingValues() {
+            $('#showStatusDiv').show();
+            // -- Get opportunity fields from custom setting
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.OpportunityParserController.getCustomSettingValues}',
+                function(result, event){
+                    if (event.status) {
+                        mapOppLabelToAPIName = new Map();
+                        if(result && result.opportunityMapping && result.opportunityProductMapping) {
+                            mapOppLabelToAPIName = getMapLabelToAPIName(result.opportunityMapping);
+                            mapOppProductLabelToAPIName = new Map();
+                            mapOppProductLabelToAPIName = getMapLabelToAPIName(result.opportunityProductMapping);
+                            console.log(mapOppLabelToAPIName );
+                            console.log(mapOppProductLabelToAPIName);
+                        } else {
+                            showErrorMsgs('Custom setting for field mapping not found');
+                        }
+                        $('#showStatusDiv').hide();
+                    } else if (event.type === 'exception') {
+                        showErrorMsgs(event.message);
+                        console.log(event.where);
+                    } else {
+                        showErrorMsgs(event.message);
+                    }
+                }, 
+                {escape: true,timeout: 120000}
+            );
+        }
+        var EXTERNALID = 'Folio_Temporal__c';
+        function generateTable(event) {
+            //console.log(EXTERNALID);
+        	parsedResult = [];
+      		parsedResult2 = [];
+            $("#errorMsg").hide();
+            
+            var mapOpprtunityToLineItems = new Map();
+            $('#showStatusDiv').show();
+            
+            event.stopPropagation();
+            
+            //--Clear tables
+            $('#opportunityTable').dataTable().fnClearTable();
+            $('#opportunityProductTable').dataTable().fnClearTable();
+            
+            //--Get html from editor
+            var data = tinyMCE.activeEditor.getContent({format : 'raw'});
+            
+            //-Get headers from table
+            var headers = $(data).find("tr:first");
+            
+            var rowNumber = 0;
+            
+            if( data && 
+                headers && 
+                mapOppLabelToAPIName && 
+                mapOppProductLabelToAPIName) {
+                
+                //--initialization
+                var count = 0;
+                var opportunitiesToInsert = [];
+               var opportunityLineItemsToInsert = [];
+               
+                
+                //--traverse rows
+                $(data).find('tr').each (function() {
+                    //--Skip headers row
+                    if( rowNumber != 0) {
+                        
+                        count = 0;
+                        var opportunityRecord = {};
+                        var opportunityProductRecord = {};
+                        $(this).find('td').each (function() {
+                            var rowText = $(this).text()?$(this).text().trim():''; 
+                            
+                            var oppFieldAPIName = mapOppLabelToAPIName.get($(headers).find('td').eq(count).html().replaceAll('<br>',' '));
+                            var oppProductFieldAPIName = mapOppProductLabelToAPIName.get($(headers).find('td').eq(count).html().replaceAll('<br>',' '));
+                           // console.log('RowText:'+rowText+' RowTextVal: '+rowText.val);
+                            //console.log(oppFieldAPIName);
+                            //console.log(oppProductFieldAPIName);
+                            if(oppFieldAPIName) { 
+                                if(oppFieldAPIName.startsWith('Folio') ) {
+                                    if( rowText == null || rowText == '' ) {
+                                        //alert('Favor de indicar el Folio Temporal');
+                                        showErrorMsgs('Favor de indicar el Folio Temporal'); 
+                                        return false;
+                                    }
+                                }
+                            }
+                            
+                            if(rowText) {
+                                if(oppFieldAPIName) {
+                                    if(oppFieldAPIName.startsWith('Fecha') && rowText.length==8){
+                                        var anio = rowText.substr(0, 4);
+                                        var mes = rowText.substr(4, 2);
+                                        var dia = rowText.substr(6, 2);
+                                        rowText = anio + '-' + mes + '-' + dia;
+                                        
+                                        try{
+                                           	console.log('Fecha');
+                                           	console.log(rowText);
+                                        	var mydate = new Date(rowText);
+                                        	console.log(mydate.toISOString().substring(0, 10));
+                                        	if(rowText != mydate.toISOString().substring(0, 10))
+                                        	{
+                                        		showErrorMsgs('La Fecha no tienen el formato [AAAAMMDD]'); 
+                                        		return false;
+                                        	}
+                                        	
+                                        }
+                                        catch(err)
+                                        {
+                                        	showErrorMsgs('La Fecha no tienen el formato [AAAAMMDD]'); 
+                                        	 return false;
+                                        }
+                                       
+                                    }
+                                   opportunityRecord[oppFieldAPIName] = rowText;  
+                                } else if(oppProductFieldAPIName) {
+                                    opportunityProductRecord[oppProductFieldAPIName] = rowText;        
+                                }
+                            }
+                            count++;
+                        });
+                        if(opportunityRecord && !$.isEmptyObject(opportunityRecord)) {
+                            if(opportunityRecord[EXTERNALID] && opportunityRecord[EXTERNALID].trim()) {
+                                if(!mapOpprtunityToLineItems.has(opportunityRecord[EXTERNALID])) {
+	                               opportunitiesToInsert.push(opportunityRecord);
+                                    var lineItems = [];
+                                    mapOpprtunityToLineItems.set(opportunityRecord[EXTERNALID],lineItems);
+                                }
+                            } else {
+                                var invalidRecord = {};
+                                invalidRecord.rowNum = rowNumber;
+                                invalidRecord.Name = opportunityRecord.Name;
+                                missingExternalIdsOpportunities.push(invalidRecord);    
+                            }
+                        }
+                       
+                        if(opportunityProductRecord && !$.isEmptyObject(opportunityProductRecord)) {
+                            opportunityLineItemsToInsert.push(opportunityProductRecord);
+                            if(mapOpprtunityToLineItems.has(opportunityRecord[EXTERNALID])) {
+                                var lineItems = [];
+                                //console.log('values of map');
+                                //console.log(mapOpprtunityToLineItems.get(opportunityRecord[EXTERNALID]));
+                                lineItems = mapOpprtunityToLineItems.get(opportunityRecord[EXTERNALID]);
+                                lineItems.push(opportunityProductRecord);
+                                mapOpprtunityToLineItems.set(opportunityRecord[EXTERNALID],lineItems);
+                            } else {
+                                var lineItems = [];
+                                lineItems.push(opportunityProductRecord);
+                                mapOpprtunityToLineItems.set(opportunityRecord[EXTERNALID],lineItems);
+                            }
+                        }
+                    }
+                    rowNumber++;
+                });
+                /*console.log('mapOpprtunityToLineItems');
+                console.log(mapOpprtunityToLineItems);
+                console.log('opportunitiesToInsert');
+                console.log(opportunitiesToInsert);
+                console.log('opportunityLineItemsToInsert');
+                console.log(opportunityLineItemsToInsert);
+                console.log('opportunityLineItemsToInsertjson'); */
+                
+                var opportunitiesLineItems = [];
+                
+                function logMapElements(value, key, map) {
+                    var opportunityToLineItem = {};
+                    opportunityToLineItem.key = key;
+                    opportunityToLineItem.value = value;
+                    opportunitiesLineItems.push(opportunityToLineItem);   
+                }
+               
+                mapOpprtunityToLineItems.forEach(logMapElements);
+                //console.log('opportunitiesLineItems ');
+                //console.log(opportunitiesLineItems);
+                 if(missingExternalIdsOpportunities.length > 0)
+                 {
+                	showErrorMsgs('Invalid data missingExternalIdsOpportunities');
+                 }
+                 contador = 0;
+                 Respuesta = 0;
+                  var x;
+                 var contadorRegistros = 0; 
+                if( opportunitiesToInsert.length > 0
+                    || opportunityLineItemsToInsert.length > 0 ) { 
+                         var opportunitiesToInsertBlock = [];
+               			 for (i = 0; i < opportunitiesToInsert.length; i++) { 
+               			 			contador++;
+									    setTimeout(function() {
+									    			opportunitiesToInsertBlock = [];
+													opportunitiesToInsertBlock.push(opportunitiesToInsert[contadorRegistros]);
+									    			EnviarPedido(opportunitiesToInsertBlock,opportunitiesLineItems);
+									    			contadorRegistros++; 
+									    },  tiempoEspera * i );	
+						} // terminia ciclo for
+						 
+						
+
+                   
+                } else {
+                    showErrorMsgs('Invalid data opportunitiesToInsert');
+                }
+            } else {
+                showErrorMsgs('Please enter records in editor OR Headers are missing');
+            }
+            
+        }
+             
+        function failure() {
+        	console.log('failure');
+            $('#showStatusDiv').hide();
+            showErrorMsgs('Insertion Fail');
+        }
+        String.prototype.replaceAll = function (toReplace, replaceWith)
+		{
+		    return this.split(toReplace).join(replaceWith);
+		}
+        function EnviarPedido(opportunitiesToInsertBlock,opportunitiesLineItems)
+        {
+	         var opportunityLineItemsToInsert = [];
+	         
+       		
+        	Visualforce.remoting.Manager.invokeAction(
+			                        '{!$RemoteAction.OpportunityParserController.insertOpportunitiesANDLineItems}',
+			                        JSON.stringify(opportunitiesToInsertBlock),
+			                        JSON.stringify(opportunitiesLineItems),
+			                        function(result, event){
+			                            if (event.status) {
+			                                if(!result.exceptions) { 
+			                                    if(result && result.opportunitySaveResults) {
+			                                        buildOppResultTable(result.opportunitySaveResults,opportunitiesToInsertBlock, missingExternalIdsOpportunities );
+			                                    }
+			                                    if(result && result.opportunityProductSaveResults) {
+			                                        buildOppProductResultTable(result.opportunityProductSaveResults,opportunityLineItemsToInsert);
+			                                    } 
+			                                   Respuesta++;
+			                                   if(contador == Respuesta) 
+												{
+													$('#showStatusDiv').hide(); 
+												}
+			                                } else {
+			                                    showErrorMsgs(result.exceptions);
+			                                }
+			                                 
+			                            } else if (event.type === 'exception') {
+			                                showErrorMsgs(event.message);
+			                                console.log(event.where);
+			                            } else {
+			                                showErrorMsgs(result.exceptions);
+			                            } 
+			                        }, 
+			                        {escape: true,timeout: 120000,buffer: false } 
+			                    );
+        }
+        function showErrorMsgs(msg) {
+
+            $("#errorMsg").text(msg);
+            $("#errorMsg").show();
+            $('#showStatusDiv').hide();   
+        }
+        
+        function buildOppResultTable(result, opportunitiesToInsert) {
+           // var parsedResult = [];
+            var record = {};
+            var recordCount = result.length;
+            for(i = 0; i < recordCount; i++) {
+                record = {};
+                //console.log('id = ' + result[i].idRecord);
+                record.row = '<span style="color:blue">' + result[i].folioTmp + '</span>';
+                if(result[i].isSuccess) {
+                    if(result[i].credito){
+                        record.mensaje = '<span style="color:blue">' + result[i].credito + '</span>';
+                    }else{
+                        record.mensaje = '<span style="color:blue">Ok</span>';
+                    }
+                    if(result[i].folioSFDC){
+                    	record.folio = '<span style="color:blue">' + result[i].folioSFDC + '</span>';
+                    }else{
+                        record.folio = '<span style="color:blue">Pendiente</span>';
+                    }
+                    if(result[i].folioSDL){
+                    	record.sdl = '<span style="color:blue">' + result[i].folioSDL + '</span>';
+                    }else{
+                        record.sdl = '<span style="color:blue">Pendiente</span>';
+                    }
+                    if(result[i].idRecord){
+                    	record.Name = '<a style="color:blue;" target="_blank" href="/apex/vfpOtrosCanales?id=' + result[i].idRecord + '">' + result[i].record.Name + '</a>';
+                    }else{
+                        if(result[i].record){
+                            record.Name = '<span style="color:blue">' + result[i].record.Name + '</span>';
+                        }else{
+                        	record.Name = '<span style="color:blue">Pendiente</span>';
+                        }
+                    }
+                } else {
+                    if(result[i].errorMsg) {
+                        record.mensaje = '<span style="color:red">' +  result[i].errorMsg + '<span>';
+                    } else {
+                        record.mensaje = '<span style="color:red">Error</span>';
+                    }             
+                    record.folio = '<span style="color:blue">Sin folio</span>';
+                    record.sdl = '<span style="color:blue">Sin SDL</span>';
+                    if(result[i].record){
+                        record.Name = '<span style="color:blue">' + result[i].record.Name + '</span>';
+                    }else{
+                    	record.Name = '<span style="color:blue">Sin nombre</span>';
+                    }
+                }
+               
+                parsedResult.push(record);
+            }
+            
+            $('#opportunityTable').DataTable({
+                
+                "aaData" : parsedResult,
+                 "aoColumns":[
+                  {"mData": 'row' },
+                  {"mData": 'mensaje' },
+                  {"mData": 'folio' },
+                  {"mData": 'sdl' },
+                  {"mData": 'Name' }
+                ],
+                pageLength: 10,
+                "destroy": true
+            });
+            $('.excel_table').show(); 
+            
+        }
+        
+        function buildOppProductResultTable(result,opportunityProductToInsert) {
+            console.log('result = ' + result);
+            var record = {};
+            for(i = 0; i < result.length; i++) {
+                record = {};
+               // console.log('id = ' + result[i]);
+                
+                record.row = '<span style="color:blue">' + result[i].folioTmp + '</span>';
+                if(result[i].isSuccess) {
+                    record.mensaje = '<span style="color:blue">Ok</span>';
+                    if(result[i].record){
+                        if(result[i].record.Product2){
+                    		record.Name = '<span style="color:blue">' + result[i].record.Product2.Name + '</span>';
+                        }else{
+                            record.Name = '<span style="color:blue">Pendiente</span>';
+                        }
+                    }else{
+                        if(result[i].record.ProductCode){
+                        	record.Name = '<span style="color:blue">' + result[i].record.ProductCode + '</span>';
+                        }else{
+                            record.Name = '<span style="color:blue">Pendiente</span>';
+                        }
+                    }
+                } else {
+                    if(result[i].errorMsg) {
+                        record.mensaje = '<span style="color:red">' +  result[i].errorMsg + '<span>';
+                    } else {
+                        record.mensaje = '<span style="color:red">Error</span>';
+                    }             
+                    if(result[i].record){
+                        record.Name = '<span style="color:blue">' + result[i].record.ProductCode + '</span>';
+                    }else{
+                    	record.Name = '<span style="color:blue">Sin producto</span>';
+                    }
+                }
+                parsedResult2.push(record);
+            }
+            
+            $('#opportunityProductTable').DataTable({
+                "aaData" : parsedResult2,
+                 "aoColumns":[
+                  {"mData": 'row' },
+                  {"mData": 'mensaje' },
+                  {"mData": 'Name' }
+                ],
+                pageLength: 10,
+                "destroy": true
+            });
+            $('.excel_table').show(); 
+            
+        }
+        
+        function getMapLabelToAPIName(result) {
+            var mapLabelToAPIName = new Map();
+            
+            for(i = 0; i < result.length; i++) {
+                mapLabelToAPIName.set(result[i].key, result[i].value);
+            }
+            return mapLabelToAPIName;          
+        }
+      
+    </script>
+  
+</apex:page>

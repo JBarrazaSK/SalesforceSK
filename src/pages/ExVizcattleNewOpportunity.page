@@ -1,0 +1,37 @@
+<!--
+ - Description: New opportunity Custom Page.
+ - Author: Marco Tacú
+ - Company: SK
+ - Email: marco.tacu@sukarne.com
+ - Created date: 10/09/2016
+ -->
+<apex:page standardController="Opportunity" extensions="ExVizcattleNewOpportunityController" title="Salesforce - Nueva Oportunidad">
+<apex:stylesheet value="{!URLFOR($Resource.InConcertNewTask, 'css/InConcertNewTask.css')}"/>
+<apex:sectionHeader title="Oportunidad Ex-Vizcattle"/>
+<apex:form >
+    <apex:pageBlock title="Nueva Oportunidad" mode="edit">
+        <apex:pageBlockButtons >
+            <apex:commandButton action="{!save}" value="Guardar"/>
+        </apex:pageBlockButtons>
+        <apex:pageMessages />
+        <apex:pageBlockSection title="Información general de la oportunidad">
+            <apex:inputField value="{!opportunity.Name}"/>
+            <apex:inputField value="{!opportunity.Type}" required="true"/>
+            <apex:inputField value="{!opportunity.AccountId}"/>
+            <apex:inputField value="{!opportunity.StageName}"/>
+            <apex:inputField value="{!opportunity.CloseDate}"/>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Detalles de la oportunidad">
+            <apex:inputField value="{!opportunity.Qu__c}" required="true"/>
+            <apex:inputField value="{!opportunity.Situaci_n_Actual_Dll__c}"  required="true"/>
+            <apex:inputField value="{!opportunity.C_mo__c}" required="true"/>
+            <apex:inputField value="{!opportunity.Objetivo_Final_Dll__c}"/>
+            <apex:inputField value="{!opportunity.Cu_ndo__c}" required="true"/>
+            <apex:inputField value="{!opportunity.Situaci_n_Actual_Lbs__c}" required="true"/>
+            <apex:inputField value="{!opportunity.Fecha_Primera_Visita__c}" required="true"/>
+            <apex:inputField value="{!opportunity.Objetivo_Final_Lbs__c}"/>
+            <apex:inputField value="{!opportunity.Description}"/>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:form>
+</apex:page>

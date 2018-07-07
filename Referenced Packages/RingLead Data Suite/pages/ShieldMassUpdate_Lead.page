@@ -1,0 +1,7 @@
+<apex:page standardController="Lead" extensions="BLDS.ShieldMassUpdateExtension" recordSetVar="c" action="{!updateLeads}">
+    <apex:form id="changeDescription">
+	    <apex:pageBlock title="Debug">
+	        <!-- <apex:inputTextarea id="newDesc" cols="150" rows="100" value="{!textDebug}"/><p/> -->
+	    </apex:pageBlock>
+    </apex:form>
+</apex:page>

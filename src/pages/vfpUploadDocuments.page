@@ -1,0 +1,109 @@
+<apex:page controller="ctrlUploadDocuments" showHeader="false" sidebar="false">
+    <apex:sectionHeader title="SuKarne-Servicio al Cliente" subtitle="Anexar Documentos"/>
+    
+    <apex:form enctype="multipart/form-data">
+        <apex:pageMessages />
+        <apex:pageBlock >
+            <apex:pageBlockSection >
+                <apex:image url="{!$Resource.logoSK}" width="200" height="100"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:pageBlock title="Anexar Documentos">
+            
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!upload}" value="Guardar"/>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection showHeader="false" id="block1">
+            
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="File" for="file"/>
+                <apex:inputFile value="{!attachment.body}" filename="{!attachment.name}" id="file"/>
+            </apex:pageBlockSectionItem>
+            
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="false" id="block2">
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="File" for="file"/>
+                    <apex:inputFile value="{!attachment1.body}" filename="{!attachment1.name}" id="file"/>
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="false" id="block3">
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="File" for="file"/>
+                    <apex:inputFile value="{!attachment2.body}" filename="{!attachment2.name}" id="file"/>
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="false" id="block4">
+             
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="File" for="file"/>
+                    <apex:inputFile value="{!attachment3.body}" filename="{!attachment3.name}" id="file"/>
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="false" id="block5">
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="File" for="file"/>
+                    <apex:inputFile value="{!attachment4.body}" filename="{!attachment4.name}" id="file"/>
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="false" id="block6">
+             
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="File" for="file"/>
+                    <apex:inputFile value="{!attachment5.body}" filename="{!attachment5.name}" id="file"/>
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="false" id="block7">
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="File" for="file"/>
+                    <apex:inputFile value="{!attachment6.body}" filename="{!attachment6.name}" id="file"/>
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="false" id="block8">
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="File" for="file"/>
+                    <apex:inputFile value="{!attachment7.body}" filename="{!attachment7.name}" id="file"/>
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="false" id="block9">
+            
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="File" for="file"/>
+                    <apex:inputFile value="{!attachment8.body}" filename="{!attachment8.name}" id="file"/>
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="false" id="block11">
+            
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="File" for="file"/>
+                    <apex:inputFile value="{!attachment9.body}" filename="{!attachment9.name}" id="file"/>
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>
+            
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

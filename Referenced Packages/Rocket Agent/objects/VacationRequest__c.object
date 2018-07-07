@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionOverrides>
+        <actionName>Accept</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>CancelEdit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Clone</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Delete</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Edit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>List</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>New</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>SaveEdit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Tab</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>View</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <allowInChatterGroups>false</allowInChatterGroups>
+    <compactLayoutAssignment>SYSTEM</compactLayoutAssignment>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <deprecated>false</deprecated>
+    <enableActivities>false</enableActivities>
+    <enableBulkApi>true</enableBulkApi>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>false</enableReports>
+    <enableSearch>true</enableSearch>
+    <enableSharing>true</enableSharing>
+    <enableStreamingApi>true</enableStreamingApi>
+    <externalSharingModel>ReadWrite</externalSharingModel>
+    <fields>
+        <fullName>Assignee__c</fullName>
+        <deleteConstraint>SetNull</deleteConstraint>
+        <deprecated>false</deprecated>
+        <description>The name of the individual</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Choose a User to whom records will be assigned</inlineHelpText>
+        <label>Assignee</label>
+        <referenceTo>User</referenceTo>
+        <relationshipName>Vacation_Requests1</relationshipName>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Decription__c</fullName>
+        <deprecated>false</deprecated>
+        <description>Comments about Vacation Request</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Vacation Description or Comments</inlineHelpText>
+        <label>Decription</label>
+        <length>32768</length>
+        <trackTrending>false</trackTrending>
+        <type>LongTextArea</type>
+        <visibleLines>3</visibleLines>
+    </fields>
+    <fields>
+        <fullName>EndIdScheduler__c</fullName>
+        <deprecated>false</deprecated>
+        <description>Id scheduled end</description>
+        <externalId>false</externalId>
+        <label>End Id Scheduler</label>
+        <length>24</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>NotifyOnVREndDate__c</fullName>
+        <deleteConstraint>SetNull</deleteConstraint>
+        <deprecated>false</deprecated>
+        <description>Email address of a System User</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Choose a User to notify</inlineHelpText>
+        <label>Notify on Vacation Request End Date</label>
+        <referenceTo>User</referenceTo>
+        <relationshipName>Vacation_Requests3</relationshipName>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>NotifyOnVRStartDate__c</fullName>
+        <deleteConstraint>SetNull</deleteConstraint>
+        <deprecated>false</deprecated>
+        <description>Email address of a System User</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Choose a User to notify</inlineHelpText>
+        <label>Notify on Vacation Request Start Date</label>
+        <referenceTo>User</referenceTo>
+        <relationshipName>Vacation_Requests2</relationshipName>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>StartIdScheduler__c</fullName>
+        <deprecated>false</deprecated>
+        <description>Id scheduled job</description>
+        <externalId>false</externalId>
+        <label>Start Id Scheduler</label>
+        <length>24</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>StatusFormula__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <formula>TEXT(Status__c)</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <label>Status</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Status__c</fullName>
+        <deprecated>false</deprecated>
+        <description>Vacation Request current status</description>
+        <externalId>false</externalId>
+        <label>Status List</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Picklist</type>
+        <valueSet>
+            <valueSetDefinition>
+                <sorted>false</sorted>
+                <value>
+                    <fullName>Planned</fullName>
+                    <default>false</default>
+                </value>
+                <value>
+                    <fullName>In Progress</fullName>
+                    <default>false</default>
+                </value>
+                <value>
+                    <fullName>Closed</fullName>
+                    <default>false</default>
+                </value>
+                <value>
+                    <fullName>Cancelled</fullName>
+                    <default>false</default>
+                </value>
+            </valueSetDefinition>
+        </valueSet>
+    </fields>
+    <fields>
+        <fullName>VREndDateAndTime__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Vacation End Date and Time</inlineHelpText>
+        <label>Vacation End Date and Time</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>DateTime</type>
+    </fields>
+    <fields>
+        <fullName>VRStartDateAndTime__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Vacation Start Date and Time</inlineHelpText>
+        <label>Vacation Start Date and Time</label>
+        <required>true</required>
+        <trackTrending>false</trackTrending>
+        <type>DateTime</type>
+    </fields>
+    <fields>
+        <fullName>VacationType__c</fullName>
+        <deprecated>false</deprecated>
+        <description>The name of the individual</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Choose Vacation Type</inlineHelpText>
+        <label>Vacation Type</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Picklist</type>
+        <valueSet>
+            <valueSetDefinition>
+                <sorted>false</sorted>
+                <value>
+                    <fullName>Regular Vacation</fullName>
+                    <default>true</default>
+                </value>
+                <value>
+                    <fullName>Illness</fullName>
+                    <default>false</default>
+                </value>
+                <value>
+                    <fullName>Resignation</fullName>
+                    <default>false</default>
+                </value>
+            </valueSetDefinition>
+        </valueSet>
+    </fields>
+    <fields>
+        <fullName>Vacationer__c</fullName>
+        <deleteConstraint>SetNull</deleteConstraint>
+        <deprecated>false</deprecated>
+        <description>The name of the individual</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Choose a User for whom the Vacation Request is created. If you create a Vacation Request for yourself, choose your name. If you create a vaction request not for yourself, choose a User from the list</inlineHelpText>
+        <label>Vacationer</label>
+        <referenceTo>User</referenceTo>
+        <relationshipName>Vacation_Requests</relationshipName>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Lookup</type>
+    </fields>
+    <label>Vacation Request</label>
+    <listViews>
+        <fullName>AllVacationRequest</fullName>
+        <filterScope>Everything</filterScope>
+        <label>All</label>
+    </listViews>
+    <nameField>
+        <label>Vacation  Name</label>
+        <type>Text</type>
+    </nameField>
+    <pluralLabel>Vacation Requests</pluralLabel>
+    <searchLayouts/>
+    <sharingModel>ReadWrite</sharingModel>
+    <validationRules>
+        <fullName>Validation_End_date_and_current_date</fullName>
+        <active>false</active>
+        <description>Vacation end date must be greater than current date</description>
+        <errorConditionFormula>StatusFormula__c == &apos;Cancelled&apos;</errorConditionFormula>
+        <errorMessage>Error</errorMessage>
+    </validationRules>
+    <validationRules>
+        <fullName>Validation_Initiator_and_Assignee_roles</fullName>
+        <active>false</active>
+        <description>Initiator and Assignee must have the same roles</description>
+        <errorConditionFormula>&quot;rca__Assignee__r.FirstName    ==  rca__Vacationer__r.UserRole.Name&quot; == NULL</errorConditionFormula>
+        <errorMessage>Initiator and Assignee must have the same roles</errorMessage>
+    </validationRules>
+    <validationRules>
+        <fullName>Validation_Start_Date</fullName>
+        <active>false</active>
+        <description>Validation Start Date</description>
+        <errorConditionFormula>VRStartDateAndTime__c &lt;= now()+1/24/60</errorConditionFormula>
+        <errorMessage>Start Date and time should not be life in the past</errorMessage>
+    </validationRules>
+    <validationRules>
+        <fullName>Validation_Start_and_End_Date</fullName>
+        <active>true</active>
+        <description>Vacation Start Date must be earlier than Vacation End Date</description>
+        <errorConditionFormula>VREndDateAndTime__c &lt;= VRStartDateAndTime__c</errorConditionFormula>
+        <errorMessage>Vacation Start Date must be earlier than Vacation End Date</errorMessage>
+    </validationRules>
+    <webLinks>
+        <fullName>Cancelled</fullName>
+        <availability>online</availability>
+        <displayType>button</displayType>
+        <linkType>javascript</linkType>
+        <masterLabel>Cancel</masterLabel>
+        <openType>onClickJavaScript</openType>
+        <protected>false</protected>
+        <url>{!REQUIRESCRIPT(&quot;/soap/ajax/19.0/connection.js&quot;)}
+
+var v = new sforce.SObject(&quot;rca__VacationRequest__c&quot;);
+v.Id =&quot;{!VacationRequest__c.Id}&quot;;
+v.rca__Status__c=&quot;{!VacationRequest__c.Status__c}&quot;;
+if (v.rca__Status__c == &quot;Planned&quot;){
+   v.rca__Status__c = &quot;Cancelled&quot;;
+}
+else {
+  alert (&quot;You cannot cancel a Vacation Request as it is in progress now. To stop a Vacation Request change Vacation End Date&quot;) 
+}
+result = sforce.connection.update([v]);
+window.location.href=window.location.href;</url>
+    </webLinks>
+</CustomObject>

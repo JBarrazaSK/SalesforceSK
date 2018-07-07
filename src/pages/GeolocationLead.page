@@ -1,0 +1,15 @@
+<!--
+ - Description: Visualforce detail button for updating a lead's geolocation.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 09/09/2014
+ -->
+<apex:page standardController="Lead" docType="html-5.0" showHeader="false" sidebar="false" standardStylesheets="false" title="Salesforce - Geolocalización del prospecto">
+<c:Geolocation />
+<apex:form >
+    <apex:actionFunction action="{!quicksave}" name="quicksave" status="status" rerender="messages"/>
+    <apex:inputHidden value="{!Lead.Geolocalizacion__Latitude__s}" id="latitude"/>
+    <apex:inputHidden value="{!Lead.Geolocalizacion__Longitude__s}" id="longitude"/>
+</apex:form>
+</apex:page>

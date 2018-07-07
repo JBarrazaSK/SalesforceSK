@@ -1,0 +1,48 @@
+<!--
+ - Description: Service console integration utilities.
+ - Author: Jorge Terán
+ - Company: LYNX9
+ - Email: sf@lynx9.com
+- Created date: 18/03/2016
+ -->
+<apex:page >
+<apex:includeScript value="/support/console/31.0/integration.js"/>
+<!--<apex:includeScript value="{!URLFOR($Resource.ConsoleUtilsGINSA, 'js/ConsoleUtilsGINSA.js')}"/>-->
+    <script type="text/javascript">
+    	sforce.console.addEventListener(sforce.console.ConsoleEvent.OPEN_TAB, function(result1) {
+            if(result1.objectId) {
+                var prefix = result1.objectId.substring(0, 3);
+                if(prefix == "001") {
+                    sforce.console.openSubtab(result1.id, "/apex/PedidoWizardAccountGINSA?id="+result1.objectId, true, "Nuevo pedido", null, function(result2) {
+                        setPedidoIcon(result2.id);
+                    });
+                } else if(prefix == "a06") {
+                    sforce.console.getTabLink(sforce.console.TabLink.SALESFORCE_URL, result1.id, function(result2) {
+                        if(result2.tabLink.indexOf(result1.objectId+"/e") != -1) {
+                            sforce.console.setTabTitle("Modificar pedido", result1.id);
+                            setPedidoIcon(result1.id);
+                        }
+                    });
+                }
+            }
+        });
+        
+        sforce.console.getPrimaryTabIds(function(result1) {
+            for(var index1 in result1.ids) {
+                sforce.console.getSubtabIds(result1.ids[index1], function(result2) {
+                    for(var index2 in result2.ids) {
+                        sforce.console.getTabLink(sforce.console.TabLink.SALESFORCE_URL, result2.ids[index2], function(result3) {
+                            if(result3.tabLink && (result3.tabLink.indexOf("PedidoWizard") != -1 || (result3.tabLink.indexOf("/a06") != -1 && result3.tabLink.indexOf("/e") != -1))) {
+                                setPedidoIcon(result2.ids[index2]);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        
+        function setPedidoIcon(tabId) {
+            sforce.console.setTabIcon("/resource/1421000108000/ConsoleUtils/img/pedido.png", tabId);
+        }
+    </script>    
+</apex:page>

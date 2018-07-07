@@ -1,0 +1,162 @@
+<apex:page controller="OficinaDistributionChannel" sidebar="false" showHeader="false">
+    <apex:stylesheet value="{!$Resource.ActionStatus}"/>
+    
+    <style>        
+        .tableGrid tr td{
+            border:1px solid #C3C3C3!important; 
+            background-clip: padding-box;
+            position: relative;
+        }
+        
+        .tableGrid td, .tableGrid th{ 
+            padding:3px;
+            text-align:center;  
+        }
+        
+        .submit{
+            background: #0970CC!important;
+            border: 0 none!important;
+            border-radius: 3px!important;
+            padding: 10px 20px !important;
+            color: #fff!important;
+            font-weight: 600!important;
+            text-transform: uppercase!important;
+            font-size: 13px!important;
+            cursor:pointer!important;
+        }
+        
+        *{
+            margin:0;
+            padding:0;
+            font-family: calibri !important;
+            font-size: 16px!important;
+        }
+        
+        .container{
+            padding:50px;
+        }
+        
+        .input-lkp {
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 3px;
+            box-shadow: inset 0 0 4px 0px rgba(0, 0, 0, 0.12);
+        }
+        
+        .message {
+            margin: 0px 0px !important;
+            margin-bottom: 20px!important;
+        }
+    </style>
+    
+    <apex:form >
+        <div class="container">
+            <apex:pageMessages id="msgs"/>
+            
+            <!-- Select distribution channel -->
+            <div>
+                <apex:outputLabel value="Oficina de Venta "/>
+                
+                <apex:inputField value="{!containerAccount.Oficina_de_Ventas__c}" styleClass="input-lkp" required="true"/>
+                
+                <div style="padding-top:20px;">
+                    <apex:commandButton value="enviar" action="{!performCallout}" reRender="container-panel,msgs" status="loadStatus" styleClass="submit"/>
+                </div>
+            </div>
+            
+            
+            <!-- Action status -->
+            <apex:actionStatus id="loadStatus" styleclass="loadStatus">
+                <apex:facet name="start">
+                    <div class="loadingBg"></div>
+                    <div class="loadingWrap">
+                        <img src="{!$Resource.Loading}" alt="Processing..."  style="width:30px;height:30px" 
+                        class="loadingImg" title="Processing..." /> Processing...
+                    </div>
+                </apex:facet>
+            </apex:actionStatus>
+            
+            <!-- Result panel -->
+            <apex:outputPanel id="container-panel">
+                <apex:outputPanel id="result-panel" rendered="{!isValidResult}">
+                    <table class="tableGrid">
+                        <thead>
+                            <th>
+                                Código
+                            </th>
+                            <th>
+                                Descripción
+                            </th>
+                            <th>
+                                Real
+                            </th>
+                            <th>
+                                Comp.Hoy
+                            </th>
+                            <th>
+                                Comp. Mañana
+                            </th>
+                            <th>
+                                Disponible
+                            </th>
+                            <!--<th>
+                                InvConf
+                            </th>
+                            <th>
+                                CompConfMan
+                            </th>
+                            <th>
+                                DispConf
+                            </th>
+                            <th>
+                                ResAlm
+                            </th>
+                            <th>
+                                ResConf
+                            </th>-->
+                        </thead>
+                        <tbody>
+                            <apex:repeat value="{!inventarioGlobalList}" var="inventario">
+                                <tr>
+                                    <td>
+                                        {!inventario.Producto}
+                                    </td>
+                                    <td>
+                                        {!inventario.ProductoDesc}
+                                    </td>
+                                    <td>
+                                        {!inventario.InvActual}
+                                    </td>
+                                    <td>
+                                        {!inventario.CompAlmHoy}
+                                    </td>
+                                    <td>
+                                        {!inventario.CompAlmMan}
+                                    </td>
+                                    <td>
+                                        {!inventario.DispAlm}
+                                    </td>
+                                    <!--<td>
+                                        {!inventario.InvConf}
+                                    </td>
+                                    <td>
+                                        {!inventario.CompConfMan}
+                                    </td>
+                                    <td>
+                                        {!inventario.DispConf}
+                                    </td>
+                                    <td>
+                                        {!inventario.ResAlm}
+                                    </td>
+                                    <td>
+                                        {!inventario.ResConf}
+                                    </td>-->
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </div>   
+    </apex:form>     
+</apex:page>

@@ -1,0 +1,324 @@
+<!--
+ - Description: Visualforce wizard component for order taking capturing all data in a single view.
+ - Author: V-1.0 & V-3.0 (JavaScript version) by Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 03/12/2014
+ -->
+<apex:component controller="PedidoWizardController" allowDML="true">
+<apex:stylesheet value="{!URLFOR($Resource.Demo, 'css/PedidoWizard.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.Demo, 'js/jquery-1.11.1.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.Demo, 'js/PedidoWizard.js')}"/>
+<script type="text/javascript">ieStylesheetUrl = "{!URLFOR($Resource.Demo, 'css/PedidoWizardIE.css')}"</script>
+    
+<apex:form id="form">
+    <apex:pageMessages />
+    <apex:variable value="{!accountWrapper.account.Id != null && accountWrapper.oficinaVentasSelectOptionList != null && accountWrapper.oficinaVentasSelectOptionList.size > 1}" var="isSelectableOficinaVentas"/>
+    <apex:pageBlock rendered="{!externalSources.precioListXProductCodeMap == null && pedidoWrapper.pedido.Id == null}">
+        <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+            <h3>Generales</h3>
+        </div>
+        <table id="tableGenerales1">
+            <tr>
+                <td class="labelCol">Código de la sucursal:</td>
+                <td id="tdSucursalGenerales1">
+                    <apex:outputText value="{!accountWrapper.account.Numero_Cliente_SAP__c}" styleClass="fieldSucursalGenerales1" rendered="{!!accountWrapper.isSelectable}"/>
+                    <apex:outputField value="{!pedidoWrapper.pedido.Cuenta__c}" rendered="{!!accountWrapper.isSelectable}"/>
+                    <apex:actionRegion rendered="{!accountWrapper.isSelectable}">
+                        <apex:inputText value="{!accountWrapper.sucursal}" styleClass="fieldSucursalGenerales1">
+                            <apex:actionSupport action="{!queryAccount}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="form">
+                                <apex:param name="accountId" assignTo="{!pedidoWrapper.pedido.Cuenta__c}" value=""/>
+                            </apex:actionSupport>
+                        </apex:inputText>
+                    </apex:actionRegion>
+                    <apex:actionRegion rendered="{!accountWrapper.isSelectable}">
+                        <apex:inputField value="{!pedidoWrapper.pedido.Cuenta__c}">
+                            <apex:actionSupport action="{!queryAccount}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="form">
+                                <apex:param name="accountId" assignTo="{!accountWrapper.sucursal}" value=""/>
+                            </apex:actionSupport>
+                        </apex:inputField>
+                    </apex:actionRegion>
+                    <apex:actionStatus id="actionStatusSucursal">
+                        <apex:facet name="start">
+                            <img src="/img/loading.gif" class="imgLoading"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </td>
+                <td class="labelCol">Tipo de surtido:</td>
+                <td>
+                    <apex:inputField value="{!pedidoWrapper.pedido.TipoSurtido__c}" required="true" onchange="validateTipoSurtido(this, '{!IF(accountWrapper.account.Id != null, accountWrapper.account.DiasEntrega__c, 'N/A')}')"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="labelCol">Prospecto:</td>
+                <td>
+                    <apex:inputField value="{!pedidoWrapper.pedido.Prospecto__c}"/>
+                </td>
+                <!--
+                <td class="labelCol">Fecha de surtido:</td>
+                <td colspan="4">
+                    <apex:inputField value="{!pedidoWrapper.pedido.FechaSurtidoProgramada__c}" required="true" onkeydown="onInputEnterKeydown(event)" onchange="validateFechaSurtidoD()" />
+                </td>
+				-->
+                <apex:repeat value="{!0}" rendered="{!isSelectableOficinaVentas}">
+                    <td class="labelCol">Oficina de ventas:</td>
+                    <td>
+                        <apex:selectList value="{!accountWrapper.oficinaVentasName}" size="1">
+                            <apex:selectOptions value="{!accountWrapper.oficinaVentasSelectOptionList}"/>
+                        </apex:selectList>
+                    </td>
+                </apex:repeat>
+            </tr>
+        </table>
+        <apex:pageBlockButtons location="bottom">
+            <apex:actionStatus id="actionStatusGenerales1">
+                <apex:facet name="stop">
+                    <apex:commandButton action="{!stepForth}" status="actionStatusGenerales1" timeout="300000" value="Siguiente2" rerender="form"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <input type="button" value="Procesando..." disabled="disabled" class="btnDisabled"/>
+                    <img src="/img/loading.gif" class="imgLoading"/>
+                </apex:facet>
+            </apex:actionStatus>
+            <apex:commandButton action="{!URLFOR('/'+$CurrentPage.parameters.retURL)}" value="Volver" rendered="{!$CurrentPage.parameters.retURL != null}"/>
+        </apex:pageBlockButtons>
+    </apex:pageBlock>
+    <apex:pageBlock rendered="{!externalSources.precioListXProductCodeMap != null}">
+        <apex:variable value="{!pedidoWrapper.pedido.Id == null || (DATEVALUE(pedidoWrapper.pedido.FechaSurtidoProgramada__c) >= TODAY() && !pedidoWrapper.pedido.Pedido_Cancelado__c && pedidoWrapper.pedido.EstatusPedido__c=='1 - Pedido Colocado')}" var="isEditablePedido"/>
+        <apex:actionFunction name="submit" action="{!submit}" status="actionStatusSubmit" timeout="180000" rerender="form" rendered="{!isEditablePedido}"/>
+        <apex:actionFunction name="cancel" action="{!submit}" status="actionStatusSubmit" timeout="180000" oncomplete="setViewIfPedidoIsNotEditable()" rerender="form" rendered="{!isEditablePedido}">
+            <apex:param name="isCancelacion" assignTo="{!pedidoWrapper.isCancelacion}" value="true"/>
+        </apex:actionFunction>
+        <script type="text/javascript">
+            isEditablePedido = {!isEditablePedido};
+            exchangeRateDolarPeso = {!pedidoWrapper.pedidoParameters.TipoCambioDolarPeso__c};
+            unitPriceMaxIncrementalPercentage = {!pedidoWrapper.pedidoParameters.PrecioUnitarioIncrementoMaximo__c};
+            unitPriceMaxDecrementalPercentage = {!pedidoWrapper.pedidoParameters.PrecioUnitarioDecrementoMaximo__c};
+            maxPresaleDays = {!pedidoWrapper.pedidoParameters.DiasPreventaMaximos__c};
+        </script>
+        <apex:pageBlockButtons >
+            <apex:actionStatus id="actionStatusSubmit" onstart="hideActionButtons()" onstop="showActionButtons()">
+                <apex:facet name="stop">
+                    <apex:outputPanel styleClass="outputPanelActionButtons">
+                        <apex:outputPanel rendered="{!isEditablePedido}">
+                            <input type="button" value="{!IF(pedidoWrapper.pedido.Id == null, 'Guardar pedido', 'Guardar cambios')}" class="btn" onclick="guardar()"/>
+                            <apex:commandButton value="Cancelar pedido" onclick="cancelarPedido()" rerender="null" rendered="{!pedidoWrapper.pedido.Id != null}"/>
+                        </apex:outputPanel>
+                        <apex:commandButton action="{!URLFOR(IF($CurrentPage.parameters.id != null && LEFT($CurrentPage.parameters.id, 3) == '001', $Page.PedidoWizardAccount, IF($CurrentPage.parameters.id != null && LEFT($CurrentPage.parameters.id, 3) == '00Q', $Page.PedidoWizardLead, $Action.Pedido__c.New)), null, ['id'=IF($CurrentPage.parameters.id != null && (LEFT($CurrentPage.parameters.id, 3) == '001' || LEFT($CurrentPage.parameters.id, 3) == '00Q'), $CurrentPage.parameters.id, ''), 'CF00N500000030Mvx_lkid'=$CurrentPage.parameters.CF00N500000030Mvx_lkid, 'retURL'=$CurrentPage.parameters.retURL])}" value="Empezar un nuevo pedido" rendered="{!pedidoWrapper.pedido.Id != null}"/>
+                        <apex:commandButton action="{!URLFOR('/'+$CurrentPage.parameters.retURL)}" value="Volver" rendered="{!$CurrentPage.parameters.retURL != null}"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <input type="button" value="Guardando..." disabled="disabled" class="btnDisabled"/>
+                    <img src="/img/loading.gif" class="imgLoading"/>
+                </apex:facet>
+            </apex:actionStatus>
+            
+            <apex:outputPanel styleClass="folio" rendered="{!pedidoWrapper.pedido.Id != null}">
+                <label class="labelCol">Folio NSC:</label>{!pedidoWrapper.pedido.Numero_de_Pedido_NSC__c}
+                <label class="labelCol">Folio Salesforce:</label>{!pedidoWrapper.pedido.Name}
+            </apex:outputPanel>
+        </apex:pageBlockButtons>
+        <apex:pageMessage summary="La plaza se encuentra cerrada. Sólo se permite capturar o modificar pedidos de preventa." severity="warning" strength="1" rendered="{!externalSources.IsClosedPlaza && isEditablePedido}"/>
+        <apex:pageMessage summary="No se permite modificar o cancelar pedidos con fecha de surtido menor al día de hoy." severity="info" strength="1" rendered="{!!isEditablePedido && !pedidoWrapper.pedido.Pedido_Cancelado__c}"/>
+        <apex:pageMessage summary="El pedido se encuentra cancelado." severity="info" strength="1" rendered="{!!isEditablePedido && pedidoWrapper.pedido.Pedido_Cancelado__c}"/>
+        <apex:pageMessage summary="No se permite modificar pedidos con estatus diferente de '1 - Pedido Colocado'." severity="info" strength="1" rendered="{!!isEditablePedido && NOT(pedidoWrapper.pedido.EstatusPedido__c=='1 - Pedido Colocado')}"/>
+        
+        <div id="modalPrecios">
+            <apex:pageBlock title="Lista de precios">
+                <apex:repeat value="{!externalSources.precioListXProductCodeMap}" var="productCode">
+                    <table summary="{!productCode}" class="list hidden" border="0" cellpadding="0" cellspacing="0">
+                        <tr class="headerRow">
+                            <th>Volumen inicial</th>
+                            <th>Volumen final</th>
+                            <th>Precio</th>
+                            <th>Tipo de precio</th>
+                        </tr>
+                        <apex:repeat value="{!externalSources.precioListXProductCodeMap[productCode]}" var="precio">
+                            <tr class="dataRow">
+                                <td>
+                                    <apex:outputText value="{0, number, ###,###,##0}">
+                                        <apex:param value="{!precio.pve_volini}"/>
+                                    </apex:outputText>
+                                    <input type="hidden" value="{!productCode}"/>
+                                    <input type="hidden" value="{!precio.pve_folgral}"/>
+                                </td>
+                                <td>
+                                    <apex:outputText value="{0, number, ###,###,##0}">
+                                        <apex:param value="{!precio.pve_volfin}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td>
+                                    <apex:outputText value="{0, number, currency}">
+                                        <apex:param value="{!precio.precio}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td>{!precio.pve_tipprec}</td>
+                            </tr>
+                        </apex:repeat>
+                    </table>
+                </apex:repeat>
+                <script type="text/javascript">setPreciosMap()</script>
+                <apex:pageBlockButtons location="bottom">
+                    <input type="button" value="Cerrar" class="btn" onclick="closeModal('#modalPrecios')"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+        </div>
+        <div id="modalPortafolio">
+            <apex:pageBlock title="Búsqueda de producto">
+                <apex:pageBlockButtons location="top">
+                    <label class="labelCol">Nombre del producto:</label>
+                    <input type="text" id="inputSearchText" onkeyup="filterProducts()"/>
+                </apex:pageBlockButtons>
+                <table class="list pageBlockTablePortafolio" border="0" cellpadding="0" cellspacing="0">
+                    <tr class="headerRow">
+                        <td>Nombre del producto</td>
+                        <td>Código del producto</td>
+                        <td>Descripción del producto</td>
+                    </tr>
+                    <apex:repeat value="{!product2XproductCodeMap}" var="productCode">
+                        <tr class="dataRow" onclick="selectItemPortafolio('{!product2XproductCodeMap[productCode].ProductCode}')" onmouseover="rowOn(this)" onmouseout="rowOff(this)">
+                            <td>
+                                {!product2XproductCodeMap[productCode].Name}
+                                <input type="hidden" value="{!product2XproductCodeMap[productCode].Id}"/>
+                                <input type="hidden" value="{!product2XproductCodeMap[productCode].Ficha_comercial__c}"/>
+                                <input type="hidden" value="{!product2XproductCodeMap[productCode].Peso_Promedio__c}"/>
+                            </td>
+                            <td>{!product2XproductCodeMap[productCode].ProductCode}</td>
+                            <td>{!product2XproductCodeMap[productCode].Description}</td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+                <script type="text/javascript">setProductMap()</script>
+                <apex:pageBlockButtons location="bottom">
+                    <input type="button" value="Cerrar" class="btn" onclick="closeModalPortafolio()"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+        </div>
+        <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+            <h3>Productos</h3>
+        </div>
+        <div id="divProductoButtons">
+            <apex:commandButton action="{!pedidoWrapper.addPedidoItem}" status="actionStatusProducto" timeout="60000" value="Agregar producto" rerender="outputPanelProductos"/>
+            <apex:commandButton action="{!pedidoWrapper.clearPedidoItemList}" status="actionStatusProducto" timeout="60000" value="Eliminar todos" onclick="if(!removeAllRows()) return;" rerender="outputPanelProductos"/>
+            <apex:actionStatus id="actionStatusProducto">
+                <apex:facet name="start">
+                    <img src="/img/loading.gif" class="imgLoading"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+        <apex:actionFunction action="{!pedidoWrapper.removePedidoItem}" status="actionStatusProducto" timeout="60000" name="removePedidoItem" rerender="outputPanelProductos">
+            <apex:param name="indexToRemove" assignTo="{!pedidoWrapper.indexToRemove}" value=""/>
+        </apex:actionFunction>
+        <apex:outputPanel id="outputPanelProductos">
+            <apex:inputHidden value="{!pedidoWrapper.importe}" id="inputImporte"/>
+            <apex:inputHidden value="{!pedidoWrapper.pedido.Pedido_Cancelado__c}" id="inputPedidoCancelado"/>
+            <apex:inputHidden value="{!pedidoWrapper.pedido.PedidoCanceladoPorElSistema__c}" id="inputPedidoCanceladoPorElSistema"/>
+            <apex:inputHidden value="{!pedidoWrapper.pedido.EstatusPedido__c}" id="inputEstatusPedido"/>
+            <apex:variable var="index" value="{!0}"/>
+            <table class="list pageBlockTableProductos" border="0" cellpadding="0" cellspacing="0">
+                <thead>
+                    <tr class="headerRow">
+                        <th colspan="6"/>
+                        <th class="textCenter" colspan="3">Solicitado2</th>
+                        <th class="textCenter" colspan="3">Confirmado</th>
+                        <th colspan="3"/>
+                    </tr>
+                    <tr class="headerRow">
+                        <th class="w2">Acción</th>
+                        <th class="w52">Código</th>
+                        <th>Descripción</th>
+                        <th class="w2">Rng</th>
+                        <th class="w2">Fch</th>
+                        <th class="w30">Kg P</th>
+                        <th class="w40">Cajas</th>
+                        <th class="w40">Piezas</th>
+                        <th class="w40">Kg</th>
+                        <th class="w40">Cajas</th>
+                        <th class="w40">Piezas</th>
+                        <th class="w40">Kg</th>
+                        <th class="w46">Precio</th>
+                        <th class="w35">TP</th>
+                        <th class="w80">Importe</th>
+                        <!--<th class="w35">RA</th>
+                        <th class="w35">ASup</th>
+                        <th class="w35">APr</th>-->
+                    </tr>
+                </thead>
+                <apex:repeat value="{!pedidoWrapper.pedidoItemList}" var="pedidoItem">
+                    <tr class="dataRow" onclick="showInventario({!index+1})" onmouseover="rowOn(this)" onmouseout="rowOff(this)">
+                        <td>
+                            <input type="button" value="Eliminar" class="btn" onclick="removeRow({!index})"/>
+                            <apex:variable var="index" value="{!index+1}"/>
+                            <apex:inputHidden value="{!pedidoItem.Producto__c}" id="inputProducto"/>
+                            <apex:inputHidden value="{!pedidoItem.PrecioUnitarioOriginal__c}" id="inputPrecioUnitarioOriginal"/>
+                            <apex:inputHidden value="{!pedidoItem.PrecioListaPrecios__c}" id="inputPrecioListaPrecios"/>
+                            <apex:inputHidden value="{!pedidoItem.Moneda__c}" id="inputMoneda"/>
+                            <apex:inputHidden value="{!pedidoItem.Unidad__c}" id="inputUnidad"/>
+                            <input type="hidden" id="inputPrecioUnitarioOriginalPesos"/>
+                            <input type="hidden" id="inputPesoPromedioKg"/>
+                            <apex:inputHidden value="{!pedidoItem.Precio_Requiere_Aprobacion__c}" id="inputPrecioUnitarioRequiereAutorizacion"/>
+                            <apex:inputHidden value="{!pedidoItem.Precio_Aprobado_Supervisor__c}" id="inputPrecioAprobado"/>
+                        </td>
+                        <td class="inputColumn">
+                            <input type="text" value="{!pedidoItem.Producto__r.ProductCode}" class="inputProductCode" onkeypress="integerInputOnly(event)" onchange="preSetProducto(this.value, {!index})"/>
+                        </td>
+                        <td class="columnDescripcion">
+                            <span>{!pedidoItem.Producto__r.Description}</span>
+                            <input type="button" value="Buscar" class="btn" onclick="openModalPortafolio({!index})"/>
+                        </td>
+                        <td class="textCenter"/>
+                        <td class="textCenter"/>
+                        <td/>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.Cajas__c}" onkeypress="integerInputOnly(event)" onchange="processCajasSolicitadas({!index})"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.Piezas__c}" onkeypress="integerInputOnly(event)" onchange="processPiezasSolicitadas({!index})"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.CantidadPedidaUnidadMovimiento__c}" onkeypress="floatInputOnly(event, this)" onchange="processKilosSolicitados({!index})"/>
+                            <apex:inputHidden value="{!pedidoItem.Kilos__c}"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.Cajas_Conf__c}" onkeypress="integerInputOnly(event)" onchange="processCajasConfirmadas({!index})"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.Piezas_Conf__c}" onkeypress="integerInputOnly(event)" onchange="processPiezasConfirmadas({!index})"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.CantidadConfirmadaUnidadMovimiento__c}" onkeypress="floatInputOnly(event, this)" onchange="processKilosConfirmados({!index})"/>
+                            <apex:inputHidden value="{!pedidoItem.Kilos_Conf__c}"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.PrecioUnitarioOtorgado__c}" onkeypress="floatInputOnly(event, this)" onchange="processPrecioUnitario({!index})"/>
+                            <input type="hidden"/>
+                        </td>
+                        <td/>
+                        <td class="textColumn">
+                            <apex:inputField value="{!pedidoItem.Importe__c}" styleClass="disabledInput"/>
+                        </td>
+                        <!--<td class="inputColumn">
+                            <apex:outputField value="{!pedidoItem.Precio_Requiere_Aprobacion__c}"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:outputField value="{!pedidoItem.Precio_Aprobado_Supervisor__c}"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:outputField value="{!pedidoItem.Precio_Aprobado_Pr__c}"/>
+                        </td>-->
+                    </tr>
+                </apex:repeat>
+               
+            </table>
+            <script type="text/javascript">setTableProductos()</script>
+        </apex:outputPanel>
+       
+
+        <script type="text/javascript">setInventarioMap()</script>
+       
+    </apex:pageBlock>
+    
+    <div id="overlay"/>
+</apex:form>
+</apex:component>

@@ -1,0 +1,180 @@
+<apex:page controller="BLDS.CaptureResearchCompanyController">
+	<apex:form >
+		<style>
+.aTag {
+	float: right;
+	color: #015BA7 !important;
+	text-decoration: none;
+	padding-top: 5px;
+	padding-left: 8px;
+	cursor: pointer;
+}
+</style>
+		<script>
+			/* To show javascript error message in standard VF style*/
+		    function showError(e)
+		    {
+		       	afDisplayJSErrorMessage(e.message);
+		    }
+            var curPopupWindow = '';
+            // Opens a new custom lookup window
+            function openRelatedPopup(dataLName, companyName, hiddnId, hiddenName)
+            {
+                try{
+	                var url = '';
+	                url = "CaptureCustomLookup?ObjectName=Account" +     
+	                                  "&FieldName=Name" +
+	                                  "&MatchingString=" ;	                
+	                
+	                  
+                    openWind(url);
+                }catch(e){
+                	showError(e);
+                } 
+            }            
+            
+            function openWind(URL)
+            {
+                curPopupWindow  = window.open(URL, "_blank","width=700, height=400, dependent=no, toolbar=no, status=no, directories=no, menubar=no, scrollbars=1, resizable=no", true);
+            }
+            function cancelPage()
+            {
+                top.window.opener.closePopup();
+            }
+            function setSelectedRelatedToDetails(objId, objName)
+            {
+                try{
+                curPopupWindow.close();
+                updateCurrentOption(objId, objName);
+                }catch(e){
+                	showError(e);
+                } 
+            }
+            // Called from Go button and pass the required information
+            function openNewEditRecord(hiddenId, selectedId, compName, website) 
+            {
+                try{
+                    var baseURL = '{!JSENCODE(strBaseURL)}';
+                    var selectId = document.getElementById(hiddenId).value;
+                    
+                    var phone = '{!JSENCODE(strPhone)}';
+                    var fax = '{!JSENCODE(strFax)}';
+                    var street = '{!JSENCODE(strStreet)}';
+                    var city = '{!JSENCODE(strCity)}';
+                    var state = '{!JSENCODE(strState)}';
+                    var zip = '{!JSENCODE(strZip)}';
+                    var country = '{!JSENCODE(strCountry)}'; 
+                    
+                    if(selectId != '' && selectId != 'Create New')
+                    {
+                        var URL = baseURL + '/' + selectId;
+                        window.open(URL, "_self");
+                    }
+                    else
+                    {
+                        var URL = baseURL + '/001/e?retURL=%2F001%2Fo&acc2='+compName+'&acc12='+website+'&acc10='+phone+'&acc11='+fax+'&acc17street='+street+'&acc17city='+city+'&acc17state='+state+'&acc17zip='+zip+'&acc17country='+country; 
+                        window.open(URL, "_self");
+                    }
+                }catch(e){
+                	showError(e);
+                } 
+            }
+            function renderHidden(optionId, hiddnId)
+            {
+                try{
+                var currentValue = document.getElementById(optionId).value;
+                document.getElementById(hiddnId).value = currentValue; 
+                }catch(e){
+                	showError(e);
+                } 
+            }
+        
+        </script>
+         <apex:actionFunction name="afDisplayJSErrorMessage" action="{displayBlanketError}" rerender="ErrorMessage,errorMessagePnl">
+    		<apex:param name="jsErrorMsg" value="" assignTo="{!strErrorMessage}"/>
+    	</apex:actionFunction>
+		<apex:actionFunction name="updateCurrentOption"
+			action="{!doUpdateCurrentOption}" rerender="mainPanel">
+			<apex:param assignTo="{!strSelectedAccountId}" name="comname"
+				value="" />
+			<apex:param assignTo="{!strSelectedAccountName}" name="Lname"
+				value="" />
+		</apex:actionFunction>
+		<apex:actionFunction name="rerenderSection"
+			action="{!doRerenderSection}" rerender="mainPanel" />
+		<apex:outputPanel id="opTop" />
+
+		<table rowspan="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td style="height: 14px;"></td>
+			</tr>
+			<tr>
+				<td>
+					<div id="logo-border">
+						<img
+							src="{!URLFOR($Resource.ProfilerResources,'Images/profiler_powered_logo.png')}"
+							alt="Broadlook Profiler" id="logo"
+							style="height: 40px; width: 150px;" />
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td style="height: 14px;"></td>
+			</tr>
+		</table> 
+		<apex:pageBlock id="mainPanel">
+			<apex:pageMessages id="ErrorMessage" escape="false" />
+			<apex:outputPanel Id="errorMessagePnl">
+					<script>
+						/* Section for displaying error message on mouse hover of error icon*/
+			            var actualMsg = '{!JSENCODE(strErrorMessage)}';
+			            if(actualMsg != '' && actualMsg != null) 
+			            {
+			                var errorTag =  document.getElementsByClassName('msgIcon');
+			                errorTag[0].title = actualMsg;
+			            }
+		            </script>
+			</apex:outputPanel>
+			<table width="100%">
+				<tr>
+					<td width="70%"><b>Profiling a company requires
+							Broadlook Profiler to be activated.<br />Contact your CRM
+							Administrator to have Profiler enabled and begin researching
+							these companies
+					</b></td>
+					<td style="float: right; width: 84%"><a href=""
+						onclick="cancelPage();" class="aTag">Cancel</a> <apex:commandButton style="float:right;"
+							onclick="openNewEditRecord('{!$Component.hddnId}', '{!JSINHTMLENCODE(strSelectedAccount)}', '{!JSINHTMLENCODE(strCompanyName)}', '{!JSINHTMLENCODE(strWebsite)}');"
+							value="Go" rerender="opTop" /></td>
+				</tr>
+			</table>
+			<apex:inputHidden value="{!strSelectedAccount}" id="hddnId" />
+			<apex:pageBlock >
+                &nbsp; &nbsp; <b>Specify {!strAccountLabel}&nbsp;: </b> &nbsp;
+                <apex:selectList size="1" value="{!strSelectedAccount}"
+					id="optionId"
+					onchange="renderHidden('{!$Component.optionId}', '{!$Component.hddnId}')">
+					<apex:selectOptions value="{!lstAllAccount}" />
+				</apex:selectList>
+				<a href="" style="cursor: pointer"
+					onclick="javascript:return openRelatedPopup();"> <img
+					src="/s.gif" alt="Security Lookup (New Window)" class="lookupIcon"
+					onblur="this.className = 'lookupIcon';"
+					onfocus="this.className = 'lookupIconOn';"
+					onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';"
+					onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';"
+					title="Lookup (New Window)" />
+				</a>
+			</apex:pageBlock>
+			<table width="100%">
+				<tr>
+					<td></td>
+					<td style="float: right; width: 34%"><a href=""
+						onclick="cancelPage();" class="aTag">Cancel</a> <apex:commandButton style="float:right;"
+							onclick="openNewEditRecord('{!$Component.hddnId}', '{!JSINHTMLENCODE(strSelectedAccount)}', '{!JSINHTMLENCODE(strCompanyName)}', '{!JSINHTMLENCODE(strWebsite)}');"
+							value="Go" rerender="opTop" /></td>
+				</tr>
+			</table>
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

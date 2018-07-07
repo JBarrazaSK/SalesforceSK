@@ -1,0 +1,195 @@
+<apex:page sidebar="false" controller="ctrlDispDiaraPlanta" tabStyle="DispDiaraPlanta__tab">
+	<script>
+		function loading(name,visble){
+			var el = document.getElementById(name);
+			el.style.display = (visble)?'':'none';
+		}
+		function borraInputs(){
+			var inputs = document.getElementsByClassName('clinpt');
+			for(var i = 0; inputs.length > i;i++)
+				inputs[i].value = '';	
+		
+		}
+	</script>
+	<style>
+		body input.btnGreen{
+			    color: #fff;
+			    background-color: GREEN;
+			    border-color: #5cb85c;
+			    background-image: none;
+			    padding: 6px;
+		}
+		body input.btnBlue{
+			    color: #fff;
+			    background-color: BLUE;
+			    border-color: #6e5cb8;
+			    background-image: none;
+			    padding: 6px;
+		}
+		
+		body input.btnOrange{
+			    color: #fff;
+			    background-color: #ff6a00;
+			    border-color: #fb8c3e;
+			    background-image: none;
+			    padding: 6px;
+		}
+		body .bPageBlock h2 {font-size: 1em !important;}
+		input.removeOption{
+			width: 22px;
+    		margin-left: 5px;
+		}
+		body .pbBody table.list tr.dataRow td.bordeIzq{border-left: 1px solid #e3deb8;}
+		.masterCol{min-width: 250px;}
+		.plantaCol{min-width: 200px;}
+		.disponCol{min-width: 60px;}
+		.loader{
+			z-index: 9999;
+    		position: fixed;
+    		padding: 0;
+    		margin: 0;
+    		top: 0;
+    		left: 0;
+    		width: 100%;
+    		height: 100%;
+    		background: rgba(255,255,255,0.6) no-repeat center URL(/img/loading32.gif);
+		}
+		.selectTitle{
+			text-align: center;
+    		font-weight: bold;
+		}
+		.buttonCell{    
+			text-align: center;
+    		vertical-align: middle;
+    	}
+	</style>
+	<div id="cargando" style="display:none;" class="loader"></div>
+	<apex:form id="form" >
+		<apex:pageMessages id="messages" />
+        <apex:pageBlock title="Disponibilidad Diaria Por Planta" id="busqueda">
+        	<apex:pageBlockButtons location="bottom">
+        		<apex:commandButton reRender="tablaDispo,busqueda,messages" oncomplete="loading('cargando',false);" onclick="loading('cargando',true);"  action="{!consultaDispo}" value="Consultar" styleClass="btnBlue"/>
+        		<apex:commandButton reRender="tablaDispo,busqueda,messages" oncomplete="borraInputs();loading('cargando',false);" onclick="loading('cargando',true);"  action="{!init}" immediate="true" value="Limpiar" styleClass="btnOrange" />
+        	</apex:pageBlockButtons>
+        	<apex:pageBlockSection columns="2">
+        		<apex:pageBlockSectionItem >
+        			<apex:outputLabel value="Master" />
+        			<apex:outputPanel id="pnlMaster">
+        				<apex:actionRegion immediate="true">
+        					<table class="layout">
+        						<tbody>
+        							<tr>
+        								<td class="selectCell">
+        									<div class="selectTitle"><apex:outputLabel for="dispMaster" value="Códigos Master"/></div>
+        									<apex:selectList multiselect="true" id="dispMaster" style="width: 250px;height: 140px;" value="{!opcAddMaster}" size="8">
+        										<apex:selectOptions value="{!MasterDispo}"/>
+        									</apex:selectList>
+        								</td>
+        								<td class="zen-phs buttonCell" style="vertical-align: middle;">
+        									<div class="text">Agregar</div>
+        									<div class="zen-mbs text">
+        										<apex:commandLink action="{!aniadeMaster}" rerender="pnlMaster">
+        											<img src="/img/s.gif" alt="Agregar" class="rightArrowIcon" title="Agregar"/>
+        										</apex:commandLink>
+        									</div>
+        									<div class="text">
+        										<apex:commandLink action="{!removeMaster}" rerender="pnlMaster">
+        											<img src="/img/s.gif" alt="Eliminar" class="leftArrowIcon" title="Eliminar"/>
+        										</apex:commandLink>
+        									</div>
+        									<div class="duelingText">Eliminar</div>
+        								</td>
+        								<td class="selectCell">
+        									<div class="selectTitle"><apex:outputLabel for="selMaster" value="Seleccionados"/></div>
+        									<apex:selectList multiselect="true" id="selMaster" style="width: 250px;height: 140px;" value="{!opcRemMaster}" size="8">
+        										<apex:selectOptions value="{!MasterSelect}"/>
+        									</apex:selectList>
+        								</td>
+        							</tr>
+								</tbody>
+							</table>
+						</apex:actionRegion>
+					</apex:outputPanel>
+        		</apex:pageBlockSectionItem>
+        		<apex:pageBlockSectionItem >
+        			<apex:outputLabel value="Planta" />
+        			<apex:outputPanel id="pnlPlantas">
+        				<apex:actionRegion immediate="true">
+        					<table class="layout">
+        						<tbody>
+        							<tr>
+        								<td class="selectCell">
+        									<div class="selectTitle"><apex:outputLabel for="dispPlantas" value="Plantas"/></div>
+        									<apex:selectList multiselect="true" id="dispPlantas" style="width: 250px;height: 140px;" value="{!opcAddPlantas}" size="8">
+        										<apex:selectOptions value="{!PlantasDispo}"/>
+        									</apex:selectList>
+        								</td>
+        								<td class="zen-phs buttonCell" style="vertical-align: middle;">
+        									<div class="text">Agregar</div>
+        									<div class="zen-mbs text">
+        										<apex:commandLink action="{!aniadePlantas}" rerender="pnlPlantas">
+        											<img src="/img/s.gif" alt="Agregar" class="rightArrowIcon" title="Agregar"/>
+        										</apex:commandLink>
+        									</div>
+        									<div class="text">
+        										<apex:commandLink action="{!removePlantas}" rerender="pnlPlantas">
+        											<img src="/img/s.gif" alt="Eliminar" class="leftArrowIcon" title="Eliminar"/>
+        										</apex:commandLink>
+        									</div>
+        									<div class="duelingText">Eliminar</div>
+        								</td>
+        								<td class="selectCell">
+        									<div class="selectTitle"><apex:outputLabel for="selPlantas" value="Seleccionadas"/></div>
+        									<apex:selectList multiselect="true" id="selPlantas" style="width: 250px;height: 140px;" value="{!opcRemPlantas}" size="8">
+        										<apex:selectOptions value="{!PlantasSelect}"/>
+        									</apex:selectList>
+        								</td>
+        							</tr>
+								</tbody>
+							</table>
+						</apex:actionRegion>
+					</apex:outputPanel>
+        		</apex:pageBlockSectionItem>
+        		<apex:inputField label="Fecha Desde" required="false" value="{!filtroObj.Fecha_Embarque__c}" />
+        		<apex:inputField label="Fecha Hasta" required="false" value="{!filtroObj2.Fecha_Embarque__c}" />
+        	</apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:pageBlock id="tablaDispo" mode="maindetail">
+        	<apex:pageBlockSection columns="1" rendered="{!resTabla.size != 0}">
+        		<apex:outputPanel layout="block" style="overflow-x: auto;max-width: 1309px;">
+	        		<table class="list" border="0" cellpadding="0" cellspacing="0">
+	        			<thead class="">
+	        			<tr class="headerRow">
+	        				<th class="headerRow masterCol" rowspan="2" scope="col" colspan="1">Producto</th>
+	        				<th class="headerRow plantaCol" rowspan="2" scope="col" colspan="1">Planta</th>
+	        				<apex:repeat value="{!hdSemana}" var="sem">
+	        					<th class="headerRow" scope="col" colspan="{!sem.Tamanio}">Semana&nbsp;<apex:outputText value="{!sem.Semana}" /></th>
+	        				</apex:repeat>
+	        			</tr>
+	        			<tr class="headerRow">
+	        				<apex:repeat value="{!hdSemana}" var="sem">
+	        					<apex:repeat value="{!sem.fechas}" var="fec">
+	        						<th class="headerRow disponCol" scope="col" colspan="1"><apex:outputText value="{0,date,dd/MM/yyyy}"><apex:param value="{!fec}" /></apex:outputText></th>
+	        					</apex:repeat>
+	        				</apex:repeat>
+	        			</tr>
+	        			</thead>
+		        		<tbody>
+		        			<apex:repeat value="{!resTabla}" var="mst">
+		        				<apex:repeat value="{!mst.Plantas}" var="pla">
+			        				<tr class="dataRow odd">
+			        					<td style="{!if(pla = mst.Plantas[0],'','display:none;')}" class="dataCell" rowspan="{!mst.Tamanio}"><apex:outputText value="{!mst.Producto.Name}" /></td>
+			        					<td class="dataCell bordeIzq" colspan="1"><apex:outputText value="{!pla.Planta.Name}" /></td>
+			        					<apex:repeat value="{!pla.DispXFecha}" var="disp">
+			        						<td class="dataCell bordeIzq" colspan="1"><apex:outputText value="{!disp.Cantidad}" /></td>
+			        					</apex:repeat>
+			        				</tr>
+			        			</apex:repeat>
+		        			</apex:repeat>
+		        		</tbody>
+	        		</table>
+	        	</apex:outputPanel>
+        	</apex:pageBlockSection>
+        </apex:pageBlock>
+	</apex:form>
+</apex:page>

@@ -1,0 +1,2176 @@
+<apex:page id="blSearchCompanyPage" controller="BLDS.BLSearchCompanyController" sidebar="false" action="{!checkRegistered}">
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryCS, 'jquery-1.9.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryCS, 'jquery-ui-1.10.3.custom.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryCS, 'analytics.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryBlockUI)}" />
+    <script src="https://na15.salesforce.com/soap/ajax/28.0/connection.js"></script>
+    <!--  
+    <apex:includeScript value="{!URLFOR($Resource.jQueryCS, 'keywordscript.js')}" />
+    -->
+    
+     <style>
+            .table_with_3cols{
+                width: 100%;
+                border: 0px;
+            }
+            
+            .table_with_3cols  tr  td{
+                width: 33%;
+            }
+            .tr_for_big_num td
+            {
+                text-align: center;
+            }
+            strong:hover {
+        
+                text-decoration:none;
+            } 
+            strong.tooltip span {
+                display:none; 
+                padding:2px 3px; 
+                margin-left:18px; 
+                width:300px;
+                z-index:1000;
+            }
+            strong.tooltip:hover span{
+                display:inline; 
+                position:absolute; 
+                background:#FFC; 
+                border:1px solid #cccccc; 
+                color:#000000;
+            }
+            
+            div:hover {
+			    text-decoration: none;
+			}
+			
+			div.tooltip {
+				background-image: url({!URLFOR($Resource.image,'helpOrbs.gif')});
+				background-position: 0 0;
+				width: 20px;
+				height: 15px;
+			}
+			
+			div.tooltip:hover {
+				background-image: url({!URLFOR($Resource.image,'helpOrbs.gif')});
+				background-position: 20px 0;
+				width: 20px;
+				height: 15px;
+			}
+			
+			div.tooltip span {
+			    display: none;
+			    padding: 2px 3px;
+			    margin-left: 18px;
+			    width: 370px;
+			    z-index: 1000;
+			}
+			
+			div.tooltip:hover span {
+			    display: inline;
+			    position: absolute;
+			    background: #fefdb9;
+			    border: 1px solid orange;
+			    color: #000000;
+			}
+            
+            #messageBox{
+                    border-right: 1px solid #000000;
+                    position: absolute;
+                    width: auto;
+                    height: auto;
+                    z-inde11
+                    background-color: #C0C0C0;
+                    border-style: solid;
+                    border-width: 0.5px;
+                    display:none;
+                }
+                #contents{
+                    width: 100%;
+                    height: auto;
+                    z-index: 2;
+                }
+                            
+            .rich-tab-bottom-line {
+                border-bottom: 1px solid #C0C0C0;
+            }
+            .tab-tab {
+                background-image: none;
+                background-color: #FFF;
+                font-size: 110%;
+                font-family: "Open Sans","lucida grande","Segoe UI",arial,verdana,"lucida sans unicode",tahoma,sans-serif;
+                font-weight: normal;
+                border-width: 1px medium 1px 1px;
+                border-style: solid none solid solid;
+                border-color: #A0D1FA -moz-use-text-color #BDC4C9 #A0D1FA;
+                -moz-border-top-colors: none;
+                -moz-border-right-colors: none;
+                -moz-border-bottom-colors: none;
+                -moz-border-left-colors: none;
+                border-image: none;
+                color: #2895F1;
+                cursor: pointer;
+                display: table-cell;
+                margin: 0px 0px -1px -1px;
+                padding: 8px 16px;
+                position: relative;
+                text-align: center;
+                vertical-align: top;
+                z-index: 2;
+            }
+            .tab-tab.selected {
+                background-image: none;
+                background-color: #FFF;
+                border-width: 1px;
+                border-style: solid;
+                border-color: #BDC4C9 #BDC4C9 #FFF;
+                -moz-border-top-colors: none;
+                -moz-border-right-colors: none;
+                -moz-border-bottom-colors: none;
+                -moz-border-left-colors: none;
+                border-image: none;
+                color: #3D464D;
+            }
+            .tab-tab:first-child {
+                margin-left: 0px;
+                border-top-left-radius: 5px;
+            }
+            .BL_tabStyle {
+                background-color: #FFF;
+            }
+            .myButton{
+                width: 165 px !important;
+            }
+            .center
+                {
+                margin-left:auto;
+                margin-right:auto;
+                width:100%;
+                
+                }
+            .lDisabled {
+                  cursor: default !important;
+                  pointer-events: none;
+                  color:#a8a8a8 !important;
+             }
+             
+            .firstOff2{ 
+                background-image: url(/img/paginationArrows.gif);
+                background-repeat: no-repeat;
+                background-position: 0 -10px;
+                width: 9px;
+                height: 10px;
+            }
+            .firstOn2{
+                background-image: url(/img/paginationArrows.gif);
+                background-repeat: no-repeat;
+                background-position: 0 1px;
+                width: 9px;
+                height: 10px;
+            }
+            
+            
+            .lastOn2 {
+                background-image: url(/img/paginationArrows.gif);
+                background-repeat: no-repeat;
+                background-position: -27px 1px;
+                width: 9px;
+                height: 10px;
+            }
+            
+            
+            
+            .refreshListButton2 {
+            background: url(/img/alohaSkin/sync.png) top left no-repeat !important;
+            width: 26px !important;
+            height: 24px !important;
+            background-position: 4px 3px !important;
+            vertical-align: bottom !important;
+        }
+        .lDisabled {
+            cursor: default !important;
+            pointer-events: none;
+            color:#a8a8a8 !important;
+            text-decoration:none;
+        }
+        .lEnabled{
+            text-decoration:none;
+        }
+        
+         .LFirstPrevious{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: 0px 1px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+            }
+            
+        .LDFirstPrevious{
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: 0px -10px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        .LPrevious{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: -10px 1px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+            }
+            
+        .LDPrevious{
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: -10px -10px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        
+        
+        .LLastNext{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: -27px 1px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+            }
+            
+        .LDLastNext{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: -27px -10px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+        }
+        
+        .LNext{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: -17px 1px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+            }
+            
+        .LDNext{
+            background-image: url(/img/paginationArrows.gif);
+            background-repeat: no-repeat;
+            background-position: -17px -10px;
+            margin: 0;
+            padding: 0;
+            width: 9px;
+            height: 10px;
+        }
+        
+            
+            
+        </style>
+
+    <script>
+    var myFlag = false;
+    
+	function addToProfilerPlanConfirm(numOfResults) {
+		var agreed = confirm("This will create a new Plan in Salesforce.  Are you sure?");
+		if (agreed) 
+			addToProfilerPlanAction();
+	}
+	
+	function createAccountConfirm(numOfResults) {
+		var agreed = confirm("This will create " + numOfResults + " Accounts in Salesforce.  Are you sure?");
+		if (agreed) 
+			createAccountAction();
+	}
+	
+	function addToPlanFromTab1(numOfResults) {
+		var agreed = confirm("This will create a new Plan in Salesforce.  Are you sure?");
+		if (agreed) 
+			triggerSearchMore();
+	}
+	
+     $( document ).ready(function() {
+		//$("#lookout-div").hide();
+		//$("#inner-div").hide();
+		//check if UnRegistered
+		
+		//checkRegistered();
+		var isCheck = "{!isRegistered}";
+		//alert(isCheck);
+		if(isCheck==0)
+		{
+		$("#lookout-div").show();
+		$("#inner-div").show();
+		}
+		});
+				
+                
+    </script>
+    
+    
+    <apex:styleSheet value="{!URLFOR($Resource.BLDS__JQueryCS, 'jquery-ui-1.10.3.custom.css')}" />
+    <apex:styleSheet value="{!URLFOR($Resource.BLDS__JQueryCS, 'main.css')}" />
+
+    <style type="text/css">
+        .auto-style2 {
+            width: 220px;
+        }
+        .auto-style5 {
+            width: 220px;
+        }
+        
+        .highlight span:hover
+        {
+                background-color:LightBlue;
+                cursor:pointer;
+        }
+        .queryWorkspace{
+            min-height:80px;
+            height:auto;
+            width:95%;
+            background:white;
+            border:1px inset;
+            margin-left: 50px;
+        }
+        #lookout-div
+        {
+        height:98.5%;
+        width:98.5%;
+        position:absolute;
+        z-index:5;
+        background-color: black;
+        opacity: 0.7;
+    	}
+    	#inner-div
+        {
+        	opacity: 1;
+        	background:black;
+        	position:absolute;
+        	width: 700px;
+			height: 120px;
+			z-index: 15;
+			top: 30%;
+			left: 27%;
+			font-size: 137%;
+    	}
+        
+    </style>
+     
+    <apex:form id="blTopForm">
+    	<div id="lookout-div" style ="display: none;"></div>
+    	<div id="inner-div" style ="display: none;">
+    	<table width="100%" class="mainTable">
+	            <tr>
+	                <td height="10%" style="color: rgba(203, 199, 199, 1);padding-top: 15PX;padding: 27px;padding-bottom: 15px;text-align: center;">
+	                    <!-- <apex:pageMessage summary="Your organization has not registered for this feature.To enable this feature contact your RingLead sales representative or sales@ringlead.com."/>-->
+	                    Thanks for installing! Before you can use the application you need to register your product.  It only takes a minute, <apex:outputLink style="color: #00FFFF;" value="/apex/Registration">click here</apex:outputLink>. If you do not have access, please contact your System Administrator.
+	                </td>
+	            </tr>
+	    </table>
+		</div>
+    	<apex:actionFunction name="checkRegistered" action="{!checkRegistered}"></apex:actionFunction>
+    	
+        <apex:actionFunction name="doSearchSuggestJS" action="{!doSearchSuggest}"  reRender="pbSuggestResult" oncomplete="reassignSuggestWords('{!suggestions}', '{!alternatives}');">
+            <apex:param name="keyword" assignto="{!inputKeyword}" value=""/>
+        </apex:actionFunction> 
+        
+        <apex:actionFunction name="doSearchJS" action="{!doSearch}" reRender="SeachResult,KeyWordResults,StartThis" oncomplete="unblockSearchKeywords();">
+            <apex:param name="keywordSearch" assignto="{!inputWords}" value=""/>
+            <apex:param name="searchType" assignto="{!searchType}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="changeTab" action="{!changeTab}" reRender="KeywordSearch,jScript,topPageMsg,TechnologySearch"  oncomplete="unblockSearchKeywords();">
+            <apex:param name="currentTabKey" assignto="{!currentTab}" value="0"/>
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="changeTabTech" action="{!changeTab}" reRender="jScript,topPageMsg,TechnologySearch,KeywordSearch"  oncomplete="unblockSearchKeywords();">
+            <apex:param name="currentTabTech" assignto="{!currentTab}" value="1"/>
+        </apex:actionFunction>
+        
+        <div id="keywordQueryItemTemplate" class="template">
+                <div class="keywordQueryItem">
+                    <span>TITLE</span>
+                    <span id="ITEM_DELETE_INDEX" class="keywordQueryItemDelete" style="background:url({!URLFOR($Resource.jQueryCS,'close.png')});">&nbsp;</span>
+                </div>
+        </div>   
+        
+        <div id="keywordListItemTemplate" class="template">
+            <div onclick="searchItemAdd(this.textContent);$('#searchInput').focus();" class="keywordListItem">TITLE</div>
+        </div>
+
+        
+        <!------------- end keywords ---------------->
+    
+        <apex:pageMessages id="topPageMsg" escape="false"/>
+        
+        <apex:pageBlock title="Search">
+        
+        
+        <div id="tabs">
+                <!--
+                    <ul >
+                        <li ><a href="#fragment-1"><span >Basic Search</span></a></li>
+                        <li ><a href="#fragment-2"><span >Keyword Search (beta)</span></a></li>
+
+                    </ul>
+                 --> 
+                    <ul class="rich-tab-bottom-line" style="background: none !important; border: none;">
+                        <li  class=" tab-tab selected BL_tabStyle" onmouseout="RichFaces.outTab(this);" onmouseover="RichFaces.overTab(this);"><a id="basic" href="#fragment-1" style="border-width: 1px medium 1px 1px;border-bottom-width: 0px;border-style: solid none solid solid;border-color: #A0D1FA -moz-use-text-color #BDC4C9 #A0D1FA;" onclick="changeColor('basic');"><span >Company Search</span></a></li>
+                        <li  class="tab-tab selected BL_tabStyle"  onmouseout="RichFaces.outTab(this);" onmouseover="RichFaces.overTab(this);"><a id="keyword" href="#fragment-2" style="color: #2895F1;border-width: 1px medium 1px 1px;border-bottom-width: 0px;border-style: solid none solid solid;border-color: #A0D1FA -moz-use-text-color #BDC4C9 #A0D1FA;" onclick="changeColor('keyword');"><span >What-they-do Search (beta)</span></a></li>
+                        <li  class="tab-tab selected BL_tabStyle"  onmouseout="RichFaces.outTab(this);" onmouseover="RichFaces.overTab(this);"><a id="technology" href="#fragment-3" style="color: #2895F1;border-width: 1px medium 1px 1px;border-bottom-width: 0px;border-style: solid none solid solid;border-color: #A0D1FA -moz-use-text-color #BDC4C9 #A0D1FA;" onclick="changeColor('technology');"><span >Technology Search (beta)</span></a></li>
+                    </ul>
+                    <!-- <br></br> -->
+                    <div id="messageBox">
+                    <div id="contents"></div>
+                    </div>
+                    <div id="fragment-1" style="margin-top:-1px;border-width: 1px 1px 1px 1px;border-color: #BDC4C9;">
+                            <apex:actionStatus onstart="blockSearch();" onstop="unblockSearch()" id="searchStatus"/>
+                                            
+                            <apex:pageBlockButtons location="Top">
+                            
+                            </apex:pageBlockButtons>
+                        <apex:outputPanel id="SearchForm">
+                        
+<!--                         <div class="center" style="text-align:center;"> -->
+<!--                         <apex:commandButton action="{!SearchCompany}" value="Search" rerender="SeachResult,KeyWordResults" status="searchStatus"/> -->
+<!--                             <apex:commandButton action="{!ResetForm}" value="Clear" rerender="SeachResult,SearchForm,KeyWordResults,topPageMsg"/> -->
+<!--                         </div> -->
+                        <br/>
+                        <div class="center">
+							<table>
+								<tr id="tr1">
+									<td class="auto-style2" style="text-align: left; vertical-align: center; width: 320px;" colspan="2">
+										<table>
+											<tr>
+												<td style="width:300px;">
+													<strong>Company</strong>
+												</td>
+												<td style="width:100px;">
+													<div style="width:110px; margin-left: 5px;"><strong>Ticker Symbol</strong></div>
+												</td>
+											</tr>
+											<tr>
+												<td style="width:300px;">
+													<apex:inputtext value="{!CompanyName}" style="width:300px;" /> 
+												</td>
+												<td style="width:100px;">
+													<apex:inputtext value="{!tickerSymbol}" style="width:100px; margin-left: 5px;" /> 
+												</td>
+											</tr>
+										</table>
+									</td>
+									<td class="auto-style2" style="text-align: left; vertical-align: center">
+										<strong>Business Ownership </strong>
+										<br/>
+										<apex:selectList value="{!selectedOwnership}" multiselect="false" size="1"
+											style="width:200px;margin-right: 5px;margin-top:2px;">
+												<apex:selectOptions value="{!listOwnershipTypes}" />
+										</apex:selectList>
+									</td>
+									<td class="auto-style2" style="text-align: left; vertical-align: center">
+										<strong>Phone Area Code(s)</strong>
+										<br/>
+										<apex:inputtext value="{!AreaCode}" style="width:240px;margin-right: 10px;" />
+									</td>
+									<td class="auto-style2" style="text-align: left; vertical-align: center">
+										<strong>US SIC Codes</strong>
+										<apex:inputtext value="{!USSICCodes}" style="width:200px;" />
+									</td>
+								</tr>
+
+
+								<tr id="tr2">
+									<td class="auto-style2"	style="text-align: left; vertical-align: center" colspan="2">
+										<strong>URL</strong> <br/>
+										<apex:inputtext value="{!CompUrl}" style="width:420px;" />
+									</td>
+									<td class="auto-style2"	style="text-align: left; vertical-align: Center" colspan="1">
+                                       	<strong>Founded Between</strong>
+                                       	<br/>                                                
+                                       	<apex:selectList value="{!selectFromYearFound}" multiselect="false" size="1">
+											<apex:selectOptions value="{!yearList}" />
+										</apex:selectList>
+                                        &nbsp; and&nbsp;&nbsp;
+                                        <apex:selectList value="{!selectToYearFound}" multiselect="false" size="1">
+											<apex:selectOptions value="{!yearList}" />
+										</apex:selectList>
+                                     </td>
+                                     <td class="auto-style2"	style="text-align: left; vertical-align: center" colspan="1">
+                                     <!-- check box -->
+                                   		<!-- <apex:inputCheckbox id="applyUnknownEmp" value="{!applyUnknownEmp}" /> -->
+                                   		<apex:selectList value="{!applyUnknownEmp}" multiselect="false" size="1"
+											style="width:80px;margin-right: 0px">
+												<apex:selectOptions value="{!triStateDropDown}" />
+										</apex:selectList>
+										when # of Emp Unknown
+									</td>
+									<td class="auto-style2"	style="text-align: left; vertical-align: center" colspan="1">
+										<strong>NAICS Codes</strong>
+										<br />
+										<apex:inputtext value="{!NAICSCodes}" style="width:200px;" />
+									</td>
+								</tr>
+								
+								<tr id="tr3 ">
+									<td class="auto-style2"	style="text-align: left; vertical-align: top;width:200px;;height:31px;">
+										<strong>City</strong><br />
+										<apex:inputtext value="{!City}" style="width:200px;" />
+									</td>
+									<td class="auto-style2" style="text-align: left; vertical-align: top; width:200px;" ROWSPAN="3">
+										<Table>
+											<tr>
+												<td align="left"><strong>Us State/CAN Province</strong></td>
+												<td align="right"><apex:outputText id="selectedStatesSize" value="{!selectedStates.Size}" style="margin-right:5px;"/></td>
+											</tr>
+											<tr>
+												<td colspan="2"><apex:selectList value="{!selectedStates}" multiselect="true" size="8"
+														style="width:200px;">
+														<apex:selectOptions value="{!ListStates}" />
+														<apex:actionSupport event="onchange"
+															rerender="selectedStatesSize" />
+													</apex:selectList></td>
+											</tr>
+										</Table>
+									</td>
+									<td class="auto-style2" style="text-align: left; vertical-align: top; width:200px;" ROWSPAN="3">
+                                       <Table>
+											<tr>
+												<td align="left"><strong>Annual Sales</strong></td>
+												<td align="right"><apex:outputText id="selectAnualSalesSize" value="{!annualSalesRange}" /></td>
+											</tr>
+											<tr>
+												<td colspan="2"><apex:selectList value="{!selectAnualSales}"
+														multiselect="true" size="8"
+														style="width:200px;margin-right: 0px">
+														<apex:selectOptions value="{!revenueList}" />
+														<apex:actionSupport event="onchange"
+															action="{!updateAnnualSaleDisplay}"
+															rerender="selectAnualSalesSize" />
+													</apex:selectList></td>
+											</tr>
+										</Table>
+									</td>
+                                    <td class="auto-style2" style="text-align: left; vertical-align: top; width:200px;" ROWSPAN="3">
+                                             <Table>
+											<tr>
+												<td align="left"><strong>Number of Employees</strong></td>
+												<td align="right">
+                                            <apex:outputText id="selectTotalEmployeesSize" value="{!employeeNumberRange}"/>
+                                            </td>
+                                            </tr> 
+											<tr>
+												<td colspan="2">
+                                        <apex:selectList value="{!selectTotalEmployees}" multiselect="true" size="8"
+											style="width:240px;margin-right: 0px">
+												<apex:selectOptions value="{!totalEmployeesList}" />
+												<apex:actionSupport event="onchange" action="{!updateEmployeeNumberDisplay}"
+						                                rerender="selectTotalEmployeesSize"/>
+											</apex:selectList>
+											</td>
+											</tr>
+										</Table>
+                                    </td>
+                                    <td class="auto-style2" style="text-align: left; vertical-align: center; width:200px;" ROWSPAN="3">
+                                            <strong>Designation</strong>
+                                            <br/>
+                                            <!-- <apex:selectCheckboxes value="{!selectCompanyType}" layout="pageDirection">
+									            <apex:selectOptions value="{!lstCompanyType}"/>
+									        </apex:selectCheckboxes>  -->
+									        <apex:selectList value="{!isPublic}" multiselect="false" size="1"
+												style="width:80px;margin-top: 3px">
+													<apex:selectOptions value="{!triStateDropDown}" />
+											</apex:selectList> 
+											&nbsp;<apex:outputText value="Public"/><br/>
+											<apex:selectList value="{!smallBusiness}" multiselect="false" size="1"
+												style="width:80px;margin-top: 3px">
+													<apex:selectOptions value="{!triStateDropDown}" />
+											</apex:selectList> 
+											&nbsp;<apex:outputText value="Small Business"/><br/>
+											<apex:selectList value="{!homeOffice}" multiselect="false" size="1"
+												style="width:80px;margin-top: 3px">
+													<apex:selectOptions value="{!triStateDropDown}" />  
+											</apex:selectList> 
+											&nbsp;<apex:outputText value="Home Office"/><br/>
+											<apex:selectList value="{!franchise}" multiselect="false" size="1"
+												style="width:80px;margin-top: 3px">
+													<apex:selectOptions value="{!triStateDropDown}" />
+											</apex:selectList> 
+											&nbsp;<apex:outputText value="Franchise"/><br/>
+											<apex:selectList value="{!chain}" multiselect="false" size="1"
+												style="width:80px;margin-top: 3px">
+													<apex:selectOptions value="{!triStateDropDown}" />
+											</apex:selectList> 
+											&nbsp;<apex:outputText value="Chain"/><br/>
+											<apex:selectList value="{!government}" multiselect="false" size="1"
+												style="width:80px;margin-top: 3px">
+													<apex:selectOptions value="{!triStateDropDown}" />
+											</apex:selectList> 
+											&nbsp;<apex:outputText value="Government"/><br/><br/>
+                                    </td>
+								</tr>
+								
+								
+								<tr id="tr4" style="margin-top: -15px;height:31px;">
+									<td class="auto-style2"	style="text-align: left; vertical-align: center" >
+									<table>
+											<tr>
+												<td colspan="5"><strong>ZIP/Postal Codes</strong></td>
+											</tr>
+											<tr>
+												<td colspan="5"><apex:inputtext value="{!ZipPostal}"
+														style="width:200px;" /></td>
+											</tr>
+											<tr>
+												<td align="center" style="width:15px;"><apex:inputCheckbox value="{!applyRadius}" /></td>
+												<td align="center" style="width:55px;">within &nbsp;</td>
+												<td align="center" style="width:35px;"><apex:inputtext value="{!radius}"
+														style="width:50px;" /></td>
+												<td align="center" style="width:25px;">Miles</td>
+												<td style="width:100px;"></td>
+											</tr>
+										</table>
+									</td>
+									
+								</tr>
+								<tr id="tr5" style="margin-top: -15px;">
+									<td class="auto-style2"	style="text-align: left; vertical-align: top; height:31px;" >
+										<strong>Location Type</strong>&nbsp; 
+										<apex:selectList value="{!selectedLocationType}" multiselect="false" size="1">
+											<apex:selectOptions value="{!locationTypes}" />
+										</apex:selectList>
+									</td>
+									
+								</tr>
+								<tr id="tr5" style="margin-top: -15px;">
+									<td class="auto-style2"	style="text-align: left; vertical-align: top" >
+										<apex:commandButton action="{!SearchCompany}" value="Search" rerender="SeachResult" status="searchStatus" 
+			                        		style="margin-right:8px;">
+			                        		<apex:param name="forceTypeChoiceTo1" value="1" assignTo="{!typeChoice}"/>
+			                        	</apex:commandButton>
+			                            <apex:commandButton action="{!ResetForm}" value="Clear" rerender="SeachResult,SearchForm,KeyWordResults,topPageMsg"/>
+									</td>
+									
+								</tr>
+
+                            </table>
+                        </div>
+                        <!-- 
+                        <br/>
+                        <div class="center" style="text-align:center;">
+                        	<apex:commandButton action="{!SearchCompany}" value="Search" rerender="SeachResult" status="searchStatus" 
+                        		style="margin-right:8px;">
+                        		<apex:param name="forceTypeChoiceTo1" value="1" assignTo="{!typeChoice}"/>
+                        	</apex:commandButton>
+                            <apex:commandButton action="{!ResetForm}" value="Clear" rerender="SeachResult,SearchForm,KeyWordResults,topPageMsg"/>
+                        </div> -->
+                        
+                        </apex:outputPanel>
+                         
+                    </div>
+                    <div id="fragment-2" style="min-height: 420px; margin-top:-1px;border-width: 1px 1px 1px 1px;border-color: #BDC4C9;">
+                         
+                        <apex:outputPanel id="KeywordSearch">
+                        
+<!--                         <div class="center" style="text-align:center;"> -->
+<!--                              <input type="button" id="searchButton" class="btn" style="width:49px;" value="Search"/> -->
+<!--                             <apex:commandButton action="{!ResetKeywordSearch}" value="Clear" rerender="SeachResult,KeywordSearch,jScript,KeyWordResults,TechnologySearch,topPageMsg"/> -->
+<!--                         </div> -->
+                        <br/>
+                        <apex:pageBlock >
+                            <div>
+                            	Start by picking result options. Next, type in a <a href="#" onclick="getFocus();">seed
+                                term</a>. The goal is to add as many keywords as possible that could describe what you 
+                                are looking for. Keywords are used to search the Internet for companies "self-descriptive" 
+                                phrases. Each seem term you type will give you additional suggestions. Pressing enter will 
+                                add your exact term or you can click on one of the suggestions.
+                            </div>
+                        </apex:pageBlock>
+                        
+                        <table style="width: 100%; border: 0;" class="table_with_3cols">
+                            
+                            <tr class="tr_for_big_num">
+                                <td ><apex:image width="75" height="75" styleClass="tooltip"
+                                            url="{!URLFOR($Resource.BLDS__image,'1-100.png')}" style="float: left; padding-left: 24px;"></apex:image></td>
+                                <td ><apex:image width="75" height="75" styleClass="tooltip"
+                                            url="{!URLFOR($Resource.BLDS__image,'2-100.png')}" style="float: left; padding-left: 24px;"></apex:image></td>
+                                <td ><apex:image width="75" height="75" styleClass="tooltip"
+                                            url="{!URLFOR($Resource.BLDS__image,'3-100.png')}" style="float: left; padding-left: 24px;"></apex:image></td>
+                            </tr>
+                            <tr class="tr_for_big_num">
+                                <td><strong style="float: left; padding-left: 24px; padding-top: 15px;">Select result options</strong></td>
+                                <td><strong style="float: left; padding-left: 24px; padding-top: 15px;">Pick seed term</strong></td>
+                                <td><strong style="float: left; padding-left: 24px; padding-top: 15px;">Select search terms</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="vertical-align: top;">
+                                	<div style="padding: 0px;">
+                                		<apex:selectRadio value="{!typeChoice}" layout="pageDirection">
+                                                <apex:selectOption itemValue="0" itemlabel="Websites only"  />
+                                                    <div class="tooltip" style="position: relative; top: 41px; left: 122px;" > 
+						                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.BLDS__image,'s.gif')}"
+						                                    style="border:0px"></apex:image> 
+						                                <span>Use this setting to get raw results from the Internet.  These results will be found within a company's  "self descriptive" language on their website.</span>
+						                            </div>
+                                                     
+                                                    <apex:selectOption itemValue="1" itemlabel="Full company results" />
+                                                    <div class="tooltip" style="position: relative; top: 49px; left: 160px;" > 
+						                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.BLDS__image,'s.gif')}"
+						                                    style="border:0px"></apex:image> 
+						                                <span>Not every website on the Internet will be a company.  Use this setting to filter the results by a database of companies.  This will greatly reduce the total results but improve the list data quality.</span>
+						                            </div>
+                                                </apex:selectRadio>
+                                            <strong style="padding-bottom: 20px;padding-left: 20px;">Max results: </strong>    <apex:inputtext style="width:50px;" value="{!maximumResults}"></apex:inputtext></div></td>
+                                <td style="vertical-align: top;"><div style="margin-top: 40px;">
+                                            <strong style="padding-bottom: 20px; padding-left: 24px;">Seed term</strong><br /> 
+<!--                                             <strong class="tooltip" style="position: relative;top: -18px;left: 122px;" > -->
+<!--                                             <apex:image styleClass="tooltip" url="{!URLFOR($Resource.image,'info16.png')}"></apex:image> -->
+<!--                                             <span>Seed terms help you find search terms. (1) Type in a specific search term and press enter or (2) Click on a suggested term. -->
+                                              
+<!--                                             </span> -->
+<!--                                             </strong> -->
+                                            
+                                            <div class="tooltip" style="position: relative; top: -14px; left: 91px;" > 
+				                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.BLDS__image,'s.gif')}"
+				                                    style="border:0px"></apex:image> 
+				                                <span>Seed terms help you find search terms. (1) Type in a specific search term and press enter or (2) Click on a suggested term.</span>
+				                            </div>
+                                            
+                                            <input id="searchInput"
+                                                type="text" style="width: 166px; margin-bottom: 10px; margin-left: 24px;" />
+                                                
+                                            <div id="keywordListWorkspace"
+                                                style="display: none; background-color: white !important; width: 360px; position: absolute;">
+                                                <table>
+                                                    <tbody>
+                                                        <tr align="center">
+                                                            <th style="text-align: center;">Alternatives</th>
+                                                            <th style="text-align: center;">Suggestions</th>
+                                                        </tr>
+
+                                                        <tr id="keywordListTutorial">
+                                                            <td id="alternatives" style="width: 180px;" valign="top">
+                                                            </td>
+
+                                                            <td id="suggestions" style="width: 180px;" valign="top">
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <br/>
+                                        </div></td>
+                                <td style="vertical-align: top;"><div style="margin-top: 40px;"><strong style="padding-left: 24px;">Search terms</strong>
+<!--                                     <strong class="tooltip" style="position: relative;top: 1px;left: 2px;" > -->
+<!--                                     <apex:image styleClass="tooltip" url="{!URLFOR($Resource.image,'info16.png')}"></apex:image> -->
+<!--                                     <span>Search terms are unique words or phrases that describes what a company does. -->
+                                      
+<!--                                     </span> -->
+<!--                                     </strong> -->
+                                    
+                                    <div class="tooltip" style="position: relative; top: -14px; left: 111px;" > 
+		                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.BLDS__image,'s.gif')}"
+		                                    style="border:0px"></apex:image> 
+		                                <span>Search terms are unique words or phrases that describes what a company does.</span>
+		                            </div>
+                                    
+                                        <div class="queryWorkspace" style="margin-left: 24px;"
+                                            onclick="$('#searchInput').focus();">
+                                            <div class="queryItemWorkspace"
+                                                onclick="$('#searchInput').focus();">
+                                                <span id="searchWorkspace"></span>
+                                            </div>
+                                        </div></div></td>
+                            </tr>
+                        </table>
+                        
+                        
+                        <div id="warningDiv" style="color: red;display: none;" >Warning: Make sure single word keywords are unique</div>
+                            
+                        <br />
+                            
+                        <div class="center" style="text-align:center;">
+	                        <input type="button" id="searchButton" class="btn" style="width:59px;margin-right:8px;" value="Search"/>
+	                        <apex:commandButton action="{!ResetKeywordSearch}" value="Clear" rerender="SeachResult,KeywordSearch,jScript,KeyWordResults,TechnologySearch,topPageMsg"/>
+                        </div>
+                            
+                    </apex:outputPanel>
+                    
+                    </div>
+                    <div id="fragment-3" style="min-height: 378px; margin-top:-1px;border-width: 1px 1px 1px 1px;border-color: #BDC4C9;">
+                         
+                        <apex:outputPanel id="TechnologySearch">
+                        
+<!--                         <div class="center" style="text-align:center;"> -->
+<!--                              <input type="button" id="searchButtonNew" class="btn" style="width:49px;" value="Search"/> -->
+<!--                             <apex:commandButton action="{!ResetKeywordSearch}" value="Clear" rerender="SeachResult,KeywordSearch,jScript,KeyWordResults,topPageMsg,TechnologySearch"/> -->
+<!--                         </div> -->
+                        <br/>
+                        <apex:pageBlock >
+                            <div>
+                              Start by picking result options.  Next, choose technologies used by the companies you want to target.
+                            </div>
+                        </apex:pageBlock>
+                        <table style="width:100%"> 
+                                <tr class="tr_for_big_num">
+	                                <td style="width: 325px;"><apex:image width="75" height="75" styleClass="tooltip"
+	                                            url="{!URLFOR($Resource.BLDS__image,'1-100.png')}" style="float: left; padding-left: 24px;margin-bottom: 30px;"></apex:image></td>
+	                                <td><apex:image width="75" height="75" styleClass="tooltip"
+                                            url="{!URLFOR($Resource.BLDS__image,'2-100.png')}" style="float: left; padding-left: 24px;margin-bottom: 30px;"></apex:image></td>
+                            	</tr>
+                                <tr>
+                                    <td valign="top">
+                                        <div style="margin-top: -15px;">
+                                            
+                                            <br/>
+                                            <apex:selectRadio value="{!typeChoiceTech}" layout="pageDirection" style="margin-top: -33px">
+                                                    <apex:selectOption itemValue="0" itemlabel="Websites only" />
+                                                    
+                                                    <div class="tooltip" style="position: relative; top: 7px; left: 122px;" > 
+						                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.BLDS__image,'s.gif')}"
+						                                    style="border:0px"></apex:image> 
+						                                <span>Use this setting to get raw results from the Internet.  These results will be based on what technologies a company uses.</span>
+						                            </div>
+                                                    
+                                                    <apex:selectOption itemValue="1" itemlabel="Full company results" />
+                                                    
+                                                    <div class="tooltip" style="position: relative; top: 16px; left: 163px;" > 
+						                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.BLDS__image,'s.gif')}"
+						                                    style="border:0px"></apex:image> 
+						                                <span>Not every website on the Internet will be a company.  Usethis setting to filter the results by a database of companies.  This will greatly reduce the total results but improve the list data quality.</span>
+						                            </div>                                                 
+                                                    
+                                                </apex:selectRadio>
+                                            
+                                            <strong style="padding-bottom: 20px; margin-left: 19px;">Max results: </strong>    <apex:inputtext style="width:50px;" value="{!maximumTechResults}"></apex:inputtext>                                           
+                                            <br/>
+                                        </div> </td>
+									<td >
+                                            <select id="analytics_filter" style="margin-left: 25px; width: 156px">
+                                            <option value="">Add Technologies</option>
+                                            </select>
+<!--                                             <strong class="tooltip" style="position: relative;top: -2px;left: 7px;" > -->
+<!--                                             <apex:image styleClass="tooltip" url="{!URLFOR($Resource.image,'info16.png')}"></apex:image> -->
+<!--                                             <span>Choose technologies to search for. -->
+                                              
+<!--                                             </span> -->
+<!--                                             </strong> -->
+                                            
+                                            <div class="tooltip" style="position: relative; top: -18px; left: 184px;" > 
+				                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.BLDS__image,'s.gif')}"
+				                                    style="border:0px"></apex:image> 
+				                                <span>Choose technologies to search for.</span>
+				                            </div>
+				                            
+				                            <strong style="margin-left: 25px;">Technologies</strong>
+				                            
+                                        <div class="queryWorkspace" style="margin: 5px 0 0 25px">
+                                            <div class="queryItemWorkspace" >
+                                                <span id="searchWorkspaceNew"></span>
+                                            </div>
+                                        </div></td>
+
+                                </tr>
+                                
+                            </table>
+                            
+                            <br/>
+                            <div style="text-align:center; width: 42%;">
+                             	<input type="button" id="searchButtonNew" class="btn" style="width:59px; margin-right:8px;" value="Search"/>
+                            	<apex:commandButton action="{!ResetKeywordSearch}" value="Clear" rerender="SeachResult,KeywordSearch,jScript,KeyWordResults,topPageMsg,TechnologySearch"/>
+                        	</div>
+                            
+                    </apex:outputPanel>
+                    
+                    </div>
+                
+                </div>
+                
+                                   
+        <apex:outputPanel id="jScript">
+                
+                <script>
+                    // myFlag = false when click What-they-do Search (beta)
+                    // myFlag = true when click Technology Search (beta)
+                    
+                    // init tab
+                    $("#tabs").tabs({ heightStyle: "content" });
+                    // textbox get focus
+                    function getFocus(){
+                        $("#searchInput").focus();
+                    }
+                    
+                    function show(obj,msg){
+                    
+                    messageBox.style.top=obj.offsetTop
+                    
+                    messageBox.style.left=obj.offsetLeft+obj.offsetWidth+5
+                    
+                    contents.innerHTML=msg
+                    
+                    messageBox.style.display="block"
+                    
+                    }
+                    function hide(){
+                        messageBox.style.display='none';
+                    }
+                                        
+                    // change color
+                    function changeColor(obj){
+                        if (obj == 'basic'){
+                            $("#basic").css("color", "black");
+                            $("#basic").css("border-bottom-width", "0px");
+                            $("#keyword").css("color","#2895F1");
+                            $("#keyword").css("border-bottom-width", "1px");
+                            $("#technology").css("color","#2895F1");
+                            $("#technology").css("border-bottom-width", "1px");
+                        }else if (obj == 'keyword'){
+                            myFlag = false;
+                            //$('#fragment-2').block({ message: null }); 
+                            changeTab();
+                            searchItems = new Array();
+                            $("#searchWorkspace").html('');
+                            $("#keyword").css("color","black");
+                            $("#keyword").css("border-bottom-width","0px");
+                            $("#basic").css("color", "#2895F1");
+                            $("#basic").css("border-bottom-width", "1px");
+                            $("#technology").css("color","#2895F1");
+                            $("#technology").css("border-bottom-width", "1px");
+                        }else{
+                            myFlag = true;
+                            //$('#fragment-3').block({ message: null }); 
+                            changeTabTech();
+                            searchItems = new Array();
+                            $("#searchWorkspaceNew").html('');
+                            $("#technology").css("color","black");
+                            $("#technology").css("border-bottom-width","0px");
+                            $("#basic").css("color", "#2895F1");
+                            $("#basic").css("border-bottom-width", "1px");
+                            $("#keyword").css("color","#2895F1");
+                            $("#keyword").css("border-bottom-width", "1px");
+                        }
+                        firstTime = false;
+                    }
+                    // display warning
+                    function showDiv() {
+                        $("#warningDiv").css("display", "block");
+                        
+                    }
+                    
+                    //block UI
+
+                    function blockSearchKeywords()
+                    {
+                        if(!myFlag)
+                        {
+                            $('#fragment-2').block({ 
+                                message: $('#displayBox'), 
+                                css: { top:  ($(window).height() - 200) /2 + 'px', 
+                                        left: ($(window).width() - 200) /2 + 'px', 
+                                        width: '200px',
+                                        border:'none',
+                                        background:'transparent'
+                                        } 
+                            }); 
+                        }
+                        else
+                        {
+                            $('#fragment-3').block({ 
+                            message: $('#displayBox'), 
+                            css: { top:  ($(window).height() - 200) /2 + 'px', 
+                                    left: ($(window).width() - 200) /2 + 'px', 
+                                    width: '200px',
+                                    border:'none',
+                                    background:'transparent'
+                                    } 
+                            }); 
+                        }
+                    }
+                    
+                    //Unblock
+                    function unblockSearchKeywords()
+                    {
+                        if(!myFlag)
+                        {
+                            $('#fragment-2').unblock();
+                        }
+                        else
+                        {
+                            $('#fragment-3').unblock();
+                        }
+                        
+                    }
+                    
+                    
+                    function blockSearch()
+                    {
+                        $('#fragment-1').block({ 
+                            message: $('#displayBox'), 
+                            css: { top:  ($(window).height() - 200) /2 + 'px', 
+                                    left: ($(window).width() - 200) /2 + 'px', 
+                                    width: '200px',
+                                    border:'none',
+                                    background:'transparent'
+                                    } 
+                        }); 
+                    }
+                    
+                    //Unblock
+                    function unblockSearch()
+                    {
+                        $('#fragment-1').unblock();
+                    }
+                    
+                    // undisplay warning
+                    function hideDiv() {
+                        $("#warningDiv").css("display", "none");
+                        
+                    }
+                    var flag = false;
+                    var count = 0;
+                    $("#searchInput").keydown(function(e) {
+                        if (!flag && count == 0 && $(this).val().trim().length != 1){
+                            showDiv();
+                            count ++;
+                        }
+                        // press spacebar
+                        if (e.keyCode == 32 && $(this).val().trim().length != 0) {
+                            hideDiv();
+                            flag = true;
+                            count ++;
+                        }
+                        // press enter
+                        if (e.keyCode == 13){
+                            flag = false;
+                            count = 0;
+                            hideDiv();
+                        }
+                        // press backspace
+                        if (e.keyCode == 8){
+                            var value = $(this).val().trim();
+                            if (value.length == 0){
+                                hideDiv();
+                                flag = false;
+                                count = 0;
+                                return;
+                            }
+                            if (value.indexOf(' ') == -1){
+                                showDiv();
+                            }
+                        }
+                    
+                    });
+                    
+                </script>
+                
+        
+            <script>
+                                        /*
+                                         * jQuery UI Multicolumn Autocomplete Widget Plugin 2.0
+                                         * Copyright (c) 2012 Mark Harmon
+                                         *
+                                         * Depends:
+                                         *   - jQuery UI Autocomplete widget
+                                         *
+                                         * Dual licensed under the MIT and GPL licenses:
+                                         *   http://www.opensource.org/licenses/mit-license.php
+                                         *   http://www.gnu.org/licenses/gpl.html
+                                         */
+
+                                        $
+                                                .widget(
+                                                        'custom.mcautocomplete',
+                                                        $.ui.autocomplete,
+                                                        {
+                                                            _renderMenu : function(
+                                                                    ul, items) {
+
+                                                                //$(ul).css();
+                                                                // set postion to the right of queryWorkspace 
+                                                                var leftPosition = $(
+                                                                        '.queryWorkspace')
+                                                                        .width();
+
+                                                                //$("#ui-id-1").parent().css({position: 'relative'});
+
+                                                                /*
+                                                                $(ul).css('left',leftPosition);     
+                                                                $('#ui-id-1').css('left',"500px");
+                                                                $("#ui-id-1").css({'left': '500px'});
+                                                                 */
+
+                                                                //$(ul).parent().css({position: 'relative'});
+                                                                //$(ul).css({ left: 500, position:'absolute'});
+                                                                //var d = document.getElementById('ui-id-1');
+                                                                //d.style.position = "absolute";
+                                                                //d.style.left = leftPosition;
+                                                                //$("#ui-id-1").offset({ left: leftPosition});
+                                                                //$("#ui-id-1").position({ left: leftPosition});
+                                                                var self = this, thead;
+
+                                                                if (this.options.showHeader) {
+                                                                    table = $('<div class="ui-widget-header" style="width:100%"></div>');
+                                                                    $
+                                                                            .each(
+                                                                                    this.options.columns,
+                                                                                    function(
+                                                                                            index,
+                                                                                            item) {
+                                                                                        table
+                                                                                                .append('<span style="padding:0 4px;float:left;width:' + item.width + ';">'
+                                                                                                        + item.name
+                                                                                                        + '</span>');
+                                                                                    });
+                                                                    table
+                                                                            .append('<div style="clear: both;"></div>');
+                                                                    ul
+                                                                            .append(table);
+                                                                }
+                                                                $
+                                                                        .each(
+                                                                                items,
+                                                                                function(
+                                                                                        index,
+                                                                                        item) {
+                                                                                    self
+                                                                                            ._renderItem(
+                                                                                                    ul,
+                                                                                                    item);
+                                                                                });
+                                                            },
+                                                            _renderItem : function(
+                                                                    ul, item) {
+                                                                // test 
+                                                                /*
+                                                                var leftPosition = $('.queryWorkspace').width();  
+                                                                var d = document.getElementById('ui-id-1');
+                                                                d.style.position = "absolute";
+                                                                d.style.left = leftPosition;
+                                                                 */
+
+                                                                // 
+                                                                var t = '', result = '';
+
+                                                                $
+                                                                        .each(
+                                                                                this.options.columns,
+                                                                                function(
+                                                                                        index,
+                                                                                        column) {
+                                                                                    t += '<span class="highlight"><span style="padding:0 4px;float:left;width:'
+                                                                                            + column.width
+                                                                                            + ';"  onclick="searchItemAdd(this.textContent);">'
+                                                                                            + item[column.valueField ? column.valueField
+                                                                                                    : index]
+                                                                                            + '</span></span>'
+                                                                                });
+
+                                                                result = $(
+                                                                        '<li></li>')
+                                                                        .data(
+                                                                                'ui-autocomplete-item',
+                                                                                item)
+                                                                        //.append('<a class="mcacAnchor">' + t + '<div style="clear: both;"></div></a>')
+                                                                        .append(
+                                                                                t
+                                                                                        + '<div style="clear: both;"></div>')
+                                                                        .appendTo(
+                                                                                ul);
+                                                                return result;
+                                                            }
+                                                        });
+
+                                        $(document)
+                                                .ready(
+                                                        function() {
+
+                                                            $('#searchInput')
+                                                                    .keyup(
+                                                                            function(
+                                                                                    e) {
+
+                                                                                clearTimeout($
+                                                                                        .data(
+                                                                                                this,
+                                                                                                'timer'));
+
+                                                                                if (e.which != 13) {
+                                                                                    var wait = setTimeout(
+                                                                                            searchBoxUpdate,
+                                                                                            300);
+                                                                                    $(
+                                                                                            this)
+                                                                                            .data(
+                                                                                                    'timer',
+                                                                                                    wait);
+                                                                                }
+                                                                                //searchBoxUpdate();
+
+                                                                            });
+                                                            $('#searchInput')
+                                                                    .keypress(
+                                                                            function(
+                                                                                    e) {
+                                                                                if (e.which == 13) {
+                                                                                    return doEnter();
+                                                                                }
+                                                                            });
+                                                            $('#searchInput')
+                                                                    .keydown(
+                                                                            function(
+                                                                                    e) {
+                                                                                if (e.which == 8) {
+                                                                                    /*
+                                                                                        clearTimeout($.data(this, 'timer'));
+                                                                                        var wait = setTimeout(doBackSpace, 500);
+                                                                                       $(this).data('timer', wait);
+                                                                                     */
+                                                                                    //return doBackSpace();
+                                                                                    return ;
+
+                                                                                }
+
+                                                                            });
+
+                                                            $("#searchButton")
+                                                                    .click(
+                                                                            function(
+                                                                                    e) {
+                                                                                    // clear input search
+                                                                                    $("#searchInput").val('');
+                                                                                //  Add any search box text to item list
+                                                                                if (searchBox().length > 0) {
+                                                                                    searchItemAdd(searchBox());
+                                                                                    searchBox("");
+                                                                                }
+                                                                                //  Perform search 
+                                                                                $(
+                                                                                        "#keywordListWorkspace")
+                                                                                        .hide();
+                                                                                getKeywordSearch('what-they-do-search');
+                                                                                return false;
+                                                                            });
+                                                            $("#searchButtonNew")
+                                                                    .click(
+                                                                            function(
+                                                                                    e) {
+                                                                                    // clear input search
+                                                                                    $("#searchInput").val('');
+                                                                                //  Add any search box text to item list
+                                                                                if (searchBox().length > 0) {
+                                                                                    searchItemAdd(searchBox());
+                                                                                    searchBox("");
+                                                                                }
+                                                                                //  Perform search 
+                                                                                $(
+                                                                                        "#keywordListWorkspace")
+                                                                                        .hide();
+                                                                                getKeywordSearch('technology-search');
+                                                                                return false;
+                                                                            });
+
+                                                            $("#searchInput")
+                                                                    .click(
+                                                                            function(
+                                                                                    e) {
+                                                                                //var leftPosition = $('.queryWorkspace').width();
+                                                                                //$('#ui-id-1').css('left',leftPosition + 50 + "px");
+
+                                                                                $(
+                                                                                        "#searchInput")
+                                                                                        .focus();
+                                                                            });
+
+                                                            // ---------------------------------    get technologies  -------------------------------------------
+
+                                                            //var __sfdcSessionId = '{!GETSESSIONID()}';
+
+                                                            sforce.connection.sessionId = "{!$Api.Session_ID}";
+
+                                                            $(
+                                                                    '#analytics_filter')
+                                                                    .change(
+                                                                            techFilterChanged);
+
+                                                            /************************************************
+                                                             *   Technology filter
+                                                             ************************************************/
+                                                            function techFilterChanged() {
+                                                                //  Get current value of filter
+                                                                if ($(
+                                                                        '#analytics_filter option:selected')
+                                                                        .val().length == 0)
+                                                                    return;
+
+                                                                //  Create the item 
+                                                                var searchItem = new SearchItem(
+                                                                        $(
+                                                                                '#analytics_filter option:selected')
+                                                                                .val());
+                                                                searchItem.type = "analytics";
+                                                                //  Add to list
+                                                                addSearchItem(searchItem);
+
+                                                                //  Reset drop down 
+                                                                $(
+                                                                        "#analytics_filter")
+                                                                        .val('');
+                                                            }
+
+                                                            getFilters();
+
+                                                            function getFilters() {
+                                                                /*
+                                                                ajaxRequests["QUERY"] = $.ajax({
+                                                                   type: "POST",
+                                                                   url: "/api/analytics/list",
+                                                                   contentType: "application/x-www-form-urlencoded", // send as encoded
+                                                                   data: "",
+                                                                   success: function( data ) {
+                                                                       showFilters(data);
+                                                                   },
+                                                                   complete: function(){
+                                                                       ajaxRequests["QUERY"] = null;
+                                                                   },
+                                                                   error: function(jqXHR, textStatus, errorThrown ){
+                                                                       //console.log("getKeywordSearch Error! textStatus:"+ textStatus + " errorThrown:" + errorThrown);
+                                                                   }
+                                                                });
+                                                                 */
+
+                                                                sforce.connection
+                                                                        .remoteFunction({
+                                                                            url : "https://se.broadlook.com/txt/?analytics_list&format=json",
+                                                                            requestHeaders : {
+                                                                                "Content-Type" : "application/x-www-form-urlencoded"
+                                                                            }, // send as encoded       
+                                                                            method : "POST",
+                                                                            onSuccess : function(
+                                                                                    response) {
+                                                                                var arrs = JSON
+                                                                                        .parse(response);
+                                                                                showFilters(arrs);
+                                                                            },
+
+                                                                            onFailure : function(
+                                                                                    response) {
+                                                                            }
+
+                                                                        });
+                                                            }
+
+                                                            function showFilters(
+                                                                    filtersResult) {
+                                                                if (filtersResult == null)
+                                                                    return;
+                                                                for ( var varTech in filtersResult.analytics) {
+                                                                    if(filtersResult.analytics.hasOwnProperty(varTech)){
+                                                                        $('#analytics_filter').append(
+                                                                            $("<option></option>")
+                                                                            .attr("value",varTech)
+                                                                            .text(varTech)
+                                                                        );
+                                                                    }
+                                                                }
+                                                                
+                                                                //console.log("Desired:"+ $('#analytics_filter').outerWidth())
+                                                                //$("#searchButton").width($('#analytics_filter').outerWidth());
+                                                            }
+
+                                                            //--------------------------------------------------------------------------
+
+                                                            function customRenderItem(
+                                                                    ul, item) {
+                                                                var t = '<span class="mcacCol1" >'
+                                                                        + item[0]
+                                                                        + '</span>'
+                                                                        + '<span class="mcacCol2">'
+                                                                        + item[1]
+                                                                        + '</span>', result = $(
+                                                                        '<li class="ui-menu-item" role="menuitem"></li>')
+                                                                        .data(
+                                                                                'item.autocomplete',
+                                                                                item)
+                                                                        .append(
+                                                                                '<a class="ui-corner-all" style="position:relative;" tabindex="-1">'
+                                                                                        + t
+                                                                                        + '</a>')
+                                                                        .appendTo(
+                                                                                ul);
+
+                                                                //test 
+                                                                var leftPosition = $(
+                                                                        '.queryWorkspace')
+                                                                        .width();
+                                                                $('#ui-id-1')
+                                                                        .css(
+                                                                                'left',
+                                                                                leftPosition
+                                                                                        + 50
+                                                                                        + "px");
+
+                                                                return result;
+                                                            }
+
+                                                            tagsSource = [
+                                                                    [ '', '' ],
+                                                                    [ '', '' ],
+                                                                    [ '', '' ],
+                                                                    [ '', '' ],
+                                                                    [ '', '' ],
+                                                                    [ '', '' ],
+                                                                    [ '', '' ],
+                                                                    [ '', '' ],
+                                                                    [ '', '' ],
+                                                                    [ '', '' ] ];
+                                                            //tagsSource = [['Red', '#f00'], ['Green', '#0f0'], ['Blue', '#00f']];
+                                                            // tagsSource : [real estate, restaurant, residential, restaurants, realtor, repair, rental, rentals, real, rent] 
+
+                                                            $("#searchInput")
+                                                                    .mcautocomplete(
+                                                                            {
+                                                                                showHeader : true,
+                                                                                columns : columns,
+                                                                                source : tagsSource,
+                                                                                select : function(
+                                                                                        event,
+                                                                                        ui) {
+                                                                                    //this.value = (ui.item ? ui.item[0]: '');
+
+                                                                                    searchItemAdd(searchBox());
+                                                                                    searchBox("");
+                                                                                    return false;
+                                                                                }
+                                                                            });
+
+                                                        });
+
+                                        //var tagsSource = new Array();Alternatives
+                                        var tagsSource = [ [ '', '' ],
+                                                [ '', '' ], [ '', '' ],
+                                                [ '', '' ], [ '', '' ],
+                                                [ '', '' ], [ '', '' ],
+                                                [ '', '' ], [ '', '' ],
+                                                [ '', '' ] ];
+                                        ;
+                                        var columns = [ {
+                                            name : 'Alternatives',
+                                            width : '150px'
+                                        }, {
+                                            name : 'Suggestions',
+                                            width : '150px'
+                                        } ];
+
+                                        var searchItems = new Array();
+
+                                        function SearchItem(titleTxt) {
+                                            this.title = titleTxt;
+                                            this.type = "";
+                                        }
+                                        function addSearchItem(searchItem) {
+                                            if (searchItem == null)
+                                                return;
+                                            searchItems.push(searchItem);
+                                            searchItemsDraw();
+                                        }
+
+                                        function searchItemAdd(itemTitle) {
+                                            if (itemTitle == null)
+                                                return;
+                                            if (itemTitle.length == 0)
+                                                return;
+                                            var item = new SearchItem(itemTitle);
+                                            searchItems.push(item);
+                                            searchItemsDraw();
+                                        }
+
+                                        function searchItemRemove(index) {
+                                            if (index >= searchItems.length)
+                                                return;
+                                            if (index < 0)
+                                                return;
+                                            searchItems.splice(index, 1);
+                                            searchItemsDraw();
+                                            $('#searchInput').focus();
+                                        }
+
+                                        function searchItemsDraw() {
+                                            var template = $(
+                                                    "#keywordQueryItemTemplate")
+                                                    .html();
+                                            var workspace = $("#searchWorkspace");
+                                            var workspaceNew = $("#searchWorkspaceNew");
+                                            var buffer = "";
+                                            var bufferNew = "";
+                                            for ( var i = 0; i < searchItems.length; i++) {
+                                                var item = template;
+                                                item = item.replace("TITLE",
+                                                        searchItems[i].title);
+                                                item = item.replace(
+                                                        "ITEM_DELETE_INDEX",
+                                                        "si-" + i);
+                                                if (searchItems[i].type == "analytics")
+                                                    item = item
+                                                            .replace(
+                                                                    "keywordQueryItem",
+                                                                    "analyticQueryItem");
+                                                if(!myFlag)
+                                                {                   
+                                                    buffer += item;
+                                                    }
+                                                    else
+                                                    {
+                                                        bufferNew += item;
+                                                    }
+                                            }
+                                            //workspace.html(buffer);
+                                             if (myFlag){
+                                                workspaceNew.html(bufferNew);
+                                              }else{
+                                                workspace.html(buffer);
+                                              }
+                                              
+                                            for ( var i = 0; i < searchItems.length; i++) {
+                                                //$("#si-" + i).attr("ind", i);
+                                                $("#si-" + i)
+                                                        .click(
+                                                                {
+                                                                    index : i
+                                                                },
+                                                                function(e) {
+                                                                    e
+                                                                            .stopPropagation();
+                                                                    searchItemRemove(e.data.index);
+                                                                });
+                                            }
+                                        }
+
+                                        function doBackSpace() {
+                                            if (searchBox().length > 0)
+                                                return;
+                                            //  Return last element to the search box
+                                            if (searchItems.length == 0)
+                                                return;
+                                            var searchItem = searchItems.pop();
+                                            if (searchItem.type == "")
+                                                searchBox(searchItem.title
+                                                        + " ");
+                                            searchItemsDraw();
+
+                                        }
+
+                                        function doEnter() {
+                                            //  Handle search when no content is in search box to work with
+                                            if (searchBox().length == 0) {
+                                                getKeywordSearch('what-they-do-search');
+
+                                                //$("#keywordListWorkspace").hide();
+                                                return false;
+                                            }
+
+                                            //  Handle amendment if search box has content
+
+                                            searchItemAdd(searchBox());
+                                            searchBox("");
+                                            $(".ui-autocomplete").hide();
+                                            //$("#keywordListWorkspace").hide();
+                                            return false;
+
+                                        }
+
+                                        //  Wrap the searchBox
+                                        function searchBox(content) {
+                                            var textbox = $('#searchInput');
+                                            if (arguments.length == 1)
+                                                textbox.val(content);
+                                            searchBoxUpdate();
+                                            return textbox.val();
+                                            ;
+                                        }
+
+                                        function searchBoxUpdate() {
+                                            var textbox = $('#searchInput');
+                                            if (textbox.length != 0)
+                                                getKeywordsList(textbox.val());
+
+                                        }
+
+                                        /*function expandInputText(){
+                                            var textbox = $('#searchInput');
+                                            //textbox.width((textbox.val().length * 10) + 12);
+                                            
+                                        }*/
+
+                                        /************************************************
+                                         *   Ajax Tracking
+                                         *Used to keep track of what is updating so we
+                                         *dont over fill the memory buffer
+                                         ************************************************/
+                                        var ajaxRequests = new Array();
+
+                                        /************************************************
+                                         *   Keyword Caching
+                                         *Cache up keywords so we dont need to continually
+                                         *call the service when we dont need to
+                                         ************************************************/
+                                        var keywordCache = new Array();
+
+                                        /************************************************
+                                         *   Get keyword list
+                                         *Uses api to get a list of keyword alternatives
+                                         *and suggestions
+                                         ************************************************/
+                                        function getKeywordsList(keyword) {
+                                            //  Don't check service on something that may choke the service
+                                            if (keyword.length < 2)
+                                                return;
+
+                                            //  Check the cache first
+                                            if (keywordCache[keyword] != null) {
+                                                showKeywordsList(keywordCache[keyword]);
+                                                return;
+                                            }
+
+                                            //  Check to see if we already started a request to the service
+                                            if (ajaxRequests[keyword] != null)
+                                                return;
+
+                                            //  Call service for keyword 
+
+                                            var key2Search = encodeURIComponent(keyword);
+                                            doSearchSuggestJS(key2Search);
+
+                                            /*
+                                            ajaxRequests[keyword] = $.ajax({
+                                                type: "POST",
+                                                url: "/api/keyword/list",
+                                                contentType: "application/x-www-form-urlencoded", // send as encoded
+                                                data: "keyword=" + encodeURIComponent(keyword),
+                                                success: function( data ) {
+                                                    if(data!=null)
+                                                        if(data.keyword!=null){
+                                                            keywordCache[data.keyword] = data;
+                                                            showKeywordsList(data);
+                                                        }
+                                                    ////console.log(data);
+                                                    showListTutorial();
+                                                },
+                                                complete: function(){
+                                                    ajaxRequests[keyword] = null;
+                                                },
+                                                error: function(jqXHR, textStatus, errorThrown ){
+                                                    //console.log("getKeywordsList Error! textStatus:"+ textStatus + " errorThrown:" + errorThrown);
+                                                }
+                                            });
+                                             */
+
+                                        }
+
+                                        /************************************************
+                                         *   Show keywords
+                                         *Displays keywords to screen
+                                         ************************************************/
+                                        function showKeywordsList(alternatives,
+                                                suggestions) {
+                                            //hideTutorial();
+                                            $("#keywordListWorkspace").show();
+                                            //$("#keywordQueryResultsWorkspace").hide();
+                                            //  Pull our template 
+                                            var template = $(
+                                                    "#keywordListItemTemplate")
+                                                    .html();
+
+                                            //  Assemble alternatives
+                                            var alternativeContent = "";
+
+                                            if (alternatives != null)
+                                                for ( var i = 0; i < alternatives.length; i++) {
+                                                    alternativeContent += template
+                                                            .replace(
+                                                                    "TITLE",
+                                                                    alternatives[i]);
+                                                }
+                                            $("#alternatives").html(
+                                                    alternativeContent);
+
+                                            //  Assemble suggestions
+                                            var suggestionContent = "";
+
+                                            if (suggestions != null)
+                                                for ( var i = 0; i < suggestions.length; i++) {
+                                                    suggestionContent += template
+                                                            .replace(
+                                                                    "TITLE",
+                                                                    suggestions[i]);
+                                                }
+                                            $("#suggestions").html(
+                                                    suggestionContent);
+                                        }
+
+                                        /************************************************
+                                         *   Keyword Query Caching
+                                         *Cache up keyword queries so we dont need to continually
+                                         *call the service when we dont need to
+                                         ************************************************/
+                                        var keywordQueryCache = new Array();
+
+                                        //  Add support for trim
+                                        if (!String.prototype.trim) {
+                                            String.prototype.trim = function() {
+                                                return this.replace(
+                                                        /^\s+|\s+$/g, '');
+                                            };
+                                        }
+
+                                        /************************************************
+                                         *   Query assembly
+                                         *assembles the query string
+                                         ************************************************/
+                                        function getAssembledQuery() {
+                                            var queryText = "";
+                                            var analyticsFilters = new Array();
+                                            var keywordFilters = new Array();
+
+                                            //  Include all items
+                                            for ( var i = 0; i < searchItems.length; i++) {
+                                                var searchItem = searchItems[i];
+                                                var title = searchItems[i].title
+                                                        .trim();
+                                                switch (searchItem.type) {
+                                                case "":
+                                                    keywordFilters
+                                                            .push(formatQueryItem(title));
+                                                    break;
+                                                case "analytics":
+                                                    analyticsFilters
+                                                            .push(title);
+                                                    break;
+                                                }
+                                            }
+
+                                            //  Go through keywords
+                                            var keywordString = "";
+                                            for ( var i = 0; i < keywordFilters.length; i++) {
+                                                if (keywordString.length > 0)
+                                                    keywordString += " | ";
+                                                keywordString += keywordFilters[i];
+                                            }
+                                            if (keywordFilters.length > 1)
+                                                keywordString = "("
+                                                        + keywordString + ")";
+
+                                            //  Go through Analytics
+                                            var analyticsString = "";
+                                            for ( var i = 0; i < analyticsFilters.length; i++) {
+                                                if (analyticsString.length > 0)
+                                                    analyticsString += " | ";
+                                                analyticsString += "@analytics="
+                                                        + analyticsFilters[i];
+                                            }
+                                            if (analyticsFilters.length > 1)
+                                                analyticsString = "("
+                                                        + analyticsString + ")";
+
+                                            queryText = keywordString + " "
+                                                    + analyticsString;
+                                            queryText = queryText.trim();
+
+                                            return queryText;
+                                        }
+                                        function formatQueryItem(queryText) {
+                                            //  Get rid of any quotes, and item with spaces is a whole quoted item
+                                            queryText = queryText.replace("\"",
+                                                    " ");
+
+                                            //  Get rid of all spaces and such at begining and end
+                                            queryText = queryText.trim();
+
+                                            //  Add quotes if spaces exist somewhere inside string
+                                            if (queryText.indexOf(" ") != -1)
+                                                queryText = "\"" + queryText
+                                                        + "\"";
+                                            return queryText;
+                                        }
+
+                                        /************************************************
+                                         *   Keyword search
+                                         *searches database for domains with keyword
+                                         ************************************************/
+                                        var queryString = "";
+
+                                        function getKeywordSearch(searchType) {
+                                            queryString = getAssembledQuery();
+                                            if (ajaxRequests["QUERY"] != null)
+                                                return;
+
+                                            queryString = encodeURIComponent(queryString);
+                                        	//alert(queryString);
+                                            blockSearchKeywords();
+                                        	
+                                            doSearchJS(queryString, searchType);
+                                        }
+
+                                        var searchResultsList = "";
+                                        function showKeywordSearch(queryResult) {
+                                            hideTutorial();
+                                            $("#keywordListWorkspace").hide();
+                                            //$("#keywordQueryResultsWorkspace").show();
+                                            //  Pull our template
+                                            var template = $(
+                                                    "#keywordQueryResultTemplate")
+                                                    .html();
+                                            searchResultsList = "";
+                                            var resultContent = "";
+                                            var count = 0;
+                                            if (queryResult != null)
+                                                if (queryResult.matches != null)
+                                                    for ( var i = 0; i < queryResult.matches.length; i++)
+                                                        if (queryResult.matches[i].attrs != null)
+                                                            if (queryResult.matches[i].attrs.domain != null) {
+                                                                count++;
+                                                                var match = queryResult.matches[i];
+                                                                var domain = match.attrs.domain;
+                                                                var url = "http://"
+                                                                        + domain
+                                                                        + "/";
+                                                                var cookies = match.attrs.cookies;
+                                                                var tmp = template;
+
+                                                                tmp = tmp
+                                                                        .replace(
+                                                                                "TITLE",
+                                                                                domain);
+                                                                tmp = tmp
+                                                                        .replace(
+                                                                                "URL",
+                                                                                url);
+                                                                searchResultsList += url
+                                                                        + ", ";
+
+                                                                resultContent += tmp;
+
+                                                            }
+                                            $("#keywordQueryResultsList").html(
+                                                    resultContent);
+
+                                            $("#queryTotal").html(
+                                                    queryResult.total);
+                                            $("#queryCount").html(count);
+
+                                        }
+
+                                        function reassignSuggestWords(
+                                                suggestions, alternatives) {
+                                            //                      0               1           3             4          5        6       7        8        9    10 
+                                            // e.g : suggestions = "[s0, s1, residential, restaurants, realtor, repair, rental, rentals, real, rent]"
+                                            // e.g :alternatives = "[a0  a1, sdsdssds, sdesidential, ereweaurants, ggaltor, fvvair, ccntal, gentals, reak, rent]"   
+                                            //tagsSource = [['s0', 'a0'], ['s1', 'a1'], ['Blue', '#00f']];
+
+                                            if (suggestions == null
+                                                    || alternatives == null) {
+                                                return false;
+                                            }
+                                            suggestions = suggestions.replace(
+                                                    '[', '');
+                                            suggestions = suggestions.replace(
+                                                    ']', '');
+                                            suggestions = suggestions
+                                                    .split(',');
+
+                                            alternatives = alternatives
+                                                    .replace('[', '');
+                                            alternatives = alternatives
+                                                    .replace(']', '');
+                                            alternatives = alternatives
+                                                    .split(',');
+
+                                            var minLen = ((suggestions.length > alternatives.length) ? alternatives.length
+                                                    : suggestions.length);
+                                            minLen = minLen > 10 ? 10 : minLen;
+
+                                            //reset tagsSource  
+                                            tagsSource = new Array();
+
+                                            for ( var i = 0; i < minLen; i++) {
+                                                //tagsSource[i][1] = suggestions[i];
+                                                //tagsSource[i][0] = alternatives[i];        
+                                                tagsSource.push(new Array(
+                                                        alternatives[i],
+                                                        suggestions[i]));
+                                            }
+                                            //if(minLen > 2 && searchBox().length > 0 ){
+                                            //  showKeywordsList(alternatives, suggestions);
+                                            //}
+
+                                            //test 
+
+                                            //var leftPosition = $('.queryWorkspace').width();
+                                            //$('#ui-id-1').css('left',leftPosition + 50 + "px");
+
+                                            if ($("#searchInput").val().length > 2) {
+                                                $("#searchInput")
+                                                        .mcautocomplete(
+                                                                {
+                                                                    minLength : 0,
+                                                                    showHeader : true,
+                                                                    columns : columns,
+                                                                    source : tagsSource,
+                                                                    select : function(
+                                                                            event,
+                                                                            ui) {
+
+                                                                        searchItemAdd(searchBox());
+                                                                        searchBox("");
+                                                                        return false;
+                                                                    }
+                                                                })
+                                                        .on(
+                                                                "dblclick",
+                                                                function() {
+
+                                                                    //var leftPosition = $('.queryWorkspace').width();
+                                                                    //$('#ui-id-1').css('left',leftPosition + 50 + "px");
+                                                                    $(this)
+                                                                            .mcautocomplete(
+                                                                                    "search",
+                                                                                    "");
+                                                                    //$('#ui-id-1').css('left',leftPosition + 50 + "px");
+
+                                                                });
+
+                                                $('#searchInput').trigger(
+                                                        "dblclick");
+                                            }
+
+                                            //var leftPosition = $('.queryWorkspace').width();
+                                            //$('#ui-id-1').css('left',leftPosition + 50 + "px");
+
+                                        }
+
+                                        // check mouse click 
+
+                                        $(document)
+                                                .click(
+                                                        function(e) {
+
+                                                            // check that your clicked 
+                                                            // element has no id=info 
+                                                            // and is not child of info 
+                                                            if (e.target.id != 'keywordListWorkspace'
+                                                                    && !$(
+                                                                            '#keywordListWorkspace')
+                                                                            .find(
+                                                                                    e.target).length) {
+                                                                if (e.target.id != 'queryWorkspace'
+                                                                        && !$(
+                                                                                '#queryWorkspace')
+                                                                                .find(
+                                                                                        e.target).length) {
+
+                                                                    $(
+                                                                            "#keywordListWorkspace")
+                                                                            .hide();
+                                                                }
+
+                                                            }
+
+                                                        });
+                                    </script>
+        </apex:outputPanel>
+            
+        </apex:pageBlock>
+        
+        <apex:outputPanel id="KeyWordResults">
+        
+            
+            <apex:outputPanel rendered="{!IF(AND(NOT(showExportButton),AND(lstResult.size > 0,OR(And(typeChoice == '0',currentTab=='0'),And(typeChoiceTech == '0',currentTab=='1')))),True,False)}">
+                        
+                        <strong> Total URLS Found : {!lstResult.size} </strong> <br/>
+                        
+            </apex:outputPanel>
+            
+            <apex:outputPanel rendered="{!IF(AND(QueryResultMatchesSize > 0,OR(AND(currentTab=='0',typeChoice == '1'),AND(currentTab=='1',typeChoiceTech == '1'))),True,False)}">
+                        <strong><apex:outputText value="Loading..." rendered="{!IsPollerEnable}"/></strong> <apex:commandButton action="{!StopProcess}" value="Stop" rendered="{!IsPollerEnable}" reRender="KeyWordResults,SeachResult,StartThis"/><br/>
+                        <strong> {!TEXT(QueryResultMatchesSize)} Found. <apex:outputText value="Processing" rendered="{!IsPollerEnable}"/><apex:outputText value="Processed" rendered="{!!IsPollerEnable}"/> {!totalProcess} of {!QueryResultMatchesSize} ( {!TEXT(ROUND((totalProcess/QueryResultMatchesSize)*100,2))}% )  </strong><br/>
+                        <strong> Total URL's Found : {!totalRecordFound} </strong> <br/>
+                        <strong> Total Unique URL : {!totalUniqueWebsite} </strong> <br/>
+                        <strong> Percent of Unique:URL : {!TEXT(ROUND((totalUniqueWebsite/QueryResultMatchesSize)*100,2))} % </strong>
+            </apex:outputPanel>
+        </apex:outputPanel>
+        <apex:outputPanel id="searchingStatus" >
+        	<apex:outputPanel rendered="{!isSearching}">
+        		<strong style="margin-top:10px;">Please wait... Exporting is in progress. This may take a few minutes.</strong><br/>
+        		<strong style="margin-bottom:10px;">Processing {!totalRecordFound} of {!IF(countResults <= 4999, TEXT(countResults), '4999')}</strong>
+        	</apex:outputPanel>
+        </apex:outputPanel>
+        <!-- <apex:pageBlock title="{!IF(lstCompanies.size == 0,'Results', IF(totalUniqueWebsite > 0,'Results: '&TEXT(totalUniqueWebsite),'Showing '&TEXT(lstCompanies.size)&' of '&TEXT(lstResult.size)&' results'))}" id="SeachResult" >-->
+        <apex:pageBlock title="{!IF(lstCompanies.size == 0,'Results', IF(countResults <= 4999,TEXT(lstCompanies.size)&' of '&TEXT(countResults)&' results',TEXT(lstCompanies.size)&' of '&TEXT(countResults)&' results (Export limit: 4999)'))}" id="SeachResult" >
+                <apex:pageBlockButtons location="Top">
+                <apex:actionFunction name="addToProfilerPlanAction" action="{!AddProfilerPlan}"/>
+                <apex:actionFunction name="createAccountAction" action="{!CreateAccountResults}"/>
+                <apex:actionFunction name="redirectToAddingPage" action="{!redirectToAddingPage}"/>
+                <apex:actionFunction name="triggerSearchMore" action="{!enableActionPoller}" 
+                	reRender="searchingStatus,getMoreCompany,tab1SearchBtn" oncomplete="">
+                </apex:actionFunction>
+                <!-- <apex:commandButton onclick="addToProfilerPlanConfirm({!lstCompanies.size})" value="Add to Profiler Campaign" rendered="{!IF(AND(NOT(showExportButton),OR(AND(lstCompanies.size > 0,OR(AND(currentTab=='0',typeChoice == '1'),AND(currentTab=='1',typeChoiceTech == '1'))),AND(lstCompanies.size > 0,OR(AND(currentTab=='0',typeChoice == '0'),AND(currentTab=='1',typeChoiceTech == '0'))))),true,false)}"/> -->
+                <apex:commandButton action="{!AddProfilerPlan}" value="Add to Profiler Campaign" rendered="{!IF(AND(NOT(showExportButton),OR(AND(lstCompanies.size > 0,OR(AND(currentTab=='0',typeChoice == '1'),AND(currentTab=='1',typeChoiceTech == '1'))),AND(lstCompanies.size > 0,OR(AND(currentTab=='0',typeChoice == '0'),AND(currentTab=='1',typeChoiceTech == '0'))))),true,false)}"/>
+                <apex:commandButton onclick="createAccountConfirm({!lstCompanies.size})" value="Create Accounts" rendered="{!IF(AND(NOT(showExportButton),AND(lstCompanies.size > 0,OR(AND(currentTab=='0',typeChoice == '1'),AND(currentTab=='1',typeChoiceTech == '1')))),true,false)}"/>
+                <!-- <apex:commandButton onclick="addToPlanFromTab1({!lstCompanies.size})" id="tab1SearchBtn"
+                	value="Add to Profiler Campaign" 
+                	rendered="{!IF(AND(showExportButton,lstCompanies.size>0), true, false)}"/> -->
+               	<apex:commandButton action="{!CreateAccountResults}" value="Create Accounts(beta)" rendered="{!IF(AND(showExportButton,lstCompanies.size>0), true, false)}"/>
+               	<apex:commandButton action="{!CreateLeadResults}" value="Create Lead(beta)" rendered="{!IF(AND(showExportButton,lstCompanies.size>0), true, false)}"/>
+               	<apex:commandButton action="{!enableActionPoller}" id="tab1SearchBtn" status="buttonNavigateStatus"
+                	value="Add to Profiler Campaign" reRender="searchingStatus,getMoreCompany,tab1SearchBtn"
+                	rendered="{!IF(AND(showExportButton,lstCompanies.size>0), true, false)}"/>
+            </apex:pageBlockButtons>
+                <apex:pageBlocktable id="companyTable" value="{!lstCompanies}" var="company" style="width:100%" > 
+                    <apex:column >  
+                        <apex:facet name="header">Company Name</apex:facet>
+                        <div style="width:152px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                            <apex:outputText value="{!company.companyName }"></apex:outputText>                  
+                        </div>
+                    </apex:column> 
+                    
+                    <apex:column > 
+                        <apex:facet name="header">Url</apex:facet>
+                        <apex:outputPanel rendered="{!AND(company.urls != null, company.urls.size > 0)}">
+                            <!-- <apex:outputText value="{!company.urls[0]}"></apex:outputText>-->
+                            <!-- <apex:outputLink value="{!company.urls[0]}" id="theLink" target="_blank">{!company.urls[0]}</apex:outputLink>-->
+                            <a href="http://{!company.urls[0]}" id="theLink" target="_blank">{!company.urls[0]}</a>                  
+                        </apex:outputPanel>                        
+                    </apex:column>
+                    
+                    <apex:column > 
+                        <apex:facet name="header">Address</apex:facet>
+                        <div style="width:130px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                            <apex:outputText value="{!company.location.addressLine1}"></apex:outputText>   
+                        </div>               
+                    </apex:column>   
+                    
+                    <apex:column > 
+                        <apex:facet name="header">City</apex:facet>
+                        <apex:outputText value="{!company.location.city}"></apex:outputText>                  
+                    </apex:column>
+                    
+                    <apex:column > 
+                        <apex:facet name="header">ST</apex:facet>
+                        <apex:outputText value="{!company.location.state}"></apex:outputText>                  
+                    </apex:column>
+                    
+                    <apex:column > 
+                    
+                        <apex:facet name="header">ZIP</apex:facet>
+                        <apex:outputText value="{!company.location.zip5}"></apex:outputText>                   
+                    </apex:column>
+                    
+                    <apex:column > 
+                        <apex:facet name="header">Country</apex:facet>
+                        <apex:outputText value="{!company.location.country}"></apex:outputText>                  
+                    </apex:column>
+                    
+                    <apex:column > 
+                        <apex:facet name="header">Phone</apex:facet>
+                        <apex:outputPanel rendered="{!AND(company.phoneNumbers != null, company.phoneNumbers.size > 0)}">
+                            <div style="white-space: nowrap;">
+                                <apex:outputText value="{!company.phoneNumbers[0]}"></apex:outputText>                  
+                            </div>
+                        </apex:outputPanel>                        
+                    </apex:column>
+                    
+                          
+                    
+                    <apex:column > 
+                        <apex:facet name="header">Year</apex:facet>
+                        <apex:outputText value="{!company.foundedYear}"></apex:outputText>                  
+                    </apex:column>
+                    <apex:column > 
+                        <apex:facet name="header">Sales($Mil)</apex:facet>
+                        <apex:outputText value="{!company.revenue}"></apex:outputText>                  
+                    </apex:column>
+                    <apex:column > 
+                        <apex:facet name="header">Employees</apex:facet>
+                        <apex:outputText value="{!company.employees}"></apex:outputText>                  
+                    </apex:column>
+                   
+                    
+                
+                                       
+                </apex:pageBlocktable>
+                
+                <apex:actionFunction name="updatePaginatorJS" action="{!updatePaginator}" rerender="myButtons" status="buttonNavigateStatus"/>
+                    <div id="divButton" style="height:5px;">            
+                        <apex:actionStatus startText="Loading..." startStyle="color:#ff0000;font-size:16px;font-weight:bold" id="buttonNavigateStatus"> 
+                             <apex:facet name="start">
+                                 <center>
+                                     <img src="/img/loading.gif" title="Loading..."/>
+                                 </center>
+                             </apex:facet> 
+                        </apex:actionStatus>
+                    </div>  
+                      <!--  
+                   <div  id="divOutSideButtons">
+               
+       <apex:outputPanel id="myButtons" >
+        
+        <apex:outputPanel rendered="{!AND(!ISNULL(queryResult), queryResult.matches.size > 0)}">
+        <table id="tablePaginator">
+            <tr>
+                <td style="width:150px;">
+                    <span style="width:150px;float: left;"> {!HTMLENCODE(Text(startRecord))}-{!HTMLENCODE(Text(endRecord))} of {!HTMLENCODE(queryResult.total)} </span>
+                </td>      
+                
+                 <td style="width:120px;float: left; margin-left:30px;">
+                   &nbsp;
+                                        
+                </td>
+                
+                <td style="width:80%; text-align:center;">
+                         <span style="margin-left:-200px;">                         
+                            <apex:commandLink action="{!CBeginning}" styleClass="{!If(DisablePrevious,'lDisabled','lEnabled')}" title="First" reRender="SeachResult,myButtons" status="buttonNavigateStatus" ><img src="/s.gif" title="Previous" alt="Previous" class="{!If(DisablePrevious,'LDFirstPrevious','LFirstPrevious')}"/></apex:commandLink>&nbsp;
+                            <apex:commandLink action="{!CPrevious}" styleClass="{!If(DisablePrevious,'lDisabled','lEnabled')}" title="Previous" reRender="SeachResult,myButtons" status="buttonNavigateStatus" ><img src="/s.gif" title="Previous" alt="Previous" class="{!If(DisablePrevious,'LDPrevious','LPrevious')}"/> Previous</apex:commandLink>&nbsp; &nbsp;        
+                            <apex:commandLink action="{!CNext}" styleClass="{!If(disableNext,'lDisabled','lEnabled')}" title="Next"  reRender="SeachResult,myButtons" status="buttonNavigateStatus" >Next <img src="/s.gif" title="Next" alt="Next" class="{!If(DisableNext,'LDNext','LNext')}"/></apex:commandLink>&nbsp;
+                            <apex:commandLink action="{!CEnd}" styleClass="{!If(disableNext,'lDisabled','lEnabled')}" title="Last"  reRender="SeachResult,myButtons" status="buttonNavigateStatus" > <img src="/s.gif" title="Last" alt="Last" class="{!If(DisableNext,'LDLastNext','LLastNext')}"/></apex:commandLink>&nbsp;
+                        </span>                                            
+                                                            
+                </td>
+            </tr>
+        </table>
+        </apex:outputPanel>      
+   </apex:outputPanel>
+ </div>  
+ -->
+        </apex:pageBlock> 
+        
+    <apex:outputpanel id="StartThis">    
+        <apex:actionPoller action="{!StatCounting1}"   reRender="KeyWordResults,SeachResult" interval="8" enabled="{!IsPollerEnable}"/>  
+    </apex:outputpanel>
+    <apex:outputpanel id="getMoreCompany">    
+        <apex:actionPoller action="{!getMoreCompany}" oncomplete="{!IF(NOT(isSearching), 'redirectToAddingPage()', '')}" 
+        	reRender="searchingStatus,SeachResult" interval="5" enabled="{!isSearching}"/>  
+    </apex:outputpanel>
+     <img id="displayBox" src="{!$Resource.loading}" width="200" height="200" border="0" style="display:none" />
+    </apex:form>
+	<script>
+                	$("#basic").css("color", "black");
+                    $("#basic").css("border-bottom-width", "0px");
+                    $("#keyword").css("color","#2895F1");
+                    $("#keyword").css("border-bottom-width", "1px");
+                    $("#technology").css("color","#2895F1");
+                    $("#technology").css("border-bottom-width", "1px");
+     </script>
+</apex:page>

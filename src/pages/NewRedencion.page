@@ -1,0 +1,89 @@
+<apex:page standardController="Redencion__c" extensions="NewRedencionController" tabStyle="Redencion__c" title="Salesforce - Nueva Redencion" docType="html-5.0">
+    <style type="text/css">
+        .customError { font-weight: bold; color: red; border: 0;}
+        .detalle { width: 100%; height: 100px}
+    </style>
+    <apex:sectionHeader title="{!IF(ISNULL(redencion.Id), 'Creación', 'Modificación')} de redencion" subtitle="{!IF(ISNULL(redencion.Id), 'Redencion nueva', redencion.Name)}"/>
+       <apex:form >
+        <apex:pageBlock title="{!IF(ISNULL(redencion.Id), 'Crear', 'Modificar')} redencion">
+            <apex:pageMessages />
+            <apex:pageBlockButtons location="bottom">
+                <apex:outputPanel id="Botones">
+                    <apex:commandButton action="{!guarda}" value="Guardar" disabled="{! canSave != true }"/>
+                    <apex:commandButton action="{!cancela}" immediate="true" value="Cancelar"/>
+                </apex:outputPanel>
+            </apex:pageBlockButtons>
+            <apex:actionRegion >
+                <apex:actionFunction action="{!setTarjetas}" name="setTarjetas" rerender="TarjetasPanel,errorPanel,Botones" >
+                    <apex:variable value="true" var="viewTarjetasPanel"/>
+                </apex:actionFunction>
+                <apex:actionFunction action="{!setPuntos}" name="setPuntos" rerender="PuntosPanel,Recompanesas,errorPanel,Botones">
+                    <apex:param name="setPuntosIndex" value=""/>
+                </apex:actionFunction>
+                <apex:actionFunction action="{!rewardPointsValidation}" name="rewardPointsValidation" rerender="errorPanel,Botones" >
+                </apex:actionFunction>
+                <apex:outputPanel id="errorPanel">
+                    <p  class="customError">
+                        <apex:outputText id="errorMessage" value="{!errorMessage}" title="errorMessage"/>
+                    </p>
+                </apex:outputPanel>
+                   <apex:pageBlockSection title="Información de la redencion" id="pb1">
+                    <apex:inputField value="{!redencion.Cliente__c}" onchange="setTarjetas()"/>
+                       <br />
+                    <apex:outputPanel id="TarjetasPanel">
+                        <apex:outputPanel rendered="{!tarjetasList.size > 0}">
+                            <p>
+                            <apex:outputLabel >No de Afiliacion</apex:outputLabel>
+                            </p>
+                            <p>
+                            <apex:selectList value="{!redencion.Tarjeta__c}" size="1" label="Tarjeta" title="Tarjeta" onchange="setPuntos(this.selectedIndex)">
+                                <apex:selectOptions value="{!tarjetasList}" />
+                            </apex:selectList>
+                            </p>
+                            <br />
+                            <p>
+                            	<apex:outputLabel >Puntos:</apex:outputLabel>
+                            </p>
+                            <p>
+                                <apex:outputText id="PuntosPanel" value="{!puntos}" title="Puntos"/>
+                            </p>
+                            <apex:outputPanel rendered="{!puntos > 0}">
+                                <br />
+                                <apex:outputPanel rendered="{!recompensasList.size > 0}">
+                                    <p>
+                                    <apex:outputLabel >Recompensa</apex:outputLabel>
+                                    </p>      
+                                    <p>
+                                    <apex:selectList id="Recompensas" value="{!redencion.Recompensa__c}" size="1" label="Recompensa" title="Recompensa" onchange="rewardPointsValidation()" >
+                                        <apex:selectOptions value="{!recompensasList}" />
+                                    </apex:selectList>
+                                    </p>
+                                    <br />
+                                    <p>
+                                        <apex:outputLabel >Cantidad de Recompensas: </apex:outputLabel>
+                                    </p>
+                                    <p>
+                                        <apex:inputField type="number" value="{!redencion.Cantidad_de_recompensas__c}" onchange="rewardPointsValidation()" />
+                                    </p>
+                                    <p>
+                                        <apex:outputLabel >Detalles de la redención</apex:outputLabel>
+                                    </p>
+                                    <p>
+                                        <apex:inputField value="{!redencion.Detalles_de_la_redencion__c}" styleClass="detalle"/>
+                                    </p>
+                                </apex:outputPanel>
+                        	</apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                </apex:pageBlockSection>
+            </apex:actionRegion>
+            <!--<apex:pageBlockSection title="Información de envio">
+                <apex:inputField value="{!redencion.Calle__c}"/>
+                <apex:inputField value="{!redencion.Codigo_Postal__c}"/>
+                <apex:inputField value="{!redencion.Ciudad__c}"/>
+                <apex:inputField value="{!redencion.Estado__c}"/>
+                <apex:inputField value="{!redencion.Direccion_alterna__c}"/>
+            </apex:pageBlockSection>-->
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

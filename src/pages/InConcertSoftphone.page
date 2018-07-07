@@ -1,0 +1,116 @@
+<!--
+ - Description: inConcert call & hangUp tools for the account page layout.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 04/08/2014
+ -->
+<apex:page controller="InConcertSoftphoneController">
+<apex:stylesheet value="{!URLFOR($Resource.InConcertSoftphone, 'css/InConcertSoftphone.css')}"/>
+<apex:includeScript value="/support/console/31.0/integration.js"/>
+<apex:includeScript value="{!URLFOR($Resource.InConcertSoftphone, 'js/jquery-1.11.1.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.InConcertSoftphone, 'js/inConcertSDK.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.InConcertSoftphone, 'js/InConcertSoftphone.js')}"/>
+<style type="text/css">
+.makeCall {
+    background: transparent url('{!URLFOR($Resource.InConcertSoftphone, 'img/makeCall.png')}');
+}
+.hangUp {
+    height: 64px;
+    width: 64px;
+    background: transparent url('{!URLFOR($Resource.InConcertSoftphone, 'img/hangUp.png')}');
+}
+</style>
+<script type="text/javascript">
+campaign = "{!$Label.inConcertCampaign}";
+newTaskUrl = "/apex/InConcertNewTask?title=Llamada&what_id={!account.Id}&tsk5=Llamada&retURL=%2F{!account.Id}";
+idLlamadaInConcertFieldId = "{!$Label.IdLlamadaInConcertFieldId}";
+telefonoLlamadaInConcertFieldId = "{!$Label.TelefonoLlamadaInConcertFieldId}";
+    
+    function newCase(phone) {
+    if(interactionId && !callIntervalId) {
+        try {
+            if(!barAgentControlObject) {
+                barAgentControlObject = new ActiveXObject("BarAgentControl.BAControl");
+            }
+            if(barAgentControlObject) {
+                if(phone) {
+                    //alert(interactionId);
+                    //barAgentControlObject.newCase(campaign, phone, "");
+                    
+                    //$("#currentPhone").html("Llamando al "+phone);
+                    /*
+                    callIntervalId = setInterval(function() {
+                        if(currentIntStateById == 'LOCKED' && interactionId) {
+                            clearCallInterval();
+                    */
+                            //if(tabObject) {
+                                sforce.console.openPrimaryTab(null, "/apex/TeleventasAtencionClientes?inConcertPopUpParameters="+interactionId+"phone"+phone, true, 'Registrar Caso', null);
+                            //}
+                            //if(tabObject) {
+                            //sforce.console.openSubtab(tabObject.id, newTaskUrl+"&what_id="+tabObject.objectId+"&"+idLlamadaInConcertFieldId+"="+interactionId+"&"+telefonoLlamadaInConcertFieldId+"="+phone, true, 'Registrar una llamada', null);
+                            //}
+                    /*
+                        }
+                    }, 50);
+                    */
+                } else {
+                    alert("Debe indicar un teléfono.");
+                }
+            }
+        } catch(exception) {
+            if(msieVersion() < 7) {
+                alert("Para poder realizar llamadas debe usar el navegador Internet Explorer versión 7 o posterior y tener la aplicación BarAgent de inConcert en ejecución e iniciada con su sesión.");
+            } else {
+                alert("Ha ocurrido un error. Asegúrese que la aplicación de BarAgent de inConcert esté en ejecución e iniciada con su sesión.");
+            }
+        }
+    }
+}
+    
+</script>
+<apex:form >
+    <apex:actionFunction action="{!setPhones}" name="setPhones" rerender="phonePageBlockSection">
+        <apex:param name="accountId" value=""/>
+    </apex:actionFunction>
+</apex:form>
+    <apex:pageBlock rendered="{!isOutbound}">
+    <div id="hangUpBlock">
+        <div class="hangUpOpacity"></div>
+        <input type="button" onclick="barAgentControlObject.HangUpByID(interactionId)" class="inConcertSoftphoneButton hangUp"/>
+        <div id="currentPhone"></div>
+    </div>
+    </apex:pageBlock>
+    <apex:pageBlock mode="maindetail" id="phonePageBlock" >
+        <apex:pageBlockSection collapsible="false" columns="1" title="Teléfonos de la cuenta {!account.Name}" id="phonePageBlockSection" rendered="{!isOutbound}">
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Marcar un número"/>
+                <apex:outputPanel >
+                    <input type="button" id="inConcertButton" onclick="makeCallDir($('#freePhone').val())" class="inConcertSoftphoneButton makeCall"/>
+                    <input type="text" id="freePhone"/>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:repeat value="{!$ObjectType.Account.FieldSets.InConcertSoftphone}" var="accountField">
+                <apex:pageBlockSectionItem rendered="{!NOT(ISBLANK(account[accountField]))}">
+                    <apex:outputLabel value="{!accountField.Label}"/>
+                    <apex:outputPanel >
+                        <input type="button" id="inConcertButton" onclick="makeCallDir('{!account[accountField]}')" class="inConcertSoftphoneButton makeCall"/>
+                        <span>
+                            <apex:outputText value="{!account[accountField]}"/>
+                        </span>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+            </apex:repeat>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    <apex:pageBlock mode="maindetail" id="CasePageBlock" rendered="{!isInbound}">
+        <apex:pageBlockSection >
+            <apex:pageBlockSectionItem >
+                <apex:outputPanel >
+                    <input type="text" id="caller"/>
+                    <apex:image id="NewCase" onclick="newCase($('#caller').val())" value="{!$Resource.NewCase}"/>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:page>

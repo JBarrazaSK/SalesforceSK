@@ -1,0 +1,20 @@
+<!--
+ - Description: Console component to display an account list selecting the right view for the current day.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 31/07/2014
+ -->
+<apex:page standardController="Account" recordSetVar="accounts" extensions="AccountListConsoleController" action="{!init}">
+<apex:stylesheet value="{!URLFOR($Resource.AccountListConsole, 'css/AccountListConsole.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.AccountListConsole, 'js/jquery-1.11.1.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.AccountListConsole, 'js/AccountListConsole.js')}"/>
+<apex:enhancedList type="Account" height="800" rowsPerPage="200" customizable="false" id="accountEnhancedList" oncomplete="setEnhancedList()"/>
+<script type="text/javascript">
+lastListSize = "{!accountListSize}";
+isAdmin = {!isAdmin};
+</script>
+<apex:form >
+    <apex:actionPoller action="{!queryAccountListSize}" interval="5" oncomplete="checkForListSizeChange('{!accountListSize}')"/>
+</apex:form>
+</apex:page>

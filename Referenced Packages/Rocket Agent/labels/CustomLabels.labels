@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>Body</fullName>
+        <categories>mailVacationer</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Body Finished</shortDescription>
+        <value>Dear, {!Vacation_Request__c.Vacationer__r.Name}
+
+Your Vacation ended on  {!Vacation_Request__c.Vacation_End_Date_and_Time__c}  Vacation Request   {!Vacation_Request__c.Id} 
+Vacation Type:  {!Vacation_Request__c.rca__Vacation_Type__c}. 
+All your active records are assigned back to you from {!Vacation_Request__c.Assignee__r.Name}</value>
+    </labels>
+    <labels>
+        <fullName>BodyFinishAssigner</fullName>
+        <categories>mailAssignee</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>BodyFinishAssigner</shortDescription>
+        <value>Vacation Request  {!request.Id}  ended on {!request.VREnd}</value>
+    </labels>
+    <labels>
+        <fullName>BodyIllness</fullName>
+        <categories>mail</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>BodyIllness</shortDescription>
+        <value>Dear, {Vacationer.Name}
+Create new Vacation request.</value>
+    </labels>
+    <labels>
+        <fullName>BodyStartAssigne</fullName>
+        <categories>mailAssignee</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>BodyStartAssigne</shortDescription>
+        <value>Dear, {!request.Assigner}
+
+Active Records from {!request.Vacationer} are assigned to you from {!request.VRStart} till {!request.VREnd} as per Vacation Request {!request.ID}</value>
+    </labels>
+    <labels>
+        <fullName>DismissedVacationer</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>DismissedVacationer</shortDescription>
+        <value>You cannot choose this Vacationer.User is dismissed</value>
+    </labels>
+    <labels>
+        <fullName>Error</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Error</shortDescription>
+        <value>This User is on Vacation. Please choose another User</value>
+    </labels>
+    <labels>
+        <fullName>ErrorAddEndDate</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorAddEndDate</shortDescription>
+        <value>Field Vacation End Date can not be blank. Please fill in Vacation End Date.</value>
+    </labels>
+    <labels>
+        <fullName>ErrorAssigneeLookLikeVacitioner</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorAssigneeLookLikeVacitioner</shortDescription>
+        <value>A Vacationer cannot be an Assignee. Please choose another User as an Assignee</value>
+    </labels>
+    <labels>
+        <fullName>ErrorCanAsUserDismissed</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorCanAsUserDismissed</shortDescription>
+        <value>Error. You cannot assign this User. User is dismissed</value>
+    </labels>
+    <labels>
+        <fullName>ErrorCanAssignUser</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorCanAssignUser</shortDescription>
+        <value>Error. You cannot assign this User</value>
+    </labels>
+    <labels>
+        <fullName>ErrorCancelledVR</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorCancelledVR</shortDescription>
+        <value>You can not edit this Vacation Request as it is Cancelled</value>
+    </labels>
+    <labels>
+        <fullName>ErrorCannotCancelrequest</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorCannotCancelrequest</shortDescription>
+        <value>You cannot cancel a Vacation Request as it is in progress now. To stop a Vacation Request change Vacation End Date.</value>
+    </labels>
+    <labels>
+        <fullName>ErrorChangeAssignee</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorChangeAssignee</shortDescription>
+        <value>This User is on Vacation. Please choose another User</value>
+    </labels>
+    <labels>
+        <fullName>ErrorChangeAssigneeInProgress</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorChangeAssigneeInProgress</shortDescription>
+        <value>You cannot change Assignee. Vacation Request  has already started</value>
+    </labels>
+    <labels>
+        <fullName>ErrorChangeName</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorChangeName</shortDescription>
+        <value>You cannot change Name. Vacation Request has already started</value>
+    </labels>
+    <labels>
+        <fullName>ErrorChangeVacationer</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorChangeVacationer</shortDescription>
+        <value>Cannot change vacationer</value>
+    </labels>
+    <labels>
+        <fullName>ErrorChoseVacationer</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorChoseVacationer</shortDescription>
+        <value>You cannot choose this Vacationer. This User has a vacation for the selected period!</value>
+    </labels>
+    <labels>
+        <fullName>ErrorEndDate</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorEndDateResignation</shortDescription>
+        <value>You chose Resignation as your Vacation Type.  To save the Vacation Request leave Vacation End Date field blank.</value>
+    </labels>
+    <labels>
+        <fullName>ErrorEndDateLessNow</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorEndDateLessNow</shortDescription>
+        <value>Vacation end date must be later than current date.</value>
+    </labels>
+    <labels>
+        <fullName>ErrorStDateTime</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorStDateTime</shortDescription>
+        <value>Vacation Start Date can not be in the past</value>
+    </labels>
+    <labels>
+        <fullName>ErrorUserLicense</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorUserLicense</shortDescription>
+        <value>User must have a proper license</value>
+    </labels>
+    <labels>
+        <fullName>ErrorUserhasplannedVacation</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ErrorUserhasplannedVacation</shortDescription>
+        <value>This User has already planned a vacation for the selected period!</value>
+    </labels>
+    <labels>
+        <fullName>SameRoles</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>SameRoles</shortDescription>
+        <value>Initiator and Assignee must have the same roles</value>
+    </labels>
+    <labels>
+        <fullName>SameUserLicense</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>SameUserLicense</shortDescription>
+        <value>Initiator and Assignee must have the same User License</value>
+    </labels>
+    <labels>
+        <fullName>Start_Body</fullName>
+        <categories>mailVacationer</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Start Body</shortDescription>
+        <value>Dear, {!Vacation_Request__c.Vacationer__r.Name}
+
+Your Vacation started on  {!Vacation_Request__c.Vacation_Start_Date_and_Time__c}: Vacation Request  {!Vacation_Request__c.Id}
+Vacation Type: {!Vacation_Request__c.rca__Vacation_Type__c}
+All your active records are assigned to {!Vacation_Request__c.Assignee__r.Name} for the time of your absence.</value>
+    </labels>
+    <labels>
+        <fullName>SubjectIllness</fullName>
+        <categories>mail</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>SubjectIllness</shortDescription>
+        <value>Vacation Request {!request.Id} cancelled</value>
+    </labels>
+    <labels>
+        <fullName>Subject_FinishAssigne</fullName>
+        <categories>mailAssignee</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Subject FinishAssigne</shortDescription>
+        <value>Vacation Request {!request.Id} - Vacation finished</value>
+    </labels>
+    <labels>
+        <fullName>Subject_Finished</fullName>
+        <categories>mailVacationer</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Subject Finished</shortDescription>
+        <value>Vacation Request  request.Id  -  Vacation finished</value>
+    </labels>
+    <labels>
+        <fullName>Subject_Start</fullName>
+        <categories>mailVacationer</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Subject Start</shortDescription>
+        <value>Vacation Request request.Id - Vacation Start</value>
+    </labels>
+    <labels>
+        <fullName>Subject_StartAssigne</fullName>
+        <categories>mailAssignee</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Subject StartAssigne</shortDescription>
+        <value>You have new Records Assigned to You - Vacation Request  {!request.Id}</value>
+    </labels>
+    <labels>
+        <fullName>VRClosed</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>VRClosed</shortDescription>
+        <value>You cannot change Vacation Request. Vacation Request has already closed</value>
+    </labels>
+    <labels>
+        <fullName>notChangeTimeAfter</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>notChangeTimeAfter</shortDescription>
+        <value>You can not change the time after the start!</value>
+    </labels>
+    <labels>
+        <fullName>notChangeVacationer</fullName>
+        <categories>VR</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>notChangeVacationer</shortDescription>
+        <value>Cannot change vacationer</value>
+    </labels>
+</CustomLabels>

@@ -1,0 +1,10 @@
+<!--
+ - Description: Page layout component for viewing leads geolocation on Google Maps.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 09/09/2014
+ -->
+<apex:page standardController="Lead">
+<c:ViewGeolocationMap latitude="{!Lead.Geolocalizacion__Latitude__s}" longitude="{!Lead.Geolocalizacion__Longitude__s}"/>
+</apex:page>

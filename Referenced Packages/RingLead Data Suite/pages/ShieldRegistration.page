@@ -1,0 +1,13 @@
+<apex:page >
+    <apex:sectionHeader title="Broadlook Data Suite" subtitle="Registration"/>
+    <apex:form >
+        <apex:pageBlock title="Data Shield" mode="edit">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!save}" value="Save"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection title="License Information" columns="2">
+                <apex:outputLabel value="Registered"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <icon>Broadlook_Data_Suite_Assets/ProfilerIcon_png.png</icon>
+    <label>Profiler</label>
+    <mobileReady>false</mobileReady>
+    <motif>Custom235: TV Widescreen</motif>
+    <page>profilerPlanView</page>
+</CustomTab>

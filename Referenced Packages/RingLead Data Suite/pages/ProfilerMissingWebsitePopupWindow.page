@@ -1,0 +1,292 @@
+<apex:page sidebar="false" showHeader="false" controller="BLDS.ProfilerMessagePopupController">
+
+	<script type="text/javascript" src="../../soap/ajax/24.0/connection.js" ></script>
+	<script type="text/javascript" src="../../soap/ajax/24.0/apex.js" ></script>
+	
+	<style>
+		.mainTable
+		{
+			height:200px ;
+			text-align:center; 
+			vertical-align: middle;
+		}
+		.tdTable
+		{
+			text-align: left; 
+			padding-left: 5px; 
+			font-size: large; 
+			font-weight: bolder;
+		}
+	</style>
+	
+	<script type="text/javascript">
+	    var docURL = document.URL;
+	    var src;
+	    var recId;
+	    
+	    if(docURL.indexOf('Err' == -1) && docURL.indexOf('Found1' == -1))
+	    {
+		    if(docURL.indexOf('&src=') != -1)
+		    {
+		        recId = docURL.substr(docURL.indexOf('id') + 3);
+		        recId = recId.substr(0, 15);
+		    }
+		    else
+		        recId = docURL.substr(docURL.indexOf('id') + 3, docURL.length);
+		    
+		    if(docURL.indexOf('&src') == -1)
+		        src = '';
+		    else
+		        src = docURL.substr(docURL.indexOf('&src=') + 5, docURL.length);
+		}
+	    // Function called onclick of Save and Profile button and profiles the currect record based on url enters in the input text box.
+	    function updateWebsite()
+	    {
+	        try{
+	        //alert('1');
+	        if(document.getElementById('website').value != '')
+	        {
+//	        	alert('2');
+	            /* Setting sessionId in AJAX connection */
+	            sforce.connection.sessionId = '{!$Api.Session_ID}';
+	            
+	            if(docURL.indexOf('id') != -1)
+	            {
+	            	
+	                /* Updating record website */
+	                /* if( recId.substr(0,3) == '001' )
+	                {
+	                    var account = new sforce.SObject("Account");
+	                    account.id = recId; 
+	                    account.Website = document.getElementById('website').value;
+	                    //result = sforce.connection.update([account]);
+	                    //alert('31');
+	                }
+	                else
+	                {
+	                    var lead = new sforce.SObject("Lead");
+	                    lead.id = recId; 
+	                    lead.Website = document.getElementById('website').value;
+	                    //result = sforce.connection.update([lead]);
+	                    //alert('32');
+	                    
+	                } */
+	                
+	                /* Preparing comapny url */
+	                companyURL  = document.getElementById('website').value;
+	                
+	                if(companyURL.indexOf('http://') != -1)
+	                    companyURL = companyURL.replace('http://', '');
+	                    
+	                if(companyURL.indexOf('https://') != -1)
+	                    companyURL = companyURL.replace('https://', '');
+	                
+	                if(companyURL.indexOf('www.') == -1)
+	                    companyURL = 'www.' + companyURL;
+	                
+	                /* Calling Webservice */
+	                var isTest = "false";
+	                var testResponse = ''; 
+	                
+	                //sforce.apex.execute("BLDS.ProfilerAPI", "requestCompany", {accId: recId, companyURL: companyURL, isTest: isTest, testResponse: testResponse });
+	                CallProfiler(companyURL);
+	                //alert('4');
+	                /* Closing Pop Up Window */
+	                if(src == true || src == 'true')
+	                    closeWindowSrc(true);
+	                else
+	                    closeWindow(true);
+	                
+	                return false;
+	            }
+	            return false;
+	        }
+	        return false;
+	        }catch(e){return false;}
+	    }
+	    
+	    /* Function to close window and reload parent window */
+	    function closeWindow(doReload)
+	    {
+	        try{
+	        if(doReload == true)
+	            window.opener.location.href = '/' + recId;
+	        
+	        self.close();
+	        }catch(e){}
+	    }
+	    
+	    /* Function to close window and reload parent window */
+	    function closeWindowSrc(doReload)
+	    {
+	        try{
+	        if(doReload == true)
+	            top.window.opener.reloadPage();
+	        
+	        self.close();
+	        }catch(e){}
+	    }
+	    function openRecord(url)
+        {
+            window.open(url, "_blank");
+        }
+	</script>
+ 
+    <apex:form >
+    	<apex:actionFunction action="{!CallProfiler}" name="CallProfiler" rerender="showstate">
+        	<!-- <apex:param name=accId assignTo="{!ProfiledLink}" value="" /> -->
+        	<apex:param name="companyURL" assignTo="{!ProfiledLink}" value="" />
+    	</apex:actionFunction>
+        <div id="mainDiv" style="display: block;">
+	        <table width="100%" class="mainTable">
+	            <tr>
+	                <td height="20%" class="tdTable">
+	                    <table rowspan="0" cellspacing="0" cellpadding="0" style="padding-bottom: 5px;">
+	                        <tr>
+	                            <td style="height: 14px;"></td>
+	                        </tr>
+	                        <tr>
+	                            <td>
+	                                <div id="logo-border">
+	                                    <img src="{!URLFOR($Resource.ProfilerResources,'Images/profiler_powered_logo.png')}" 
+	                                    alt="Broadlook Profiler" id="logo" style="height: 40px; width: 150px;"/>
+	                                </div>
+	                            </td>
+	                        </tr>   
+	                        <tr>
+	                            <td style="height: 14px;"></td>
+	                        </tr>       
+	                    </table>
+	                </td>
+	            </tr>
+	            <tr>
+	                <td height="10%">
+	                    <apex:pageMessage summary="No website provided: A website is required to profile a company.  Please enter a valid website and click profile now again." 
+	                        severity="error" 
+	                        strength="3" 
+	                        rendered="{!ISBLANK(ProfiledLink)}" />
+	                    <apex:pageMessage summary="Please confirm to profile with this website." 
+	                        severity="info" 
+	                        strength="3" 
+	                        rendered="{! NOT(ISBLANK(ProfiledLink))}"  />
+	                </td>
+	            </tr>
+	            <tr>
+	                <td style="font-weight: bold;">
+	                	<apex:outputPanel id="thePanelInput" rendered="{!ISBLANK(ProfiledLink)}" >
+		                    Website:&nbsp;&nbsp;&nbsp;
+		                    <input type="text" id="website" width="15" value="{!ProfiledLink}" />
+	                    </apex:outputPanel>
+	                    
+	                    <apex:outputPanel id="thePanelDisplay" rendered="{! NOT(ISBLANK(ProfiledLink))}" >
+		                    Website:&nbsp;&nbsp;&nbsp;
+		                    <input type="text" id="website" width="15" value="{!ProfiledLink}" readonly="true" />
+	                    </apex:outputPanel>
+	                </td>
+	            </tr>
+	            <tr>
+	                <td>
+	                    <apex:commandButton value="Confirm" onclick="return updateWebsite()" />
+	                    &nbsp;
+	                    <apex:commandButton value="Cancel" onclick="return closeWindow(false)" />
+	                </td>
+	            </tr>
+	        </table>
+	     </div>
+	     <div id="errDiv" style="display: none;">
+	     		<table width="100%" >
+	            	<tr>
+	                     <td>
+	                                <div id="logo-border">
+	                                    <img src="{!URLFOR($Resource.ProfilerResources,'Images/profiler_powered_logo.png')}" 
+	                                    alt="Broadlook Profiler" id="logo" style="height: 40px; width: 150px;"/>
+	                                </div>
+	                            </td>
+	                        </tr>   
+	                        <tr>
+	                        	<td style="height: 10px;"></td>  
+	                        </tr>
+	                        <tr>
+				                <td height="10%" id="tdId">
+				                    This action will exceed your daily limit for Profiles. To increase your limit, please <a href="#" onclick="openRecord('http://www.RingLead.com/help/')">contact us</a> today
+				                </td>
+				            </tr>
+	        </table>
+	     		 
+	     		
+	     		
+	     </div>
+	     <div id="errDiv1" style="display: none;">
+     		<table width="100%" >
+            	<tr>
+                     <td>
+                                <div id="logo-border">
+                                    <img src="{!URLFOR($Resource.ProfilerResources,'Images/profiler_powered_logo.png')}" 
+                                    alt="Broadlook Profiler" id="logo" style="height: 40px; width: 150px;"/>
+                                </div>
+                            </td>
+                        </tr>   
+                        <tr>
+                        	<td style="height: 10px;"></td>  
+                        </tr>
+                        <tr>
+			                <td height="10%" id="msgId">
+			                    One or more of the Accounts has an invalid website. Please enter valid websites for your selection and profile again.
+			                </td>
+			            </tr>
+	        </table>
+	     </div>
+	     
+	     <div id="permissionMessage" style="display: none;">
+     		<table width="100%" >
+            	<tr>
+                     <td>
+                                <div id="logo-border">
+                                    <img src="{!URLFOR($Resource.ProfilerResources,'Images/profiler_powered_logo.png')}" 
+                                    alt="Broadlook Profiler" id="logo" style="height: 40px; width: 150px;"/>
+                                </div>
+                            </td>
+                        </tr>   
+                        <tr>
+                        	<td style="height: 10px;"></td>  
+                        </tr>
+                        <tr>
+			                <td height="10%" id="msgId">
+			                    <apex:pageMessage summary="{!permissionMessage}" severity="Error" strength="3" rendered="true" />
+			                </td>
+			            </tr>
+	        </table>
+	     </div>
+	     
+	     <script>
+	     	if (docURL.indexOf('Insufficient+permissions') != -1) {
+	     		document.getElementById('mainDiv').style.display = 'none';
+		    	document.getElementById('errDiv1').style.display = 'none';
+		    	document.getElementById('errDiv').style.display = 'none';
+		    	document.getElementById('permissionMessage').style.display = 'block';
+	     	} else if(docURL.indexOf('Err') != -1) {	
+		    	document.getElementById('mainDiv').style.display = 'none';
+		    	document.getElementById('errDiv1').style.display = 'none';
+		    	document.getElementById('errDiv').style.display = 'block';
+		    	if(docURL.indexOf('Invalid+Website+Profiled') != -1 && docURL.indexOf('massProfile') != -1 )
+		    		document.getElementById('tdId').innerHTML = 'One or more of the websites you have profiled is invalid, please correct and profile again.';
+		    	else if(docURL.indexOf('Invalid+Website+Profiled') != -1)
+		    		document.getElementById('tdId').innerHTML = 'Invalid website profiled. Please correct and try again.';
+		    	else if(docURL.indexOf('Invalid+hash+key') != -1)
+		    		document.getElementById('tdId').innerHTML = 'Invalid Hash Key';
+		    }
+		    else if(docURL.indexOf('Found1') != -1)
+		    {	
+		    	document.getElementById('mainDiv').style.display = 'none';
+		    	document.getElementById('errDiv').style.display = 'none';
+		    	document.getElementById('errDiv1').style.display = 'block';
+		    	if(docURL.indexOf('accid') != -1)
+		    		document.getElementById('msgId').innerHTML = 'One or more of the Accounts has an invalid website. Please enter valid websites for your selection and profile again.'
+		    	else if(docURL.indexOf('leadid') != -1)
+		    		document.getElementById('msgId').innerHTML = 'One or more of the Leads has an invalid website. Please enter valid websites for your selection and profile again.'
+		    }
+	     </script>
+    </apex:form>
+    
+    
+</apex:page>

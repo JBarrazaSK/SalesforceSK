@@ -1,0 +1,266 @@
+<!--
+    Copyright (c) ajay-gupta.com
+    All rights reserved.
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.
+    3. The name of the author may not be used to endorse or promote products
+       derived from this software without specific prior written permission.
+    
+    THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR
+    IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+    OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+    IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
+    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+    NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!--
+    Author :     Ajay Gupta
+    PageName :  importExcelData
+-->
+<apex:page showHeader="false" controller="uploadDataTosObject" apiVersion="36.0"> 
+    <head>
+        <title>IMPORT EXCEL DATA</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css"/>
+        <style type="text/css">            
+            .btn1,.btn1:hover{text-decoration:none}.upload-drop-zone{height:200px;border-width:2px;margin-bottom:20px;color:#ccc;border-style:dashed;border-color:#ccc;line-height:200px;text-align:center}body{background-color:#f3f5f6}.upload-drop-zone.drop{color:#222;border-color:#222}.tooltip-inner{text-align:center;-webkit-border-radius:0;-moz-border-radius:0;border-radius:4px;margin-bottom:6px;border:1px solid #ffd37f;background-color:#fffcdd;font-size:14px;color:#333;min-width:200px}.footer{left:0;bottom:0;width:100%;padding:2em;background-color:#f3f5f6;border-top:1px solid #fff;z-index:2;text-align:right;box-sizing:border-box;box-shadow:0 0 12px 0 rgba(0,0,0,.15);font-size:.9em}.btn1{background:#3498db;background-image:-webkit-linear-gradient(top,#3498db,#2980b9);background-image:-moz-linear-gradient(top,#3498db,#2980b9);background-image:-ms-linear-gradient(top,#3498db,#2980b9);background-image:-o-linear-gradient(top,#3498db,#2980b9);background-image:linear-gradient(to bottom,#3498db,#2980b9);-webkit-border-radius:4;-moz-border-radius:4;border-radius:4px;color:#fff;padding:10px 20px}.btn1:hover{background:#3cb0fd;background-image:-webkit-linear-gradient(top,#3cb0fd,#3498db);background-image:-moz-linear-gradient(top,#3cb0fd,#3498db);background-image:-ms-linear-gradient(top,#3cb0fd,#3498db);background-image:-o-linear-gradient(top,#3cb0fd,#3498db);background-image:linear-gradient(to bottom,#3cb0fd,#3498db)}
+        </style>
+        <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <br/>
+        <br/>
+        <div class="container">
+          
+          <div class="panel panel-default">
+           
+            <div class="panel-body">
+              
+              <h4>Select format to parse the excel into JSON or CSV format and parsed data will be used in Apex Class</h4>
+              <div class = "pull-right">
+                  <select name="format">
+                    <option value="csv"> CSV</option>
+                    <option value="json" selected="selected"> JSON</option>
+                  </select>
+              </div>
+              <!-- Standar Form -->
+              <br/> <br/>
+              <h4>Select files from your computer
+                <sup style= "font-size:13px;">
+                    <a href="#" data-toggle="tooltip" title="Choose the file containing the data you want to import. You can import up to 10,000 records at a time."> ? </a>
+                </sup>
+            </h4>
+                <div class="form-inline pull-right">
+                  <div class="form-group">
+                    <input type="file" name="xlfile" id="xlf"/>
+                  </div>
+                </div>
+                <br/>
+                <br/>
+              <!-- Drop Zone -->
+              <h4>Or drag and drop file below <sup ><a href="#" data-toggle="tooltip" title="Choose the file containing the data you want to import. You can import up to 10,000 records at a time."> ? </a></sup></h4>
+
+                <br/>
+                <br/>
+                  <div class="upload-drop-zone" id="drop">
+                    Just drag and drop any excel file here
+                  </div>
+                  <div style="margin:20px;">
+        
+
+                    <button class="btn1" onclick="initiateInsertion();" >Start Import</button>
+
+                    </div>
+              <div class = "panel panel-info">
+                   <div class = "panel-heading">
+                      <h3 class = "panel-title">Output</h3>
+                   </div>
+                   <apex:form >
+                    <apex:actionFunction name="passStringToUploadDataTosObject" action="{!parseData}" rerender="output123">
+                        <apex:param name="data" value="" assignTo="{!myString}" />
+                    </apex:actionFunction>
+                    
+               
+                    <apex:outputPanel id="output123" rendered="{!status}">
+                    Status : {!IF(status,'true', 'false')}
+                        <div class="alert alert-success fade in">
+                    
+                            <a href="#" class="close" data-dismiss="alert">×</a>
+                    
+                                <strong> Success! </strong>  <span class="label label-inverse"> {!size} </span> Rows inserted successfully.
+                    
+                        </div>
+                  </apex:outputPanel>  
+                    
+                </apex:form>
+                   <div class = "panel-body">
+                      <pre id="out">
+                      </pre>
+                   </div>
+                   
+                   
+                </div>
+                
+            </div>
+          </div>
+        </div> 
+        
+                                
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js"></script>
+        <script>
+            $(document).ready(function(){
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+            </script>
+        <script>
+            var X = XLSX;
+            
+            function fixdata(data) {
+                var o = "", l = 0, w = 10240;
+                for(; l<data.byteLength/w; ++l) o+=String.fromCharCode.apply(null,new Uint8Array(data.slice(l*w,l*w+w)));
+                o+=String.fromCharCode.apply(null, new Uint8Array(data.slice(l*w)));
+                return o;
+            }
+            
+            function get_radio_value( radioName ) {
+                var radios = document.getElementsByName( radioName );
+                for( var i = 0; i < radios.length; i++ ) {
+                    if( radios[i].checked || radios.length === 1 ) {
+                        return radios[i].value;
+                    }
+                }
+            }
+            
+            function to_json(workbook) {
+                var result = {};
+                workbook.SheetNames.forEach(function(sheetName) {
+                    var roa = X.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
+                    if(roa.length > 0){
+                        result[sheetName] = roa;
+                    }
+                });
+                return result;
+            }
+            
+            function to_csv(workbook) {
+                var result = [];
+                workbook.SheetNames.forEach(function(sheetName) {
+                    var csv = X.utils.sheet_to_csv(workbook.Sheets[sheetName]);
+                    if(csv.length > 0){
+                        result.push("SHEET: " + sheetName);
+                        result.push("");
+                        result.push(csv);
+                    }
+                });
+                return result.join("\n");
+            }
+            
+            function to_formulae(workbook) {
+                var result = [];
+                workbook.SheetNames.forEach(function(sheetName) {
+                    var formulae = X.utils.get_formulae(workbook.Sheets[sheetName]);
+                    if(formulae.length > 0){
+                        result.push("SHEET: " + sheetName);
+                        result.push("");
+                        result.push(formulae.join("\n"));
+                    }
+                });
+                return result.join("\n");
+            }
+            
+            function process_wb(wb) {
+                var output = "";
+                switch(get_radio_value("format")) {
+                    case "json":
+                        output = JSON.stringify(to_json(wb), 2, 2);
+                        break;
+                    case "form":
+                        output = to_formulae(wb);
+                        break;
+                    default:
+                    output = to_csv(wb);
+                }
+                
+                 
+                if(out.innerText === undefined) out.textContent = output;
+                  else out.innerText = output;
+                
+                if(typeof console !== 'undefined') console.log("output", new Date());
+            }
+            
+            function initiateInsertion(){
+              
+              //alert(document.getElementById('out').innerText);
+              passStringToUploadDataTosObject(document.getElementById('out').innerText);
+            
+            }
+            
+            var drop = document.getElementById('drop');
+            function handleDrop(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                var files = e.dataTransfer.files;
+                var f = files[0];
+                {
+                    var reader = new FileReader();
+                    var name = f.name;
+                    reader.onload = function(e) {
+                        var data = e.target.result;
+                        var arr = fixdata(data);
+                        var wb = X.read(btoa(arr), {type: 'base64'});
+                        process_wb(wb);
+                    };
+                    reader.readAsArrayBuffer(f);
+                }
+            }
+            
+            function handleDragover(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            }
+            
+            if(drop.addEventListener) {
+                drop.addEventListener('dragenter', handleDragover, false);
+                drop.addEventListener('dragover', handleDragover, false);
+                drop.addEventListener('drop', handleDrop, false);
+            }
+            
+            var xlf = document.getElementById('xlf');
+            function handleFile(e) {
+                var files = e.target.files;
+                var f = files[0];
+                {
+                    var reader = new FileReader();
+                    var name = f.name;
+                    reader.onload = function(e) {
+                        var data = e.target.result;
+                            var arr = fixdata(data);
+                            var wb =  X.read(btoa(arr), {type: 'base64'});
+                            process_wb(wb);
+                    };
+                    reader.readAsArrayBuffer(f);
+                }
+                return false;
+            }
+            
+            if(xlf.addEventListener) xlf.addEventListener('change', handleFile, false);
+            </script>
+    </body>
+</apex:page>

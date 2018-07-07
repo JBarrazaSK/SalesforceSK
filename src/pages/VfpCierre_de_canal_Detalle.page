@@ -1,0 +1,96 @@
+<apex:page sidebar="false"   controller="CrtlCierreCanalDetalle"  docType="html-5.0" standardStylesheets="true" >
+<style>
+.TdLeft {
+    width: 50px;
+} 
+.Codigo {
+    width: 60px;
+}
+</style> 
+<script>
+function noenter(e){               
+		if(window.event){                    
+			key = window.event.keyCode;     //IE               
+		} 
+		else{                    
+			key = e.which;     //firefox               
+		}               
+		if(key == 13) {                    
+			                 
+			return false;               
+		} else{                    
+			return true;               
+		}          
+	}   
+</script>
+<apex:form id="form" >
+<apex:pageBlock id="Oficinas" title="Apertura - Cierre de oficinas de ventas">
+<apex:pageMessages />
+<table>
+    <tr>
+    <td align="right"><apex:outputLabel value="Oficina de ventas:" for="account__name"/></td>
+    <td align="left" class="TdLeft">
+    	<apex:inputText value="{!oficina.Codigo__c}" label="Oficina de ventas:" id="account__name" styleClass="Codigo" onkeypress="return noenter(event)">
+    		<apex:actionSupport action="{!buscarSAP}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="form" />
+    	</apex:inputText>
+    </td>
+    <td> <apex:inputField value="{!oficina.CEDIS__c}" onkeypress="return noenter(event)">
+    		<apex:actionSupport action="{!LlenaCodigo}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="form" />
+   		 </apex:inputField>
+    	 <apex:actionStatus id="actionStatusSucursal">
+            <apex:facet name="start">
+                 <img src="/img/loading.gif" class="imgLoading"/>
+             </apex:facet>	
+    	 </apex:actionStatus>
+    </td>
+    </tr>
+    <tr>
+    	<td><apex:commandButton action="{!consultar}" value="Consultar" /></td>
+    	<td></td>
+    </tr>
+    </table>
+ <apex:outputPanel id="thePanel" rendered="{!listaAMostrar != null}">
+    <apex:pageBlockTable value="{!listaAMostrar}" var="opp">
+                <apex:column headerValue="Oficina padre">
+                    <apex:outputText value="{!opp.OficinaPadreDescripcion}" style="width: 30px;"/>
+                </apex:column>
+               <apex:column headerValue="oficina de ventas">
+                  <apex:outputText value="{!opp.OficinaDescripcion}"/>
+               </apex:column>
+               <apex:column headerValue="Hora Cierre">
+               <apex:outputText value="{!opp.horaCierre}"/>
+               </apex:column>
+               <apex:column headerValue="Reapertura">
+               <apex:inputCheckbox value="{!opp.Reapertura}" disabled="true" />
+               </apex:column>
+               <apex:column headerValue="Cerrada">
+               <apex:inputCheckbox value="{!opp.Cerrado}" disabled="true" />
+               </apex:column>
+               <apex:column headerValue="Nueva Hora Cierre">
+               <apex:outputText value="{!opp.horaCierreNueva}"/>
+               </apex:column>
+               <apex:column style="width:10px;">
+                  <apex:inputCheckbox value="{!opp.Seleccionado}" />
+                </apex:column>
+            </apex:pageBlockTable> 
+           
+            <table >
+			    <tr>
+			    	<td><apex:commandButton action="{!CerrarCanal}" value="{!ValorBoton}" reRender="form" /></td>
+			    	<td><apex:commandButton action="{!AperturarCanal}" value="Aperturar" /></td>
+			    	<td><apex:commandButton action="{!ExtensionCanal}" value="Extension" /></td>
+				    <td align="right"><apex:outputLabel value="Motivo: " for="Motivos"/></td>
+				    <td align="left" class="TdLeft">
+				    	<apex:selectList size="1" value="{!Motivo}"  id="Motivos" label="Motivo: " >
+				            <apex:selectOptions value="{!MotivosReapertura}"/>
+				        </apex:selectList> 
+				    </td>
+			    </tr>
+			    
+			  </table>
+            </apex:outputPanel>
+            
+	
+</apex:pageBlock>
+</apex:form>
+</apex:page>

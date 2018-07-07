@@ -1,0 +1,23 @@
+<apex:page standardController="Case" extensions="ctrlManageCasesAC" sidebar="false" >
+    <apex:form >
+    <apex:messages />
+        <apex:pageBlock >
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!createSKSugerencia}" value="Guardar" onclick="window.close()"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection columns="2">
+                <apex:pageBlockSectionItem >
+                    <h3>{!skRType}</h3>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:inputField value="{!tlvS.SK_Categoria__c}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection columns="1">
+                <apex:pageBlockSectionItem >
+                    <apex:inputField value="{!tlvS.Description}" style="width:750px; height:50px;"/>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

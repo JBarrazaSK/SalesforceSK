@@ -1,0 +1,259 @@
+<apex:page id="profilerPlanPage" StandardController="Lead" extensions="BLDS.ProfilerPlanMassInsertExtension" recordSetVar="c">
+<apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryDraggable, 'jquery-1.9.1.js')}" />    
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryDraggable, 'jquery-ui.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.BLDS__JQueryDraggable, 'jquery-ui.css')}"/>
+        
+        <script type="text/javascript">
+         $j = jQuery.noConflict(); 
+         
+          $j(function() {
+          
+          // --------------------- Day --
+            $j( "#sliderDayDiv" ).slider({
+              value:{!theDay},
+              min: 1,
+              max: 31,
+              step: 1,
+              slide: function( event, ui ) {
+                $j( "#sliderDay" ).val(ui.value );
+                $j("[id$=idInputHidden]").val(ui.value);
+              }
+            });
+            $j( "#sliderDay" ).val($j( "#sliderDayDiv" ).slider( "value" ) );
+            
+            // ------------------- Month --
+            
+            $j( "#sliderMonthDiv" ).slider({
+              value:{!theMonth},
+              min: 1,
+              max: 12,
+              step: 1,
+              slide: function( event, ui ) {
+                $j("#sliderMonth" ).val(ui.value );
+                $j("[id$=idInputHiddenMonth]").val(ui.value);                
+              }
+            });
+            $j( "#sliderMonth" ).val($j( "#sliderMonthDiv" ).slider( "value" ) );       
+            
+            // check on load radio group button
+            var chooseModeRd = '{!$Component.chooseModeRd}';
+            if(chooseModeRd == ''){
+            	chooseModeRd = 'profilerPlanPage:form:idFrequency:chooseModeRd';
+            }
+            
+            if (document.getElementById(chooseModeRd+':0').checked) {//dis 
+			    document.getElementById('monthlyDiv').style.display = 'none';document.getElementById('weeklyDiv').style.display = 'none';
+			    
+			} else if (document.getElementById(chooseModeRd+':1').checked) {//weekly 
+			    document.getElementById('monthlyDiv').style.display = 'none';document.getElementById('weeklyDiv').style.display = 'block';
+			    
+			} else  if (document.getElementById(chooseModeRd+':2').checked) {//monthly 
+				document.getElementById('monthlyDiv').style.display = 'block';document.getElementById('weeklyDiv').style.display = 'none';
+			}                   
+           
+          });          
+     
+        
+        function pasteData(idTextArea){
+            //alert(window.clipboardData.getData('Text') );
+            //document.getElementById(idTextArea).innerHTML = window.clipboardData.getData('Text');  
+            
+        }
+        
+        function clearData(idTextArea){
+            document.getElementById(idTextArea).value = '';
+        }
+        
+        function refreshlider()
+        {
+	           var inputElem = document.getElementsByTagName("textarea");
+	           var txtDescription;
+           		 for(var i=0;i<inputElem.length;i++)
+	            {
+                    if(inputElem[i].id.indexOf("description") != -1)
+                	{
+                    	txtDescription = inputElem[i];
+                    	
+                    }
+           		 }
+           		 txtDescription.disabled = true;           		 
+        }
+        
+        function ChangePlanName(idSelect, idFrequency){
+        	
+        	var selectObject = document.getElementById(idSelect);
+        	 try{
+	            var inputElem = document.getElementsByTagName("input");
+	            var txtName;
+	            var txtDescription;
+	            for(var i=0;i<inputElem.length;i++)
+	            {
+	                if(inputElem[i].id.indexOf("name") != -1)
+	                	{
+	                    	txtName = inputElem[i];
+	                    }
+           		 }
+           		 inputElem = document.getElementsByTagName("textarea");
+           		 for(var i=0;i<inputElem.length;i++)
+	            {
+                    if(inputElem[i].id.indexOf("description") != -1)
+                	{
+                    	txtDescription = inputElem[i];
+                    	
+                    }
+           		 }
+           		 
+            }catch(e){
+                alert(e);
+            }
+        	
+        	
+        	var strValue = selectObject[selectObject.selectedIndex].value;
+        	var strText = selectObject[selectObject.selectedIndex].text;
+        	
+        	if(strValue == "NewPlan")
+        	{
+        		txtName.value = '';
+        		txtName.disabled = false;
+        		txtDescription.value = '';
+        		txtDescription.disabled = false;
+        		
+        		document.getElementById(idFrequency).style.display = 'block';
+        	}
+        	else
+        	{
+        		txtName.value = strText;
+        		txtName.disabled = true;
+        		txtDescription.disabled = true;
+        		HandleSelectPlanJS();
+        		
+        		// hide 
+        		document.getElementById(idFrequency).style.display = 'none';
+        	}
+        }  
+        
+        function onChooseScheduleMode(mode){
+	        	if(mode == 'Disable'){
+	        		document.getElementById('monthlyDiv').style.display = 'none';document.getElementById('weeklyDiv').style.display = 'none';
+	        	} else if(mode == 'Weekly'){
+	        		document.getElementById('monthlyDiv').style.display = 'none';document.getElementById('weeklyDiv').style.display = 'block';
+	        	} else{
+	        		document.getElementById('monthlyDiv').style.display = 'block';document.getElementById('weeklyDiv').style.display = 'none';
+	        	}
+        }
+                 
+        </script>
+        <style>
+            .rich-tabpanel-content {
+                background-color: white;
+            }
+            
+            .rich-tab-active {
+            	background-image: none;
+            	background-color: #1797E4;
+            	color: white;
+            	font-size:13px;
+            	font-weight:bold;
+            }
+            .rich-tab-inactive {
+           		background-image: none;
+            	background-color: #BEE0F0;
+            	color: black;
+            	font-size:13px;
+            	font-weight:bold;
+            }
+            .rich-tab-bottom-line {
+            	background-color: #BEE0F0;
+            }
+            .rich-tab-bottom-line table {
+            	border-color:red;
+            }
+        </style>
+        
+        
+    <apex:form id="form" >
+   
+             
+        <apex:pageMessages />
+        <br/>
+        <h2 class="mainTitle" style="font-size:130%">Profiler Campaign Detail</h2>
+        <br/><br/> 
+        <table>
+        	<tr>
+                <td><b>Plan<span style="color:red">*</span></b>  </td>
+                <td><apex:selectList value="{!planId}" size="1" id="filterAction" style="width:622px;"
+                	onchange="ChangePlanName(this.id,'{!$Component.idFrequency}');">
+                                <apex:selectOptions value="{!PlanRecords}"/> 
+                            </apex:selectList>  &nbsp; </td>
+            </tr>
+            <tr>
+                <td><b>Name<span style="color:red">*</span></b>  </td>
+                <td><apex:inputField value="{!objProfilerPlan.Name}" id="name" style="width:622px;"/> </td>
+            </tr>
+            <tr>
+                <td><b>Description</b></td>
+                <td> <apex:inputField value="{!objProfilerPlan.BLDS__Description__c}" id="description" style="width:622px;"/> </td>
+            </tr>
+        </table>
+        <apex:actionStatus id="renderMeStatus" onstop="refreshlider();"/>
+               
+        <apex:actionFunction name="updateScheduleModeJS" action="{!updateScheduleMode}" rerender="">
+            <apex:param name="mode" assignTo="{!SCHEDULE_MODE}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="HandleSelectPlanJS" action="{!HandleSelectPlan}" rerender="description" status="renderMeStatus"></apex:actionFunction>
+        
+      
+        
+      <apex:pageBlock title="Automated refresh" id="idFrequency">                
+        <apex:selectRadio id="chooseModeRd" value="{!SCHEDULE_MODE}" onclick="onChooseScheduleMode(this.value);" >        				                      
+               <apex:selectOption itemValue="Disable" itemLabel="Disabled"/><br/>                        	
+               <apex:selectOption itemValue="Weekly" itemLabel="Weekly"/><br/>                        	
+               <apex:selectOption itemValue="Monthly" itemLabel="Monthly"/>                        	
+         </apex:selectRadio>
+         <br/>
+         <apex:outputPanel >
+         	<div id="weeklyDiv">
+         		Recurs every week on 
+				<apex:selectRadio value="{!daySelected}">
+			    	<apex:selectOptions value="{!daysOfWeek}"/>
+				</apex:selectRadio>
+			</div>
+			
+			<div id="monthlyDiv">
+				<table style="width:700px">
+			        <tr>
+			            <td style="width:80px">
+			                <apex:inputHidden value="{!theDay}" id="idInputHidden" />                                                                
+			                <label for="sliderDay" style="width:60px; font-size:105%;">The Day</label>                                    
+			                <input id="sliderDay" style="border: 0; color: #f6931f; font-weight: bold; width:20px"/>
+			                                        
+			            </td>
+			            <td style="width:200px">
+			                <div id="sliderDayDiv" style="width:200px;"></div>
+			            </td>
+			                
+			            <td style="width:70px">                                   
+			                <apex:inputHidden value="{!theMonth}" id="idInputHiddenMonth" />  
+			                <label for="sliderMonth" style="width:60px; font-size:105%;"> of every </label>
+			                <input id="sliderMonth" style="border: 0; color: #f6931f; font-weight: bold; width:20px" />
+			                
+			            </td>
+			            <td style="width:200px">
+			                <div id="sliderMonthDiv" style="width:200px;"></div>
+			                
+			            </td>
+			            <td style="width:20px">
+			                <span style="font-size:120%;"> month</span>
+			            </td>
+			        </tr>
+			    </table>        				
+			</div>         
+         			
+        </apex:outputPanel>
+      </apex:pageBlock>
+      
+        
+        <br/>        
+        <apex:commandButton value="Save" action="{!savePlan}"/>
+    </apex:form>
+</apex:page>

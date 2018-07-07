@@ -1,0 +1,135 @@
+<apex:page controller="BLDS.CaptureDisplayUpdatedRecords" >
+	<script>
+		window.onload=function(){
+			deleteAttachmentJS();
+		};
+		
+	</script>
+	
+    <apex:form >	
+    	<apex:actionFunction name="deleteAttachmentJS" action="{!deleteAllAttachment}" rerender="msg,errorMessage">    	
+    	</apex:actionFunction>
+    	<!-- This section is for displaying Profiler's logo is initial screen is profiler -->
+        <apex:outputPanel rendered="{!if(strSourcePage == 'Profiler', true, false)}">
+            <table rowspan="0" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td style="height: 14px;"></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div id="logo-border">
+                            <img src="{!URLFOR($Resource.ProfilerResources,'Images/profiler_powered_logo.png')}" 
+                            alt="Broadlook Profiler" id="logo" style="height: 40px; width: 150px;"/>
+                        </div>
+                    </td>
+                </tr>   
+                <tr>
+                    <td style="height: 14px;"></td>
+                </tr>           
+            </table>    
+        </apex:outputPanel>
+        <!-- This section is for displaying Capture's logo is initial screen is capture -->
+        <apex:outputPanel rendered="{!if(strSourcePage != 'Profiler', true, false)}">
+            <table rowspan="0" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td style="height: 14px;"></td>
+                </tr>
+                <tr>
+                    <td style="width:18px;">
+                        <apex:image id="theIcon" value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Images/contact_capture_crm_logo.png')}" height="auto"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="height: 14px;"></td>
+                </tr>       
+            </table>
+        </apex:outputPanel>
+        <!-- This is a main table which displays all the records updtaed or inserted -->
+        <apex:pageBlock >
+	        	<apex:pageMessages id="ErrorMessage" escape="false" />
+				<apex:outputPanel Id="errorMessagePnl">
+						<script>
+							/* Section for displaying error message on mouse hover of error icon*/
+				            var actualMsg = '{!JSENCODE(strErrorMessage)}';
+				            if(actualMsg != '' && actualMsg != null) 
+				            {
+				                var errorTag =  document.getElementsByClassName('msgIcon');
+				                errorTag[0].title = actualMsg;
+				            }
+			            </script>
+				</apex:outputPanel>
+                <apex:outputPanel rendered="{!if(strSourcePage == 'Profiler', true, false)}">
+                    <div style="padding-bottom : 5px;">
+                        <b>Return to &nbsp;</b><apex:outputLink value="/{!strParentId}">{!strParentName}</apex:outputLink><br />
+                    </div>
+                </apex:outputPanel>     
+                <!-- This sections renders all the inserted records -->
+                <apex:outputPanel styleClass="red" rendered="{!if(OR(lstContactInserted.size > 0, lstLeadInserted.size > 0, lstInsertedAccount.size > 0), true, false)}">
+                    
+                    <apex:pageBlockSection collapsible="true" title="Inserted {!lstContactInserted.size + lstLeadInserted.size} Record(s)" id="section1" rendered="true" columns="1">
+                        <apex:facet name="header"> 
+                            <span style="color:{!JSENCODE(strTextColor)}"><h3>Inserted {!lstContactInserted.size + lstLeadInserted.size + lstInsertedAccount.size} Record(s)</h3></span>
+                        </apex:facet>
+                        <apex:outputPanel rendered="{!if(lstContactInserted.size > 0, true, false)}" >
+<!--                             <b>{!strContactLabel}(s): {!strTargetObject}</b><br />     -->
+							<b>{!strContactLabel}(s): </b><br /> 
+                            <apex:repeat value="{!lstContactInserted}" var="val">
+                                <apex:outputLink value="/{!val.Id}" >{!val.Name}</apex:outputLink><br />
+                            </apex:repeat>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(lstLeadInserted.size > 0, true, false)}" >
+<!--                             <b>{!strLeadLabel}(s) : {!strTargetObject}</b>    <br /> -->
+							<b>{!strLeadLabel}(s): </b><br />
+                            <apex:repeat value="{!lstLeadInserted}" var="val">
+                                <apex:outputLink value="/{!val.Id}" >{!val.Name}</apex:outputLink><br />
+                            </apex:repeat>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(lstInsertedAccount.size > 0, true, false)}" >
+<!--                             <b>{!strAccountLabel}(s) : {!strTargetObject}</b> <br /> -->
+							<b>{!strAccountLabel}(s): </b><br />
+                            <apex:repeat value="{!lstInsertedAccount}" var="val">
+                                <apex:outputLink value="/{!val.Id}" >{!val.Name}</apex:outputLink><br />
+                            </apex:repeat>
+                        </apex:outputPanel>
+                    </apex:pageBlockSection>
+                </apex:outputPanel> 
+                <!-- This sections renders all the updated records -->
+                <apex:outputPanel styleClass="grey" rendered="{!if(OR(lstContactUpdated.size > 0, lstLeadUpdated.size > 0), true, false)}">
+                    <apex:pageBlockSection collapsible="true" title="Updated {!lstContactUpdated.size + lstLeadUpdated.size} Record(s)" id="section2" rendered="true" columns="1"> 
+                        <apex:facet name="header">
+                            <span style="color:{!JSENCODE(strTextColor)}"><h3>Updated {!lstContactUpdated.size + lstLeadUpdated.size} Record(s)</h3></span>
+                        </apex:facet>
+                        <apex:outputPanel rendered="{!if(lstContactUpdated.size > 0, true, false)}" >
+                            <b>{!strContactLabel}(s): </b>  <br />
+                            <apex:repeat value="{!lstContactUpdated}" var="val">
+                                <apex:outputLink value="/{!val.Id}" >{!val.Name}</apex:outputLink><br /> 
+                            </apex:repeat>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!if(lstLeadUpdated.size > 0, true, false)}" >
+                            <b>{!strLeadLabel}(s) : </b>    <br />
+                            <apex:repeat value="{!lstLeadUpdated}" var="val">
+                                <apex:outputLink value="/{!val.Id}" >{!val.Name}</apex:outputLink><br />
+                            </apex:repeat>
+                        </apex:outputPanel>
+                    </apex:pageBlockSection>
+                </apex:outputPanel>
+                <!-- This sections renders all the other object records inserted -->
+                <apex:outputPanel rendered="{!if(lstsObjectRecord.size > 0, true, false)}">
+                    <apex:pageBlockSection collapsible="true" title="Inserted Other Object Record" id="section3" rendered="true" columns="1"> 
+                        <apex:facet name="header">
+                            <span style="color:{!JSENCODE(strTextColor)}"><h3>Inserted {!lstsObjectRecord.size} Record(s)</h3></span>
+                        </apex:facet>
+                        <apex:outputPanel rendered="{!if(lstsObjectRecord.size > 0, true, false)}" >
+                            <b>{!strObjectName} : </b>  <br />
+                            <apex:repeat value="{!lstsObjectRecord}" var="val">
+                                <apex:outputLink value="/{!val['Id']}" >{!val['Name']}</apex:outputLink><br />
+                            </apex:repeat>
+                        </apex:outputPanel>
+                    </apex:pageBlockSection>
+                </apex:outputPanel> 
+            <apex:outputPanel rendered="{!blnNoRecord}" >
+                No record updated or inserted
+            </apex:outputPanel>
+        </apex:pageBlock>   
+    </apex:form>
+</apex:page>

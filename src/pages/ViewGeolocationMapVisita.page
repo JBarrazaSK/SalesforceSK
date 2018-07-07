@@ -1,0 +1,10 @@
+<!--
+ - Description: Page layout component for viewing visitas geolocation on Google Maps.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 30/09/2014
+ -->
+<apex:page standardController="Visita__c">
+<c:ViewGeolocationMap latitude="{!Visita__c.Geolocalizacion__Latitude__s}" longitude="{!Visita__c.Geolocalizacion__Longitude__s}"/>
+</apex:page>

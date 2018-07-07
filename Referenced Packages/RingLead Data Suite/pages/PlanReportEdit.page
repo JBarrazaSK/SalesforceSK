@@ -1,0 +1,59 @@
+<apex:page id="reportDetailEdit" controller="BLDS.PlanReportDetailController" tabStyle="Profiler_Plan_View__tab">
+	<apex:form id="topForm">
+		<apex:sectionHeader title="Profiler Actions Detail" subtitle="{!report.Name}"/>
+        <apex:pageMessages id="topPageMsg"/>
+        
+         <apex:outputPanel id="reportInfoDetails">
+            <apex:pageBlock id="reportInfo" rendered="{!!isShowProcessing}">
+                <apex:pageBlockButtons >
+                    <apex:commandButton rendered="{!report.BLDS__Status__c != 'Completed'}" value="Run This Report" action="{!runThisReport}"/>
+                    <apex:commandButton value="Delete" onclick="return confirmOnDelete();"/>
+                    <apex:commandButton value="Edit" action="{!navigateToEdit}"/>
+                </apex:pageBlockButtons>
+                <table>
+                    <tr>
+                        <td class="labelCol" width="10%">Plan Report Name</td>
+                        <td class="dataCol col02 inlineEditWrite" width="40%"><apex:outputField value="{!report.Name}"/></td>
+                                        
+                        <td class="labelCol" width="10%">Description</td>
+                        <td class="dataCol col02 inlineEditWrite" width="100%"><apex:outputField value="{!report.BLDS__Description__c}"/></td>
+                    </tr>
+                    <tr>
+                        <td class="labelCol">Plan Name</td>
+                        <td class="dataCol col02 inlineEditWrite"><apex:outputField value="{!report.BLDS__Plan_Name__c}"/></td>
+                                        
+                        <td class="labelCol">Number of Contacts</td>
+                        <td class="dataCol col02 inlineEditWrite"><apex:outputField value="{!report.BLDS__Total__c}"/></td>
+                    </tr>
+                    <tr>
+                        
+                        <td class="labelCol">Status</td>
+                        <td class="dataCol col02 inlineEditWrite"><apex:outputField value="{!report.BLDS__Status__c}"/></td>
+                                        
+                        <td class="labelCol">Owner</td>
+                        <td class="dataCol col02 inlineEditWrite"><apex:outputField value="{!report.Owner.Name}"/></td>
+                    </tr>
+                    <tr>
+                        <td class="labelCol"><b>Filter</b></td>
+                        <td class="dataCol col02 inlineEditWrite" colspan="3">
+                            <!-- <apex:outputField value="{!report.Filter_Label__c}"/>  -->
+                            <apex:outputpanel rendered="{! !ISBLANK(report.Filter_Category__c)}">
+                                <b>Title : </b><apex:outputtext value="{!report.BLDS__Filter_Category__c}"></apex:outputtext>
+                            </apex:outputpanel>
+                            <b>Minimum Score : </b><apex:outputtext value="{!report.BLDS__Filter_Minimum_Score__c}"></apex:outputtext>
+                            <br/>
+                            <b>Status : </b><apex:outputtext value="{!report.BLDS__Filter_Status__c}"></apex:outputtext>
+                            <br/>
+                            <b>Email : </b><apex:outputtext value="{!report.BLDS__Filter_Email__c}"></apex:outputtext>
+                            <br/>
+                            <b>Include auto fill email : </b><apex:outputtext value="{!report.BLDS__Filter_Autofill_email__c}"></apex:outputtext>
+<!--                             <apex:outputText value="{!filterString}" escape="true" /> -->
+                        </td>
+                    </tr>
+                </table>
+                <br/>
+            </apex:pageBlock>
+        </apex:outputPanel>
+        
+	</apex:form>
+</apex:page>

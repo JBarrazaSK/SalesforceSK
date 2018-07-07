@@ -1,0 +1,11 @@
+<apex:page sidebar="false" showHeader="false" controller="BLDS.ShieldUpdateController">
+	<apex:form >
+		<apex:pageBlock title="Registration Required" rendered="{!debugMode}">
+			
+			<apex:outputText id="notRegistered" value="{!HTMLENCODE(strNoRegMesg)}" escape="false"/><p/>
+	        <div style="padding-left: 350px;">
+	        	<input id="thePage:theForm:theButton" type="button" onclick="window.close();" name="thePage:theForm:theButton" value="Close" />
+	        </div>
+		</apex:pageBlock>
+	</apex:form>	
+</apex:page>

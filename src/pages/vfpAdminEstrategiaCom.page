@@ -1,0 +1,857 @@
+<apex:page Controller="SaldoEstrategiaController" standardStylesheets="true" >
+<style>
+        .ui-widget *, .ui-widget input, .ui-widget select, .ui-widget button {
+            font-family: 'Helvetica Neue Light', 'Open Sans', Helvetica;
+            font-size: 14px;
+            font-weight: 300 !important;
+        }
+        .details-form-field-search-codigo{
+             width: 50px;
+
+            },
+        .details-form-field-search-codigoName{
+             width: 150px;
+
+            },
+        .details-form-field input,
+        .details-form-field select {
+            width: 250px;
+            float: right;
+        }
+
+        .details-form-field {
+            margin: 30px 0;
+        }
+
+        .details-form-field:first-child {
+            margin-top: 10px;
+        }
+
+        .details-form-field:last-child {
+            margin-bottom: 10px;
+        }
+
+        .details-form-field button {
+            display: block;
+            width: 100px;
+            margin: 0 auto;
+        }
+
+        input.error, select.error {
+            border: 1px solid #ff9999;
+            background: #ffeeee;
+            display: inline-block;
+
+        }
+
+       label.error {
+        display: none !important;
+            /*display: inline-block;
+            margin-right: .5em;
+            padding-top: 1.5em;
+            font-size: .8em;
+            color: #ff6666;*/
+        }
+        .details-form-button  {
+            display: inline;
+
+        }
+        #title .pbTitle {
+            display: inline-block;
+        }
+    </style>
+    <script src="../../soap/ajax/40.0/connection.js" type="text/javascript"></script>
+    <script src="../../soap/ajax/40.0/apex.js" type="text/javascript"></script>
+
+    <apex:stylesheet value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'css/jsgrid.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'css/theme.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'css/jquery-ui.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.Demo, 'css/PedidoWizard.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.Demo, 'js/jquery-1.11.1.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'external/jquery/jquery-1.8.3.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'external/jquery/jquery-1.10.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'external/jquery/jquery-ui.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'external/jquery/jquery.validate.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/json2.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/db.js')}"/>
+
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/jsgrid.core.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/jsgrid.load-indicator.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/jsgrid.load-strategies.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/jsgrid.sort-strategies.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/jsgrid.field.js')}"/>
+
+
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/fields/jsgrid.field.text.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/fields/jsgrid.field.textarea.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/fields/jsgrid.field.number.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/fields/jsgrid.field.checkbox.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/fields/jsgrid.field.select.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.RecursosSaldoEstrategia, 'src/fields/jsgrid.field.control.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.Demo, 'js/PedidoWizard.js')}"/>
+
+ <apex:form >
+ <div id="title">
+    <apex:pageBlock title="Configuracion Estrategia" Id="messages">
+
+ <div id="divMsg">
+  <apex:pageMessages id="showmsg" />
+  </div>
+
+      <apex:actionFunction name="showPageMessage" action="{!showPageMessage}" rerender="messages">
+      <apex:param name="level" assignTo="{!level}" value="" />
+      <apex:param name="message" assignTo="{!message}" value="" />
+    </apex:actionFunction>
+
+
+</apex:pageBlock>
+</div>
+ </apex:form>
+<apex:pageBlock >
+ <apex:pageBlockButtons >
+                  <input type="button" value="Agregar Registro" class="btn" onclick="showDetailsDialog('Agregar', {})" />
+                <!--<apex:commandButton action="{!save}" value="Guardar"/>-->
+
+</apex:pageBlockButtons>
+        <div id="jsGrid"></div>
+            <div id="detailsDialog" style="display:none;">
+                <form id="detailsForm">
+                    <div class="details-form-field">
+                        <label for="name">Nombre:</label>
+                        <input id="name" name="name" type="text" disabled ="disabled" />
+                    </div>
+
+                    <div>
+                            <label for="CodigoMaster">Código&nbsp;&nbsp;</label>
+                            <label for="CodigoMasterName">Producto Master</label>
+                    </div>
+                     <div >
+
+                        <input id="CodigoMaster" name="CodigoMaster" type="text" class="details-form-field-search-codigo"  onblur="SearchProductMaster()" />
+                        <input id="CodigoMasterName" name="CodigoMasterName" disabled ="disabled" type="text" class="details-form-field-search-codigoName" />
+                        <input type="button" value="Buscar" class="btn" onclick="openModalProductoMaster(1)"/>
+
+                    </div>
+                    <br/>
+                     <div>
+                            <label for="CodigoMaster">Código&nbsp;&nbsp;</label>
+                            <label for="CodigoMaster">Producto</label>
+                    </div>
+                    <div >
+                        <input id="CodigoProducto" name="CodigoMaster" type="text" class="details-form-field-search-codigo" onblur="SearchProductPortafolio()" />
+                        <input id="ProductoName" name="CodigoMaster" disabled ="disabled" type="text" class="details-form-field-search-codigoName" />
+                         <input type="button" value="Buscar" class="btn" onclick="openModalPortafolio(1)"/>
+
+                    </div>
+                    <br/>
+
+                    <div id="AddRow" align="center">
+
+
+                        <table>
+                        <tr>
+                            <td align="center"><label for="anio">Año</label></td>
+                            <td align="center" > <label for="semana">Semana</label></td>
+                             <td align="center"> </td>
+                             <td align="center" > <label for="semana">Semana</label></td>
+                        </tr>
+                         <tr>
+                         <td>
+                                <select id="anio" name="anio">
+                                <option value="">Seleccione</option>
+                                    <apex:repeat value="{!MapAnios}" var="productCode">
+                                         <option value="{!MapAnios[productCode].Anio__c}">{!MapAnios[productCode].Anio__c}</option>
+                                    </apex:repeat>
+                                </select>
+                         </td>
+
+                            <td>
+                                    <select id="semana" name="semana">
+                                  <option value="">Seleccione</option>
+                                    <apex:repeat value="{!MapSemanas}" var="productCode">
+                                         <option value="{!MapSemanas[productCode].Id}|{!MapSemanas[productCode].Fecha_Inicial__c}|{!MapSemanas[productCode].Fecha_Final__c}|{!MapSemanas[productCode].Anio__c}">{!MapSemanas[productCode].Name}</option>
+
+                                    </apex:repeat>
+                                </select>
+                        </td>
+                        <td>a la</td>
+                        <td>
+                                 <select id="semana2" name="semana2">
+                                  <option value="">Seleccione</option>
+                                    <apex:repeat value="{!MapSemanas}" var="productCode">
+                                         <option value="{!MapSemanas[productCode].Id}|{!MapSemanas[productCode].Fecha_Inicial__c}|{!MapSemanas[productCode].Fecha_Final__c}|{!MapSemanas[productCode].Anio__c}">{!MapSemanas[productCode].Name}</option>
+
+                                    </apex:repeat>
+                                </select>
+                        </td>
+                         </tr>
+                    </table>
+
+                    </div>
+                    <div id="ModRow">
+                            <table>
+                        <tr>
+                            <td align="center"><label for="anio">Año</label></td>
+                            <td align="center" > <label for="semana">Semana</label></td>
+
+                        </tr>
+                         <tr>
+                         <td>
+                                <select id="anioMod">
+                                <option value="">Seleccione</option>
+                                    <apex:repeat value="{!MapAnios}" var="productCode">
+                                         <option value="{!MapAnios[productCode].Anio__c}">{!MapAnios[productCode].Anio__c}</option>
+                                    </apex:repeat>
+                                </select>
+                         </td>
+
+                            <td>
+                                    <select id="semanaMod">
+                                  <option value="">Seleccione</option>
+                                    <apex:repeat value="{!MapSemanas}" var="productCode">
+                                         <option value="{!MapSemanas[productCode].Id}|{!MapSemanas[productCode].Fecha_Inicial__c}|{!MapSemanas[productCode].Fecha_Final__c}">{!MapSemanas[productCode].Name}</option>
+
+                                    </apex:repeat>
+                                </select>
+                        </td>
+
+                         </tr>
+                    </table>
+                    </div>
+                     <br/>
+                    <div align="center">
+                        <label for="SaldoAuto" style="float: left;margin-left:60px; ">Autoservicio</label>
+                        <label for="address" style="float: left;margin-left:20px;">Mayoreo</label>
+                        <label for="address" style="float: left;margin-left:25px;">Exportacion</label>
+                    </div>
+                     <div align="center">
+                        <input id="SI_Auto"  type="text" style="width:80px" />
+                        <input id="SI_My"  type="text" style="width:80px" />
+                        <input id="SI_Ex"  type="text"  style="width:80px"/>
+                        <input type="hidden" id="Auto_ini" />
+                        <input type="hidden" id="My_ini" />
+                        <input type="hidden" id="Ex_ini" />
+                        <input type="hidden" id="SF_Auto" />
+                        <input type="hidden" id="SF_My" />
+                        <input type="hidden" id="SF_Ex" />
+                    </div><br/><br/>
+                    <div align="center">
+                        <button type="button" id="cancel" onclick="CloseModalGrid()" style="width:100px">Cancelar</button>
+                        <button type="submit" id="save" style="width:100px">Modificar</button>
+                    </div>
+                </form>
+        </div>
+        <div id="modalPortafolio" >
+            <apex:pageBlock title="Búsqueda de producto">
+                <apex:pageBlockButtons location="top">
+                    <label class="labelCol">Nombre del producto:</label>
+                    <input type="text" id="inputSearchText2" onkeyup="filterProducts()"/>
+                </apex:pageBlockButtons>
+                <table class="list pageBlockTablePortafolio" border="0" cellpadding="0" cellspacing="0">
+                    <tr class="headerRow">
+                        <td>Código del producto</td>
+                        <td>Descripción del producto</td>
+                        <td></td>
+                    </tr>
+                    <apex:repeat value="{!product2XproductCodeMap}" var="productCode">
+                        <tr class="dataRow" onclick="selectItemPortafolio('{!product2XproductCodeMap[productCode].ProductCode}','{!product2XproductCodeMap[productCode].Description}','{!product2XproductCodeMap[productCode].Id}')" onmouseover="rowOn(this)" onmouseout="rowOff(this)">
+                            <td>{!product2XproductCodeMap[productCode].ProductCode}</td>
+                            <td>{!product2XproductCodeMap[productCode].Description}</td>
+                            <td style="display:none">
+                                {!product2XproductCodeMap[productCode].Producto_Master__r.MasterID__c}
+                                <input type="hidden" id="IdProducto" value="'{!product2XproductCodeMap[productCode].Id}'"/>
+
+
+                            </td>
+                             <td style="display:none">
+                                {!product2XproductCodeMap[productCode].Id}
+                                <input type="hidden" id="IdProducto" value="'{!product2XproductCodeMap[productCode].Id}'"/>
+
+
+                            </td>
+
+                        </tr>
+                    </apex:repeat>
+                </table>
+                <script type="text/javascript">setProductMap()</script>
+                <apex:pageBlockButtons location="bottom">
+                    <input type="button" value="Cerrar" class="btn" onclick="closeModalPortafolio()"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+        </div>
+        <div id="modalProductosMaster" >
+            <apex:pageBlock title="Búsqueda de producto Master">
+
+                <apex:pageBlockButtons location="top">
+                    <label class="labelCol">Nombre del producto:</label>
+                    <input type="text" id="inputSearchText" onkeyup="filterProductsMaster()"/>
+                </apex:pageBlockButtons>
+                <table class="list pageBlockTablePortafolio2" border="0" cellpadding="0" cellspacing="0">
+                    <tr class="headerRow">
+                        <td>Código del producto</td>
+                        <td>Descripción del producto</td>
+                        <td></td>
+                    </tr>
+                    <apex:repeat value="{!MasterXproductCodeMap}" var="productCode">
+                        <tr class="dataRow" onclick="selectItemProductMaster('{!MasterXproductCodeMap[productCode].MasterID__c}','{!MasterXproductCodeMap[productCode].name}','{!MasterXproductCodeMap[productCode].Id}')" onmouseover="rowOn(this)" onmouseout="rowOff(this)">
+                            <td>{!MasterXproductCodeMap[productCode].MasterID__c}</td>
+                            <td>{!MasterXproductCodeMap[productCode].name}</td>
+                            <td style="display:none">
+                                    {!MasterXproductCodeMap[productCode].Id}
+                                <input type="hidden"  Id="IdMaster" value="{!MasterXproductCodeMap[productCode].Id}"/>
+
+                            </td>
+
+                        </tr>
+                    </apex:repeat>
+                </table>
+                <script type="text/javascript">setProductMap()</script>
+                <apex:pageBlockButtons location="bottom">
+                    <input type="button" value="Cerrar" class="btn" onclick="CloseModalProductosMaster()"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+        </div>
+        <script>
+
+            var validator;
+
+        $(function() {
+
+            $('#anio').on('change', function() {
+               var anio = this.value;
+                var weekNumber = (new Date()).getWeek();
+                 if(startDay != 1)
+                   {
+                        weekNumber = weekNumber - 1;
+                   }
+                var currentYear = new Date().getFullYear();
+              $('#semana option').filter(function() {
+                var filtro = '';
+                    if($(this).val() !='Seleccione')
+                    {
+                         var val = $(this).val().split("|");
+                         filtro = val[3];
+                         if(anio != filtro)
+                         {
+                             $(this).hide();
+                         }
+                        else
+                        {
+                            if(parseInt($(this).text()) < weekNumber){
+                               $(this).hide();
+                            }
+                             else
+                                $(this).show();
+
+                            if(filtro > currentYear)
+                                $(this).show();
+
+                        }
+                    }
+
+
+                });
+              $('#semana2 option').filter(function() {
+                var filtro = '';
+                    if($(this).val() !='Seleccione')
+                    {
+                         var val = $(this).val().split("|");
+                         filtro = val[3];
+                         if(anio != filtro)
+                            $(this).hide();
+                       else
+                        {
+                            if(parseInt($(this).text()) < weekNumber){
+                               $(this).hide();
+                            }
+                             else
+                                $(this).show();
+
+                            if(filtro > currentYear)
+                                $(this).show();
+
+                        }
+                    }
+
+
+                });
+            })
+
+            var ComboAnio =[];
+            closeModalPortafolio();
+            CloseModalProductosMaster();
+            $('#AddRow').hide();
+            $('#ModRow').hide();
+            var startDay;
+            Date.prototype.getWeek = function(){
+                var onejan = new Date(this.getFullYear(), 0, 1);
+                startDay = onejan.getDay() == 0? 1 : onejan.getDay();
+                return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() ) / 7);
+            }
+
+
+            function RequestData(){
+             var RowsEstrategias = [];
+             var row = new Object();
+
+
+             var weekNumber = (new Date()).getWeek();
+             if(startDay != 1)
+               {
+                    weekNumber = weekNumber - 1;
+               }
+
+             var query = "SELECT "+'{!column}'+ " from AdminSaldosEstrategias__c "+"where Num_Semana__r.name >= " +"'"+weekNumber+"'";
+             var records = sforce.connection.query(query);
+             var records1 = records.getArray('records');
+             for(var i=0; i<records1.length;i++){
+                     row = new Object();
+                     row["Id"] = records1[i].Id;
+                     row["Folio__c"] = records1[i].Folio__c;
+                     row["Name"] = records1[i].Name;
+                     row["Anio__c"] = records1[i].Anio__c;
+                     row["Num_Semana__c"] = records1[i].Num_Semana__r.Name;
+                     row["Fecha_Inicial__c"] = $.datepicker.formatDate('dd/mm/yy', new Date( records1[i].Fecha_Inicial__c));
+                     row["Fecha_Final__c"] = $.datepicker.formatDate('dd/mm/yy', new Date( records1[i].Fecha_Final__c));
+                     row["ProdM_Name"] = records1[i].Prod_Master__r.Name;
+                     row["Codigo"] = records1[i].Prod_Master__r.MasterID__c;
+                     row["Prod_Name"] = records1[i].productoId__c == null?'':records1[i].productoId__r.Name;
+                     row["SKU"] = records1[i].productoId__c == null?'': records1[i].productoId__r.Codigo_Id_Externo__c;
+                     row["SI_Auto"] = records1[i].Saldo_Inicial_Auto__c== null?'':records1[i].Saldo_Inicial_Auto__c;
+                     row["SI_My"] = records1[i].Saldo_Inicial_Mayo__c== null?'':records1[i].Saldo_Inicial_Mayo__c;
+                     row["SI_Ex"] = records1[i].Saldo_Inicial_Export__c== null?'':records1[i].Saldo_Inicial_Export__c;
+                     row["SF_Auto"] = records1[i].Saldo_Final_Auto__c;
+                     row["SF_My"] = records1[i].Saldo_Final_Mayo__c;
+                     row["SF_Ex"] = records1[i].Saldo_Final_Export__c;
+                     row["IdSemana"] = records1[i].Num_Semana__c;
+                     row["IdMaster"] = records1[i].Prod_Master__c;
+                     row["IdProducto"] = records1[i].productoId__c;
+                     RowsEstrategias.push(row);
+                }
+
+             return RowsEstrategias;
+        }
+
+            $("#jsGrid").jsGrid({
+                height: "auto",
+                width: "100%",
+                sorting: true,
+                paging: false,
+                autoload: true,
+                editing: true,
+                filtering: true,
+                rowClick: function(args) {
+
+                        showDetailsDialog("Modificar", args.item);
+                },
+                deleteItem: function(item) {
+                    if( confirm("La estrategia \"" + item.Name + "\" esta seguro de eliminarla?"))
+                        DeleteRow(item);
+
+                    return '';
+                },
+              controller: {
+                                loadData: function(filter) {
+                                return $.grep(RequestData(), function(client) {
+                                        var valido = false;
+                                        if(filter.Name =="" && filter.Num_Semana__c ==""&&filter.Codigo ==""&&filter.SKU =="")
+                                            return client;
+
+                                        if(filter.Name!= "")
+                                        {
+                                            valido = false;
+                                           if(client.Name.indexOf(filter.Name) > -1)
+                                               valido = true;
+
+                                        }
+                                        if(filter.Num_Semana__c!="")
+                                        {
+                                              valido = false;
+                                             if(client.Num_Semana__c.indexOf(filter.Num_Semana__c) > -1)
+                                                  valido = true;
+                                        }
+                                        if(filter.Codigo!="")
+                                        {
+                                             valido = false;
+                                             if(client.Codigo.indexOf(filter.Codigo) > -1)
+                                                  valido = true;
+                                        }
+                                        if(filter.SKU!="")
+                                        {
+                                            valido = false;
+                                             if(client.SKU.indexOf(filter.SKU) > -1)
+                                               valido = true;
+                                        }
+                                        if(valido)
+                                          return client;
+                                    });
+                                }
+                     },
+                fields: [
+                    {
+                        type: "control",
+                        modeSwitchButton: false,
+                        editButton: false,
+                        width: 20
+
+                    },
+                    { name: "Folio__c", type: "number", width:20, editing: false ,title:"Folio",filtering:false},
+                    { name: "Name", type: "text", width: 40 ,title:"Estrategia",align: "left"},
+                    { name: "Anio__c", type: "text",width: 20, editing: true ,title:"Año",filtering:false},
+                    { name: "Num_Semana__c", type: "text", width: 22 ,title:"Semana",filtering:true},
+                    { name: "Fecha_Inicial__c", type: "number", width: 30, editing: false ,title:"Fecha Inicial",align: "left",filtering:false},
+                    { name: "Fecha_Final__c", type: "number", width: 30, editing: false ,title:"Fecha Final",align: "left",filtering:false},
+                    { name: "Codigo", type: "text", width: 20 ,title:"Codigo",align: "left",filtering:true},
+                    { name: "ProdM_Name", type: "number", width: 50, editing:false ,title:"Producto Master",align: "left",filtering:false},
+                    { name: "SKU", type: "text", width: 20 ,title:"SKU",align: "left",filtering:true},
+                    { name: "Prod_Name", type: "number", width: 50, editing:false ,title:"Producto",align: "left",filtering:false},
+                    { name: "SI_Auto", type: "number", width: 20 ,title:"SI_AS",align: "left",filtering:false},
+                    { name: "SI_My", type: "number", width: 20 ,title:"SI_MY",align: "left",filtering:false},
+                    { name: "SI_Ex", type: "number", width: 20 ,title:"SI_EX",align: "left",filtering:false},
+                    { name: "SF_Auto", type: "number", width: 20, editing: false ,title:"SF_AS",align: "left",filtering:false},
+                    { name: "SF_My", type: "number", width: 20, editing: false ,title:"SF_MY",align: "left",filtering:false},
+                    { name: "SF_Ex", type: "number", width: 20, editing: false ,title:"SF_EX",align: "left",filtering:false},
+                    { name: "Id", type: "text",  editing: false ,title:"Id", visible:false},
+                    { name: "IdSemana", type: "text",  editing: false ,title:"Id", visible:false,filtering:false},
+                    { name: "IdMaster", type: "text",  editing: false ,title:"Id", visible:false,filtering:false},
+                    { name: "IdProducto", type: "text",  editing: false ,title:"Id", visible:false,filtering:false},
+
+
+                ]
+            });
+            $("#jsGrid").jsGrid("sort",  { field: "Num_Semana__c", order: "desc" });
+             $("#detailsDialog").dialog({
+                autoOpen: false,
+                width: 400,
+                close: function() {
+                    $("#detailsForm").find(".error").removeClass("error");
+                }
+            });
+
+
+              validator =   $("#detailsForm").validate({
+                rules: {
+                    name: "required",
+                    CodigoMaster: "required",
+                    anio:{
+                            required: true
+                         },
+                    semana:{
+                            required: true
+                         },
+                    semana2:{
+                            required: true
+                         },
+
+                },
+                messages: {
+                    name: "requerido",
+                    CodigoMaster: "Requerido"
+
+                },
+                submitHandler: function() {
+                    formSubmitHandler();
+                }
+            });
+
+
+
+
+        });
+             var showDetailsDialog = function(dialogType, client) {
+                $('#divMsg').hide();
+                if(dialogType =='Agregar')
+                {
+                    $('#AddRow').show();
+                    $('#ModRow').hide();
+                    $("#name").removeAttr('disabled');
+                    $("#CodigoMaster").removeAttr('disabled');
+                    $("#CodigoProducto").removeAttr('disabled');
+                    $("#anioMod").removeAttr('disabled');
+                    $("#semanaMod").removeAttr('disabled');
+                    $("#name").val('');
+                    $("#CodigoMasterName").val('');
+                    $("#CodigoMaster").val('');
+                    $("#CodigoProducto").val('');
+                    $("#ProductoName").val('');
+                    $("#SI_Auto").val('');
+                    $("#SI_My").val('');
+                    $("#SI_Ex").val('');
+                    $("#SF_Auto").val('');
+                    $("#SF_My").val('');
+                    $("#SF_Ex").val('');
+                    $("#anio").val('');
+                    $("#semana").val('');
+                    $('#semana2').val('');
+                    $('#save').html('Agregar');
+   ;
+                }
+                else {
+
+                    $('#AddRow').hide();
+                    $('#ModRow').show();
+                    $("#name").attr('disabled','disabled');
+                    $("#CodigoMaster").attr('disabled','disabled');
+                    $("#CodigoProducto").attr('disabled','disabled');
+                    $("#anioMod").attr('disabled','disabled');
+                    $("#semanaMod").attr('disabled','disabled');
+                    $('#save').html('Modificar');
+                    $("#detailsForm").find(".error").removeClass("error");
+                    $("#name").val(client.Name);
+                    $("#CodigoMasterName").val(client.ProdM_Name);
+                    $("#CodigoMaster").val(client.Codigo);
+                    $("#CodigoProducto").val(client.SKU);
+                    $("#ProductoName").val(client.Prod_Name);
+                    $("#SI_Auto").val(client.SI_Auto);
+                    $("#SI_My").val(client.SI_My);
+                    $("#SI_Ex").val(client.SI_Ex);
+                    $("#Auto_ini").val(client.SI_Auto);
+                    $("#My_ini").val(client.SI_My);
+                    $("#Ex_ini").val(client.SI_Ex);
+                    $("#SF_Auto").val(client.SF_Auto);
+                    $("#SF_My").val(client.SF_My);
+                    $("#SF_Ex").val(client.SF_Ex);
+                    $("#anioMod").val(client.Anio__c).change();
+                    $('#semanaMod option').filter(function() {
+                        return ($(this).text() == client.Num_Semana__c); //To select Blue
+                    }).prop('selected', true);
+                    SearchProductMaster();
+                }
+
+
+
+                formSubmitHandler = function() {
+                    if(dialogType === "Agregar")
+                    {
+                        var semIni = parseInt($("#semana option:selected" ).text());
+                         var semFin = parseInt($("#semana2 option:selected" ).text());
+                         if(semFin <semIni)
+                         {
+                            alert('Debe de capturar un rango de semanas valido');
+                            return false;
+                         }
+                         var diff = (semFin - semIni) + 1;
+                         var validos = true;
+                         client.Anio__c = $("#anio option:selected" ).text();
+                         client.Num_Semana__c = semIni;
+                          client = NewRow(client,dialogType === "Agregar");
+                          for (x = 0; x < diff; x++)
+                          {
+                             client.Num_Semana__c = semIni + x;
+                             if(dialogType === "Agregar")
+                             {
+                                validos = ValidarEstrategia(client);
+                             }
+
+                          }
+                          if(validos)
+                          {
+
+                                   saveClient(client, dialogType === "Agregar",semIni,semFin);
+                                   showPageMessage('CONFIRM', 'Se Guardo con \u00C9xito');
+                                   $('#divMsg').show();
+                                   setTimeout(closeMsg, 5000);
+
+                          }
+                        else
+                        {
+                            $("#detailsDialog").dialog("close");
+                            $("#jsGrid").jsGrid("refresh");
+                            showPageMessage('ERROR', 'Ya existe una estrategia configurada con esos valores');
+                        }
+                    }
+                    else
+                    {
+                        if($("#ProductoName").val() =='' && $("#CodigoProducto").val() != '')
+                        {
+                             $("#detailsDialog").dialog("close");
+                        }
+                        else
+                        {
+                                var ClientEdit = client.Anio__c
+                                                 +client.Num_Semana__c
+                                                 +client.Codigo
+                                                 +client.SKU
+                                                 +client.SI_Auto
+                                                 +client.SI_My
+                                                 +client.SI_Ex;
+                                                 if(dialogType != "Agregar")
+                                                 {
+                                                    var Saldo_Auto =client.SI_Auto - $("#SF_Auto").val();
+                                                    var SaldoMY = client.SI_My - $("#SF_My").val();
+                                                    var SaldoEX = client.SI_Ex - $("#SF_Ex").val();
+                                                    client.SF_Auto = Saldo_Auto;
+                                                    client.SF_My =  SaldoMY;
+                                                    client.SF_Ex =  SaldoEX;
+                                                }
+
+                                var rowEdit = $("#anioMod option:selected" ).text()+$("#semanaMod option:selected" ).text()+$("#CodigoMaster").val()+$("#CodigoProducto").val()+$("#SI_Auto").val()+$("#SI_My").val()+$("#SI_Ex").val();
+
+                                if(ClientEdit != rowEdit){
+                                    saveClient(client, dialogType === "Agregar",semIni,semFin);
+                                    showPageMessage('CONFIRM', 'Se Guardo con \u00C9xito');
+                                    $('#divMsg').show();
+                                    setTimeout(closeMsg, 5000);
+                                }
+                                else
+                                     $("#detailsDialog").dialog("close");
+                        }
+                    }
+
+
+                };
+
+                $("#detailsDialog").dialog("option", "title", dialogType + " Estrategia")
+                    .dialog("open");
+
+
+            };
+                  var saveClient = function(client, isNew,semIni,semFin) {
+                    var grid = $("#jsGrid").data("JSGrid");
+
+
+                     client = NewRow(client,isNew);
+
+                if(isNew){
+                     upsert(client, isNew,semIni,semFin);
+                }
+                else
+                    {
+                        client.Num_Semana__c = $("#semanaMod option:selected" ).text();
+                        client.Anio__c = $("#anioMod option:selected" ).text();
+                          upsert(client, isNew, client.Num_Semana__c, client.Num_Semana__c);
+                        /*if(ValidarEstrategia(client))
+                            upsert(client, isNew, client.Num_Semana__c, client.Num_Semana__c);
+                        else
+                        {
+                            $("#detailsDialog").dialog("close");
+                            $("#jsGrid").jsGrid("refresh");
+                            showPageMessage('ERROR', 'Ya existe una estrategia configurada con esos valores');
+                        }*/
+                    }
+            }
+
+            function CloseModalGrid(){
+
+                 validator.resetForm();
+                 $("#detailsDialog").dialog("close");
+            }
+            function DeleteRow(row)
+            {
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.SaldoEstrategiaController.DeleteEstrategy}',
+                    row.Id,
+                    function(result, event){
+                        if (event.status) {
+                           showPageMessage('CONFIRM', result);
+                            $('#divMsg').show();
+                             setTimeout(closeMsg, 5000);
+                             $("#jsGrid").jsGrid("loadData");
+
+                        } else if (event.type === 'exception') {
+                              showPageMessage('ERROR', event.message);
+                               $('#divMsg').show();
+
+
+
+
+
+                        } else {
+                              showPageMessage('ERROR', event.message);
+                               $('#divMsg').show();
+
+
+                        }
+                    },
+                    {escape: true}
+                );
+            }
+            function upsert(row, isNew,semIni,semFin)
+            {
+
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.SaldoEstrategiaController.AddAdmonEstrategyComercial}',
+                      row,semIni,semFin
+                      ,
+                    function(result, event){
+                        if (event.status) {
+                            row.Folio__c = result;
+                            $("#detailsDialog").dialog("close");
+                            $("#jsGrid").jsGrid("loadData");
+
+                        } else if (event.type === 'exception') {
+                            showPageMessage('ERROR', event.message);
+                             $('#divMsg').show();
+
+
+
+                        } else {
+                             showPageMessage('ERROR', event.message);
+                            $('#divMsg').show();
+                        }
+                    },
+                    {escape: true}
+                );
+                 $("#detailsDialog").dialog("close");
+            }
+
+            function ValidarEstrategia(estrategia)
+            {
+                var grid = $("#jsGrid").data("JSGrid");
+                var result = true
+
+                for (i = 0; i < grid.data.length; i++) {
+                    if(grid.data[i].Anio__c == estrategia.Anio__c
+                        && grid.data[i].Num_Semana__c == estrategia.Num_Semana__c
+                        && grid.data[i].Codigo == estrategia.Codigo)
+                    {
+                        if((grid.data[i].SKU != '' && grid.data[i].SKU == estrategia.SKU))
+                        {
+                              result = false;
+                              break;
+                        }
+                    }
+
+                }
+
+                return result;
+            }
+            function NewRow(client, isNew)
+            {
+                 var values = isNew? $("#semana option:selected" ).val().split("|"):$("#semanaMod option:selected" ).val().split("|");
+                 var semanaId= isNew?$('#semana option').filter(function() {
+
+                        return ($(this).text() == client.Num_Semana__c); //To select Blue
+                    }).prop('selected', true).val().split("|"):'';
+
+                return $.extend(client, {
+                    Name: $("#name").val(),
+                    Codigo : $("#CodigoMaster").val(),
+                    ProdM_Name: $("#CodigoMasterName").val(),
+                    SKU : $("#CodigoProducto").val(),
+                    Prod_Name : $("#ProductoName").val(),
+                    SI_Auto: $("#SI_Auto").val(),
+                    SI_My: $("#SI_My").val(),
+                    SI_Ex : $("#SI_Ex").val(),
+                    SF_Auto: isNew?parseInt($("#SI_Auto").val()):parseInt($("#SI_Auto").val()-client.SF_Auto) ,
+                    SF_My:  isNew?parseInt($("#SI_My").val()):parseInt($("#SI_My").val()-client.SF_My),
+                    SF_Ex :  isNew?parseInt($("#SI_Ex").val()):parseInt($("#SI_Ex").val()-client.SF_Ex),
+                    Fecha_Inicial__c : $.datepicker.formatDate('dd/mm/yy', new Date(values[1])) ,
+                    Fecha_Final__c : $.datepicker.formatDate('dd/mm/yy', new Date(values[2])),
+                    IdSemana: isNew? semanaId[0]:values[0],
+                    IdMaster: $('#IdMaster').val()== ''?client.IdMaster.trim(): $('#IdMaster').val().trim(),
+                    IdProducto: $('#CodigoProducto').val()== ''?null: $('#IdProducto').val().trim(),
+                    Id:isNew?null:client.Id,
+                    Anio__c: client.Anio__c!= ''?client.Anio__c:null
+
+
+
+                });
+            }
+            function closeMsg()
+            {
+                $('#divMsg').hide();
+            }
+        </script>
+   </apex:pageBlock>
+</apex:page>

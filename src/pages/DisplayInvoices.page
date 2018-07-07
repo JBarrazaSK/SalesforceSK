@@ -1,0 +1,933 @@
+<apex:page standardController="Account" extensions="DisplayInvoicesController" showHeader="false" sidebar="false" applyHtmlTag="true" docType="html-5.0" >
+    <style>    
+        dt { margin-top: 1em; }
+        dt:first-child { margin-top: 0; }
+        dd { width: 25% }
+     
+        *[data-editor-field] {
+            border: 1px dashed #ccc;
+            padding: 0.5em;
+            margin: 0.5em;
+        }
+     
+        *[data-editor-field]:hover {
+            background: #f3f3f3;
+            border: 1px dashed #333;
+        }
+    </style>
+    <style>
+        .popupDetalleProductosTable{
+            position: fixed;
+            width: 98%;
+            max-height: 98%;
+            overflow: auto;
+            background-color: #fff;
+            left: 50%;
+            top: 10px;
+            margin-left: -49%;
+            z-index: 9999;
+            padding: 1px;
+        }
+        
+        .popupDetalleCodigoBarrasTable{
+            position: fixed;
+            width: 96%;
+            max-height: 96%;
+            overflow: auto;
+            background-color: #fff;
+            left: 50%;
+            top: 15px;
+            margin-left: -48%;
+            z-index: 9999;
+            padding: 1px;
+        }
+        
+        .popupBackground{
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,.5);
+            z-index: 9999;
+        }
+        
+        body button{
+            text-align: center;
+            margin-left: 48%;
+            padding: 6px;
+            border-radius: 13px;
+            width: 69px;
+            font-size: inherit;
+        }
+        
+        body .btn{
+            text-align: center;
+            //margin-left: 48%;
+            padding: 6px;
+            border-radius: 13px;
+            width: 72px;
+            font-size: inherit;
+        }
+              
+        body {
+            font-family: "Trebuchet MS", "Helvetica", "Arial",  "Verdana", "sans-serif";
+            font-size: 75%;
+        }
+        
+        .loading {
+        
+            display:none;
+            position: fixed;
+            left: 50%;
+            top: 5px;
+            background-color: rgba(0,0,0,.5);
+            height: 100%;
+            //margin-top: -200px;
+            width: 100%;
+            margin-left: -50%;
+            text-align:center;
+            text-decoration: blink;
+            text-decoration-color: red;
+            background:url('/img/analytics/reportbuilder/icons/spinner32.gif') no-repeat center 50%;
+            z-index:9999;
+            overflow: auto;
+            font-size: 110%;
+        }
+        
+        .clsSearchBy{
+            border:2px;
+        }
+        
+        .display th, td {
+            white-space: nowrap;
+        }
+
+    </style>
+    
+    <script>
+    
+        //alert('account parent ::: ' + '{!Account.Parent.Numero_Cliente_SAP__c}');
+        
+        var parentCustomerNmbr = '{!Account.Parent.Numero_Cliente_SAP__c}';
+        var customerNmbr = '{!Account.Numero_Cliente_SAP__c}';
+        var orgVentas = '{!Account.Organizacion_de_Ventas__c}';
+        
+        if(!parentCustomerNmbr && !customerNmbr){
+            alert('Please provide Customer Number.');
+            window.top.location.href = '/{!$CurrentPage.parameters.id}';
+        }
+    </script>
+    
+    <apex:includeScript value="{!URLFOR($Resource.JQueryTable, '/js/jQueryMin.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.JQueryTable, '/js/jQueryDataTablesMin.js')}"/>    
+    <apex:includeScript value="{!URLFOR($Resource.JQueryDatepicker, '/js/jquery_ui.js')}"/>   
+    
+    <apex:stylesheet value="{!URLFOR($Resource.JQueryTable,'/css/dataTablesjQueryUI.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.JQueryTable, '/css/jQueryDataTablesMin.css')}"/>    
+    <apex:stylesheet value="{!URLFOR($Resource.JQueryDatepicker,'/css/jquery_ui.css')}"/>
+    
+    <script>
+    
+        j$ = jQuery.noConflict();
+        
+        j$(document).ready(function() {   
+        
+            j$("#displayFacturaCabecero").hide();           
+            j$('#popupDetalleProductos').hide();
+            j$('#popupDetalleCodigoBarras').hide();     
+            
+            j$('#SearchByDate').hide();
+            j$('#SearchByInvoiceNmbr').hide();
+          
+        });                
+    </script>
+    <div id="dateRange" class="dateRangeClass">
+        <apex:form id="frm">
+            <apex:pageBlock id="pageBlock">
+                <apex:pageMessages />
+                <apex:pageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem >
+                        <input type="button" class="btn" style="display:block;margin:auto;" value="Regresar" onClick="window.top.location.href = '/{!$CurrentPage.parameters.id}'"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:outputPanel title="Search By"  id="searchtimeframe" rendered="{!NOT(ISNULL($CurrentPage.parameters.id))}" >
+                        <p style="font-size:18px;font-weight:bold;">Buscar Por:</p>
+                        <br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;   
+                            
+                        
+                        <label style="font-size:16px;font-weight:bold;"><input type="radio" id="byDateRange" value="DateRange" onChange="displaySearchBlock()"/>&nbsp;
+                        Rango de Fecha</label>
+                        <br/>                        
+                            &nbsp;&nbsp;&nbsp;&nbsp;                           
+                            
+                        
+                        <label style="font-size:16px;font-weight:bold;"><input type="radio" id="byInvoiceNmbr" value="InvoiceNumber" onChange="displaySearchBlock()"/>&nbsp;
+                        Número de Factura</label>
+                        <br/>
+                        <br/>
+                        <script>
+                        
+                            function displaySearchBlock(){
+                                j$(document).on("change", "#byDateRange", function() {
+                                    j$('#byInvoiceNmbr').removeAttr('checked');
+                                    j$('#SearchByDate').show();
+                                    j$('#SearchByInvoiceNmbr').hide();
+                                });
+                                
+                                j$(document).on("change", "#byInvoiceNmbr", function() 
+                                {                             
+                                    j$('#byDateRange').removeAttr('checked');
+                                    j$('#SearchByDate').hide();
+                                    j$('#SearchByInvoiceNmbr').show();
+                                });
+                            }
+                        </script>
+                        <div class="clsSearchBy">
+                            <div id="SearchByDate">
+                                <script>
+                                
+                                    j$ = jQuery.noConflict();
+                                    
+                                    j$(document).ready(function() {  
+                                
+                                            j$("#from").datepicker({
+                                            defaultDate: "+1w",
+                                            changeMonth: true,
+                                            changeYear: true,
+                                            numberOfMonths: 1,
+                                            dateFormat : 'yymmdd',
+                                            onClose: function(selectedDate) {
+                                                j$("#to").datepicker("option", "minDate", selectedDate);
+                                            }
+                                        });
+                                        j$("#to").datepicker({
+                                            defaultDate: "+1w",
+                                            changeMonth: true,
+                                            changeYear: true,
+                                            numberOfMonths: 1,
+                                            dateFormat : 'yymmdd',
+                                            onClose: function(selectedDate) {
+                                                j$("#from").datepicker("option", "maxDate", selectedDate);
+                                            }
+                                        });
+                                    });
+                                </script>
+                                <label for="from">Fecha de Inicio :</label>&nbsp; 
+                                
+                                
+                                <input type="text" id="from" class="start_date" name="Start Date" placeholder="AAAAMMDD"/>
+                                &nbsp;&nbsp;&nbsp;&nbsp;                                   
+                                
+                                
+                                
+                                <label for="to">Fecha de Cierre :</label>&nbsp;                                
+                                
+                                
+                                <input type="text" id="to" class="end_date" name="End Date" placeholder="AAAAMMDD"/>                        
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                    
+                                
+                                
+                                
+                                <apex:CommandButton styleClass="btnSearch" value="Siguiente" onClick="getInvoicesRemote();" rerender="displayFacturaCabecero" />
+                                <script>          
+                                    
+                                    j$ = jQuery.noConflict();
+                                    j$(document).ready(function() {   
+                                    
+                                        var today = Date();
+                                        today = j$.datepicker.formatDate( "yymmdd",new Date(today));
+                                        //alert(today );
+                                        j$("input.start_date").val(today);
+                                        j$("input.end_date").val(today);                 
+                                    
+                                        j$(document).on("keypress", ".start_date", function() {
+                                            if (event.keyCode == 13) {
+                                    
+                                                var startDate = j$("input.start_date").val();
+                                                var endDate = j$("input.end_date").val();
+                                                
+                                                if (typeof(startDate) !== "undefined" && startDate!== null &&
+                                                    typeof(endDate) !== "undefined" && endDate!== null) {
+                                                    j$(".btnSearch").click();                                    
+                                                }
+                                                else{
+                                                    alert("Start Date and End Date is required.");
+                                                }
+                                                
+                                                return false;
+                                            }
+                                        });
+                                    
+                                        j$(document).on("keypress", ".end_date", function() {
+                                            if (event.keyCode == 13) {
+                                            
+                                                var startDate = j$("input.start_date").val();
+                                                var endDate = j$("input.end_date").val();
+                                                
+                                                if (typeof(startDate) !== "undefined" && startDate!== null &&
+                                                    typeof(endDate) !== "undefined" && endDate!== null) {
+                                                    $j(".btnSearch").click();
+                                                }
+                                                else{
+                                                    alert("Start Date and End Date is required.");
+                                                }
+                                                
+                                                return false;
+                                            }
+                                        });                       
+                                        
+                                    }); 
+                                    
+                                </script>
+                            </div>
+                            <div id="SearchByInvoiceNmbr">
+                                <label>Serie :</label>&nbsp;
+                                
+                                
+                                <input type="text" id="serie" class="clsSerie" placeholder="Introduce No. Serie"/>
+                                &nbsp;&nbsp;&nbsp;&nbsp;                                 
+                                    
+                                
+                                
+                                <label>Folio : </label>&nbsp;
+                                
+                                
+                                <input type="text" id="folio" class="clsfolio" placeholder="Introduce No. Folio"/>
+                         
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    
+                                    
+                                
+                                
+                                <apex:CommandButton styleClass="btnSearch" value="Siguiente" onClick="getInvoicesByInvoiceNmbr();" rerender="displayFacturaCabecero" />
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+                </apex:pageBlockSection>
+                <!-- <apex:pageblockButtons location="top" rendered="{!NOT(ISNULL($CurrentPage.parameters.id))}"><apex:commandButton styleClass="cmdBtn" onclick="window.top.location.href = '/{!$CurrentPage.parameters.id}'" value="Regresar"  /></apex:pageblockButtons> -->
+            </apex:pageBlock>
+            <div id="activity_pane">
+                <div class="loading">
+                    <p>Processing...</p>
+                </div>
+            </div>
+            <!-- <apex:actionFunction name="getInvoicesList" reRender="jqueryDatatable" status="ProcessStatus" ></apex:actionFunction> -->
+            <div id="jqueryDatatable">
+                <script> 
+                
+                   
+                   function getInvoicesRemote() {
+                     
+                    var startDate = j$("input.start_date").val();
+                    var endDate = j$("input.end_date").val();
+                    
+                    //startDate = '20150601';                   
+                    //endDate = '20150715'; 
+                    
+                    console.log('inputs:' + startDate + ' - ' + endDate);       
+                    
+                    if(!startDate || !endDate){
+                        
+                        alert('Fecha inicio y Fecha fin son valores requeridos.')   
+                    }
+                    else{
+                    
+                        j$(".loading").show();
+                        j$(".loading").css("background-color","rgba(0,0,0,.5)");
+                        
+                        Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.DisplayInvoicesController.displayInvoices}',
+                            '{!$CurrentPage.parameters.id}',startDate, endDate,'','',orgVentas,
+                        function(result, event) {
+                        
+                            console.log(result);
+    
+                            billingHistroy = result;
+                            console.log('billingHistroy ::::::::: ' + billingHistroy + ':::::::::');
+    
+                            if (event.status && event.result) {
+                                //alert('Good Job - this worked!');
+    
+                                j$ = jQuery.noConflict();
+    
+                                j$(document).ready(function() {
+                                
+                                    j$('#dateRange').hide();
+                                    j$("#displayFacturaCabecero").show();
+                                    j$('#dateRange').attr('style', 'display: none');
+                                    
+                                    if (j$.fn.DataTable.fnIsDataTable(j$('#facturaCabeceroDataTable'))) {
+                                            j$('#facturaCabeceroDataTable').dataTable().fnDestroy();
+                                    }
+                                    
+                                    displayInvoicesHistroy(result);
+                                    
+                                    j$(".loading").hide();
+                                });
+                            } else {
+                                alert(event.message);
+                                j$(".loading").hide();
+                            }
+                        }, {
+                            escape: false,
+                            timeout: 120000,
+                            maxretries: 2
+                        });
+                    }
+
+                   }
+                   
+                   function getInvoicesByInvoiceNmbr() {
+                     
+                    var serie = j$("input#serie").val();
+                    var folio = j$("input#folio").val();
+                    
+                    //serie = 'A';                   
+                    //folio = '217048'; 
+                    
+                    console.log('inputs:' + serie + ' - \'' + folio + '\'');    
+                    //alert('inputs:' + serie + ' - \'' + folio + '\'');     
+                    
+                    console.log('serie == \'\' ::: ' + (typeof(serie.length) != 'undefined'));  
+                    console.log('serie == \'\' ::: ' + (typeof(folio.length) != 'undefined'));
+                    
+                    //if(!serie || !folio){
+                    if(!folio){
+                        
+                        //alert('Both Serie and Folio values are required.'); 
+                        alert('Folio de factura requerido.');  
+                    }
+                    else{
+                    
+                        j$(".loading").show();
+                        j$(".loading").css("background-color","rgba(0,0,0,.5)");
+                        
+                        Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.DisplayInvoicesController.displayInvoices}',
+                            '{!$CurrentPage.parameters.id}','','',serie , folio,orgVentas,
+                        function(result, event) {
+                        
+                            console.log(result);
+    
+                            billingHistroy = result;
+                            console.log('billingHistroy ::::::::: ' + billingHistroy + ':::::::::');
+    
+                            if (event.status && event.result) {
+                                //alert('Good Job - this worked!');
+    
+                                j$ = jQuery.noConflict();
+    
+                                j$(document).ready(function() {
+                                
+                                    j$('#dateRange').hide();
+                                    j$("#displayFacturaCabecero").show();
+                                    j$('#dateRange').attr('style', 'display: none');
+                                    
+                                    if (j$.fn.DataTable.fnIsDataTable(j$('#facturaCabeceroDataTable'))) {
+                                            j$('#facturaCabeceroDataTable').dataTable().fnDestroy();
+                                    }
+                                    
+                                    displayInvoicesHistroy(result);
+                                    
+                                    j$(".loading").hide();
+                                });
+                            } else {
+                                alert(event.message);
+                                j$(".loading").hide();
+                            }
+                        }, {
+                            escape: false,
+                            timeout: 120000,
+                            maxretries: 2
+                        });
+                    }
+
+                   }
+
+
+
+                    function displayInvoicesHistroy(billingHistroy) {
+
+                    j$ = jQuery.noConflict();
+
+                    j$(document).ready(function() {
+
+                        function Map() {
+
+                            this.keys = new Array();
+                            this.data = new Object();
+
+                            this.put = function(key, value) {
+                                if (this.data[key] == null) {
+                                    this.keys.push(key);
+                                }
+                                this.data[key] = value;
+                            };
+
+                            this.get = function(key) {
+                                return this.data[key];
+                            };
+
+                            this.remove = function(key) {
+                                this.keys.remove(key);
+                                this.data[key] = null;
+                            };
+
+                            this.each = function(fn) {
+                                if (typeof fn != 'function') {
+                                    return;
+                                }
+                                var len = this.keys.length;
+                                for (var i = 0; i < len; i++) {
+                                    var k = this.keys[i];
+                                    fn(k, this.data[k], i);
+                                }
+                            };
+
+                            this.entrys = function() {
+                                var len = this.keys.length;
+                                var entrys = new Array(len);
+                                for (var i = 0; i < len; i++) {
+                                    entrys[i] = {
+                                        key: this.keys[i],
+                                        value: this.data[i]
+                                    };
+                                }
+                                return entrys;
+                            };
+
+                            this.isEmpty = function() {
+                                return this.keys.length == 0;
+                            };
+
+                            this.size = function() {
+                                return this.keys.length;
+                            };
+                        }
+                        
+                        console.log('billingHistroy 2 ::: ' + billingHistroy + ':::::::::2');
+
+                        var blobData = billingHistroy;          
+                        console.log('blobData ::: ' + blobData);
+
+                        var data;
+                        if (blobData instanceof Blob) {
+                            consoloe.log('in');
+                            var reader = new window.FileReaderSync();
+                            data = reader.readAsText(blobData);
+                        } else {
+                            data = blobData;
+                        }
+                        console.log('data ::: ' + data);
+
+                        var objFactura = [];
+                        var facturaCabecero = [];
+
+                        j$('#popupDetalleProductos').hide();
+                        j$('#popupDetalleCodigoBarras').hide();
+
+                        var mapFacturaCabecero = new Map();
+                        var mapFacturaDetalleProducto = new Map();    
+                        
+                        var errorMsg = j$(data).find("Mensaje").text();
+                        var facturaCabeceroData = j$(data).find("FacturaCabecero").text();
+                        
+                        console.log('errorMsg ::: ' + errorMsg);
+                        console.log('facturaCabeceroData ::: ' + facturaCabeceroData );
+                        
+                        if(typeof(errorMsg) !== "undefined" && errorMsg !== null && errorMsg !== ''){
+                            alert(errorMsg); 
+                            j$('#dateRange').show();
+                            j$('#displayFacturaCabecero').hide();
+                            j$('#popupDetalleProductos').hide();
+                            j$('#popupDetalleCodigoBarras').hide();
+                        }
+                        else if(typeof(facturaCabeceroData ) === "undefined" || facturaCabeceroData === null || !facturaCabeceroData){
+                            alert('No se encontró información.'); 
+                            j$('#dateRange').show();
+                            j$('#displayFacturaCabecero').hide();
+                            j$('#popupDetalleProductos').hide();
+                            j$('#popupDetalleCodigoBarras').hide();
+                        }                        
+                        else{
+                            
+                            
+                            console.log('FacturaCabecero');
+                            j$(data).find("FacturaCabecero").each(function(index, e) {
+    
+                                var $FacCab = j$(e);
+                                rowFacCab = [];
+    
+                                rowFacCab.push($FacCab.children("Pedido:first").text());
+                                rowFacCab.push($FacCab.children("CanalDistribucionDescripcion:first").text());
+                                rowFacCab.push($FacCab.children("Factura:first").text());
+                                rowFacCab.push($FacCab.children("Cliente:first").text());
+                                rowFacCab.push($FacCab.children("ClienteDescripcion:first").text());
+                                rowFacCab.push($FacCab.children("Sucursal").text());
+                                //rowFacCab.push($FacCab.children("CanalDistribucionVenta").text());
+                                rowFacCab.push($FacCab.children("CanalVentaDescripcion").text());
+                                
+                                var $fecha = $FacCab.children("Fecha").text();
+                                $fecha = j$.datepicker.formatDate("yy-mm-dd",new Date($fecha));                             
+                                //console.log('fecha ::: ' + $fecha);                                    
+                                rowFacCab.push($fecha);//$FacCab.children("Fecha").text());
+                                
+                                var $FechaVencimiento = $FacCab.children("FechaVencimiento").text();
+                                $FechaVencimiento = j$.datepicker.formatDate( "yy-mm-dd",new Date($FechaVencimiento));
+                                //console.log('FechaVencimiento::: ' + $FechaVencimiento);
+                                $FacCab.children("FechaVencimiento").text($FechaVencimiento);                                  
+                                rowFacCab.push($FechaVencimiento);
+                                
+                                rowFacCab.push($FacCab.children("DiasVencidos").text());
+                                rowFacCab.push($FacCab.children("Importe").text());
+                                rowFacCab.push($FacCab.children("Saldo").text());
+                                rowFacCab.push($FacCab.children("Moneda").text());
+                                rowFacCab.push($FacCab.children("TipoCambio").text());
+                                rowFacCab.push($FacCab.children("TipoSurtido").text());
+                                
+                                var pedido = $FacCab.children("Pedido:first").text()
+                                rowFacCab.push(pedido.substring(0,5)); //$FacCab.children("PedidoCanalDistribucion").text());
+                                rowFacCab.push(pedido.substring(5)); //$FacCab.children("PedidoCliente").text());
+                                
+                                if($FacCab.children("Credito").text() === 'true'){
+                                    $FacCab.children("Credito").text('1');
+                                }else{
+                                    $FacCab.children("Credito").text('0');
+                                }                                                                
+                                rowFacCab.push($FacCab.children("Credito").text());
+                                
+                                if($FacCab.children("Activo").text() === 'true'){
+                                    $FacCab.children("Activo").text('1');
+                                }else{
+                                    $FacCab.children("Activo").text('0');
+                                } 
+                                rowFacCab.push($FacCab.children("Activo").text());
+                                
+                                rowFacCab.push($FacCab.children("Prospecto").text());
+                                rowFacCab.push($FacCab.children("FacturaNoFiscal").text());
+                                rowFacCab.push($FacCab.children("Devolucion").text());
+                                rowFacCab.push($FacCab.children("Bonificacion").text());
+    
+                                var $arrFacDetProd = [];
+                                
+                                var $detalleProductos = j$($FacCab).find("FacturaDetalleProducto");
+                                console.log('$detalleProductos ::: ' + $detalleProductos);                               
+    
+                                j$($FacCab).find("FacturaDetalleProducto").each(function(indexFDP, currFacDetProd) {
+    
+                                    var $rowFacDetProd = [];
+                                    var $arrFacDetCodBar = [];
+    
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("Producto").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("ProductoDescripcion").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("CantidadEnUnidadMovimiento").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("Piezas").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("CantidadEnUnidadBase").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("ImporteVentaConImpuesto").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("ImpuestoVenta").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("PrecioFacturado").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("ImporteVentaConImpuestoEnMonedaBase").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("TipoPrecioNormal").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("DevolucionCantidadEnUnidadMovimiento").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("DevolucionPiezas").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("DevolucionCantidadEnUnidadBase").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("DevolucionImporteBase").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("BonificacionFolio").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("BonificacionImporte").text());
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("BonificacionTipoBonif").text());
+                                    
+                                    if(j$(currFacDetProd).children("BonificacionAutomatica").text() === 'true'){
+                                        j$(currFacDetProd).children("BonificacionAutomatica").text('1');
+                                    }else{
+                                        j$(currFacDetProd).children("BonificacionAutomatica").text('0');
+                                    } 
+                                    $rowFacDetProd.push(j$(currFacDetProd).children("BonificacionAutomatica").text());
+    
+                                    var $arrFacDetCodBar = [];
+                                    
+                                     var $facturaDetalleCodigoBarrasData = j$($FacCab).find("FacturaDetalleCodigoBarras");
+                                     console.log('$facturaDetalleCodigoBarrasData ::: ' + $facturaDetalleCodigoBarrasData ); 
+    
+                                    j$(currFacDetProd).find("FacturaDetalleCodigoBarras").each(function(indexFDCB, currFacDetCodBar) {
+    
+                                        var $rowFacDetCodBar = [];
+    
+                                        $rowFacDetCodBar.push(j$(currFacDetCodBar).children("CodigoBarra").text());
+                                        
+                                        if(j$(currFacDetCodBar).children("Devuelto").text() === 'true'){
+                                            j$(currFacDetCodBar).children("Devuelto").text('1');
+                                        }else{
+                                            j$(currFacDetCodBar).children("Devuelto").text('0');
+                                        } 
+                                        $rowFacDetCodBar.push(j$(currFacDetCodBar).children("Devuelto").text());
+                                        
+                                        $arrFacDetCodBar.push($rowFacDetCodBar);
+                                    });
+    
+                                    $arrFacDetProd.push($rowFacDetProd);
+    
+                                    mapFacturaCabecero.put(rowFacCab[0].substring(5), $arrFacDetProd);
+                                    mapFacturaDetalleProducto.put(rowFacCab[0].substring(5) + '-' + $rowFacDetProd[0], $arrFacDetCodBar);
+                                });
+    
+                                rowFacCab.push($arrFacDetProd);
+                                objFactura.push(rowFacCab);
+                            });
+    
+                            console.log('mapFacturaCabecero ::: ' + mapFacturaCabecero[0]);
+                            console.log('mapFacturaDetalleProducto ::: ' + mapFacturaDetalleProducto[0]);
+    
+                            var facturaCabeceroTable = j$('#facturaCabeceroDataTable').DataTable({
+                                "aaData": objFactura,
+                                "scrollX": true,
+                                "scrollY": "460px",
+                                "scrollCollapse": true,
+                                tableTools: {
+                                    "sRowSelect": "single"
+                                },
+                                "order": [],
+                                "aoColumns": [{
+                                    "title": "Pedido",
+                                    "visible": false                                   
+                                }, {
+                                    "title": "Canal Distribucion"
+                                }, {
+                                    "title": "Factura"
+                                }, {
+                                    "title": "Id Cliente"
+                                }, {
+                                    "title": "Nombre Cliente"
+                                }, {
+                                    "title": "Sucursal"
+                                }, {
+                                    "title": "Canal Venta"
+                                }, {
+                                    "title": "Fecha"
+                                }, {
+                                    "title": "Fecha Vencimiento"
+                                }, {
+                                    "title": "Dias Vencidos"
+                                }, {
+                                    "title": "Importe"
+                                }, {
+                                    "title": "Saldo"
+                                }, {
+                                    "title": "Moneda"
+                                }, {
+                                    "title": "Tipo/Cambio"
+                                }, {
+                                    "title": "Tipo de Surtido"
+                                }, {
+                                    "title": "Canal Pedido"
+                                }, {
+                                    "title": "Pedido"
+                                }, {
+                                    "title": "Crédito"
+                                }, {
+                                    "title": "Activo"
+                                }, {
+                                    "title": "Prospecto"
+                                }, {
+                                    "title": "Factura No Fiscal"
+                                }, {
+                                    "title": "Devolución"
+                                }, {
+                                    "title": "Bonificación"
+                                }]
+                            });
+                            j$('#container').css( 'display', 'block' );
+                            //facturaCabeceroTable.find('thead th').css('white-space', 'nowrap');
+                            //facturaCabeceroTable.find('tbody td').css('white-space', 'nowrap');
+                            facturaCabeceroTable.columns.adjust().draw();                            
+                            
+                            var pedidoNumber;
+                            
+                           /* function addLeadingZeros(n, length){
+                                var str = (n > 0 ? n : -n) + "";
+                                var zeros = "";
+                                for (var i = length - str.length; i > 0; i--)
+                                    zeros += "0";
+                                zeros += str;
+                                return n >= 0 ? zeros : "-" + zeros;
+                            }*/
+    
+                            j$('#facturaCabeceroDataTable tbody').on('click', 'tr', function() {                              
+
+                                pedidoNumber = j$('td', this).eq(15).text(); //j$('td', this).eq(14).text() + 
+                                //alert('pedidoNumber ::: ' + pedidoNumber);
+                                console.log('pedidoNumber ::: ' + pedidoNumber);
+    
+                                var listFacturaDetalleProducto = mapFacturaCabecero.get(pedidoNumber);
+                                console.log('listFacturaDetalleProducto ::: ' + listFacturaDetalleProducto);
+    
+    
+                                if (typeof(listFacturaDetalleProducto) !== "undefined" && listFacturaDetalleProducto !== null) {
+    
+                                    j$('#popupDetalleProductos').show();
+                                    var facturaDetalleProducto;
+    
+                                    if (j$.fn.DataTable.fnIsDataTable(j$('#facturaDetalleProductoDataTable'))) {
+                                        j$('#facturaDetalleProductoDataTable').dataTable().fnDestroy();
+                                    }
+    
+                                    if (!j$.fn.DataTable.fnIsDataTable(j$('#facturaDetalleProductoDataTable'))) {
+    
+                                        facturaDetalleProductoTable = j$('#facturaDetalleProductoDataTable').DataTable({
+                                            "aaData": listFacturaDetalleProducto,
+                                            "scrollX": true,
+                                            "scrollY": "460px",
+                                            tableTools: {
+                                                "sRowSelect": "single"
+                                            },
+                                            "scrollCollapse": true,
+                                            "order": [],
+                                            "aoColumns": [{
+                                                "title": "Producto"
+                                            }, {
+                                                "title": "Producto Descripción"
+                                            }, {
+                                                "title": "Cantidad Unidad Movimiento"
+                                            }, {
+                                                "title": "Piezas"
+                                            }, {
+                                                "title": "Cantidad Unidad Base"
+                                            }, {
+                                                "title": "Importe Con Impuesto"
+                                            }, {
+                                                "title": "Impuesto"
+                                            }, {
+                                                "title": "Precio Facturado"
+                                            }, {
+                                                "title": "Importe Moneda Base"
+                                            }, {
+                                                "title": "Tipo Precio"
+                                            }, {
+                                                "title": "Devolución Cant Unidad Movto"
+                                            }, {
+                                                "title": "Devolución Piezas"
+                                            }, {
+                                                "title": "Devolución Cant Unidad Base"
+                                            }, {
+                                                "title": "Devolucion Importe"
+                                            }, {
+                                                "title": "Bonif Folio"
+                                            }, {
+                                                "title": "Bonif Importe"
+                                            }, {
+                                                "title": "TipoBonif"
+                                            }, {
+                                                "title": "Bonif Automática"
+                                            }]
+                                        });
+                                        j$('#container').css( 'display', 'block' );
+                                        facturaDetalleProductoTable.columns.adjust().draw();
+                                    } 
+    
+                                    j$('#facturaDetalleProductoDataTable tbody').on('click', 'tr', function() {
+                                        var name = j$('td', this).eq(0).text();
+                                        
+                                        console.log('pedidoNumber-name ::: \'' + pedidoNumber + '-' + name + '\'');
+    
+                                        var key = pedidoNumber + '-' + name;
+                                        console.log('key ::: ' + key);
+                                        console.log('mapFacturaDetalleProducto.get(key) ::: ' + mapFacturaDetalleProducto.get(key));
+    
+                                        var listFacturaDetalleCodigoBarras = mapFacturaDetalleProducto.get(key);
+                                        console.log('listFacturaDetalleCodigoBarras ::: ' + listFacturaDetalleCodigoBarras);
+    
+                                        if (typeof(listFacturaDetalleCodigoBarras) !== "undefined" && listFacturaDetalleCodigoBarras !== null) {
+    
+                                            j$('#displayFacturaCabecero').hide();
+                                            j$('#popupDetalleProductos').show();
+                                            j$('#popupDetalleCodigoBarras').show();
+    
+                                            var facturaDetalleCodigoBarrasTable;
+    
+                                            if (j$.fn.DataTable.fnIsDataTable(j$('#facturaDetalleCodigoBarrasDataTable'))) {
+                                                j$('#facturaDetalleCodigoBarrasDataTable').dataTable().fnDestroy();
+                                            }
+    
+                                            if (!j$.fn.DataTable.fnIsDataTable(j$('#facturaDetalleCodigoBarrasDataTable'))) {
+                                                facturaDetalleCodigoBarrasTable = j$('#facturaDetalleCodigoBarrasDataTable').DataTable({
+                                                    "aaData": listFacturaDetalleCodigoBarras,
+                                                    "scrollX": true,                                          
+                                                    "scrollY": "460px",
+                                                    tableTools: {
+                                                        "sRowSelect": "single"
+                                                    },
+                                                    "scrollCollapse": true,
+                                                    "order": [],
+                                                    "aoColumns": [{
+                                                        "title": "Código Barra"
+                                                    }, {
+                                                        "title": "Devuelto"
+                                                    }]
+                                                });
+                                                j$('#container').css( 'display', 'block' );
+                                                facturaDetalleCodigoBarrasTable.columns.adjust().draw();
+                                            }
+                                        }
+                                        else{
+                                            alert('No Factura Detalle Codigo Barras data to display.');
+                                        }
+                                    });
+                                }
+                                else{
+                                    alert('No Factura Detalle Producto data to display.');
+                                }
+                            });
+                        }
+    
+                        j$("#btnDetalleCodigoBarras").click(function() {
+
+                            j$('#displayFacturaCabecero').show();
+                            j$('#popupDetalleCodigoBarras').hide();
+                            j$('#popupDetalleProductos').show();
+                        });
+
+                        j$("#btnDetalleProductos").click(function() {
+
+                            j$('#displayFacturaCabecero').show();
+                            j$('#popupDetalleProductos').hide();
+                            j$('#popupDetalleCodigoBarras').hide();
+                        });
+
+                        j$("#btndisplayFacturaCabecero").click(function() {
+
+                            j$('#dateRange').show();
+                            j$('#displayFacturaCabecero').hide();
+                            j$('#popupDetalleProductos').hide();
+                            j$('#popupDetalleCodigoBarras').hide();
+                        });
+                        
+                    });
+                   }
+                
+                
+                </script>
+            </div>
+        </apex:form>
+    </div>
+    <div id="displayFacturaCabecero" style="padding:20px;">
+        <div style="max-height:20%">
+            <table id="facturaCabeceroDataTable" class="display"></table>
+        </div>
+        <button type="button" id="btndisplayFacturaCabecero">Regresar</button>
+    </div>
+    <div id="popupDetalleProductos">
+        <div class="popupBackground">
+            <div id="Level2" class="popupDetalleProductosTable">
+                <table style="width:100%" id="facturaDetalleProductoDataTable" class="display"></table>
+                <button type="button" id="btnDetalleProductos">Regresar</button>
+            </div>
+        </div>
+    </div>
+    <div id="popupDetalleCodigoBarras">
+        <div class="popupBackground">
+            <div id="Level3" class="popupDetalleCodigoBarrasTable">
+                <table style="width:100%" id="facturaDetalleCodigoBarrasDataTable" class="display"></table>
+                <button type="button" id="btnDetalleCodigoBarras">Regresar</button>
+            </div>
+        </div>
+    </div>
+</apex:page>

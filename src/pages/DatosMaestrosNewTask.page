@@ -1,0 +1,35 @@
+<!--
+ - Description: New task page for inConcert inbound & outbound calls.
+ - Author: Marco Tacú
+ - Company: SK
+ - Email: marco.tacu@sukarne.com
+ - Created date: 06/07/2016
+ -->
+<apex:page standardController="Task" extensions="DatosMaestrosNewTaskController" title="Salesforce - Solicitud Datos Maestros">
+<apex:stylesheet value="{!URLFOR($Resource.InConcertNewTask, 'css/InConcertNewTask.css')}"/>
+<apex:sectionHeader title="Solicitud Datos Maestros"/>
+<apex:form >
+    <apex:pageBlock title="Modificar Tarea" mode="edit">
+        <apex:pageBlockButtons >
+            <apex:commandButton action="{!save}" value="Guardar"/>
+        </apex:pageBlockButtons>
+        <apex:pageMessages />
+        <apex:pageBlockSection title="Información de tareas">
+            <apex:inputField value="{!task.OwnerId}"/>
+            <!--<apex:inputField value="{!task.WhatId}" required="-->
+            <apex:outputField value="{!task.WhatId}"/>
+            <apex:outputField value="{!task.Subject}"/>
+            <!--<apex:inputField value="{!task.WhoId}"/>-->
+            <apex:outputField value="{!task.ActivityDate}"/>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Solicitud">
+            <apex:inputField value="{!task.Tipo_de_solicitud__c}" required="true"/>
+            <apex:inputField value="{!task.Description}"/>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Información adicional">
+            <apex:outputField value="{!task.Status}"/>
+            <apex:outputField value="{!task.Priority}"/>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:form>
+</apex:page>

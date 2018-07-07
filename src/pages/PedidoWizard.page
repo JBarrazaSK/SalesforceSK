@@ -1,0 +1,18 @@
+<!--
+ - Description: Opens the PedidoWizard Visualforce using Pedido__c's standard controller.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 03/12/2014
+ -->
+<apex:page standardController="Pedido__c" extensions="PedidoController" cache="false" deferLastCommandUntilReady="true" showHeader="false" sidebar="false" tabStyle="Pedido__c" title="Salesforce - Edición de pedidos">
+	<!--<apex:pageBlock rendered="{! isMayoreo }">
+    	<c:PedidoMayoreoWizard />
+    </apex:pageBlock>
+    <apex:pageBlock rendered="{!NOT(isMayoreo) }">
+    	<c:PedidoWizard />
+    </apex:pageBlock>-->
+    <apex:pageBlock >
+    	<c:PedidoWizard />
+    </apex:pageBlock>
+</apex:page>

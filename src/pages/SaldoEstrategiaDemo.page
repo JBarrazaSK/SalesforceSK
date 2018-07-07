@@ -1,0 +1,5 @@
+<apex:page standardController="Pedido__c" extensions="PedidoController" cache="false" deferLastCommandUntilReady="true" showHeader="false" sidebar="false" tabStyle="Pedido__c" title="Salesforce - Edición de pedidos">
+    <apex:pageBlock >
+    	<c:SaldoEstrategiaComercial />
+    </apex:pageBlock>
+</apex:page>

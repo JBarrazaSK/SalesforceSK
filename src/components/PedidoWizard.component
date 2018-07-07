@@ -1,0 +1,1702 @@
+<!--
+ - Description: Visualforce wizard component for order taking capturing all data in a single view.
+ - Author: V-1.0 & V-3.0 (JavaScript version) by Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 03/12/2014
+ -->
+<apex:component controller="PedidoWizardController" allowDML="true">
+<apex:stylesheet value="{!URLFOR($Resource.PedidoWizard, 'css/PedidoWizard.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.PedidoWizard, 'js/jquery-1.11.1.min.js')}"/>
+<!--<apex:includeScript value="{!URLFOR($Resource.PedidoWizard, 'js/PedidoWizard.js')}"/>-->
+<script type="text/javascript">ieStylesheetUrl = "{!URLFOR($Resource.PedidoWizard, 'css/PedidoWizardIE.css')}"</script>
+    <script type="text/javascript">
+        function validateFechaSurtidoD() 
+        {
+            var createdDate = "{!pedidoWrapper.pedido.CreatedDate}"
+            var UnidadMedidaAnterior;
+            var hasError;
+            var fechaSurtido = $("#tableGenerales2 .dateInput input");
+            var fechaSurtidoDefault = $("#tableGenerales2 .dateFormat a").html();
+            var defaultDate, today;
+            try {
+                var fecha = fechaSurtido.val();
+                fecha = fecha.substring(fecha.indexOf("/")+1, fecha.lastIndexOf("/"))+"/"+fecha.substring(0, fecha.indexOf("/"))+"/"+fecha.substring(fecha.lastIndexOf("/")+1, fecha.length);
+                var fechaDefault = fechaSurtidoDefault.substring(fechaSurtidoDefault.indexOf("/")+1, fechaSurtidoDefault.lastIndexOf("/"))+"/"+fechaSurtidoDefault.substring(0, fechaSurtidoDefault.indexOf("/"))+"/"+fechaSurtidoDefault.substring(fechaSurtidoDefault.lastIndexOf("/")+1, fechaSurtidoDefault.length);
+                var date = new Date(fecha);
+                if( createdDate ) {
+                    defaultDate = new Date(createdDate);
+                    //defaultDate.setDate( defaultDate.getDate() - 1 );
+                    today = new Date(createdDate);
+                        today.setDate( today.getDate() + 1 );
+                }
+                else {
+                    var nowD = "{!NOW()}";
+                    //alert("{!NOW()}");
+                    defaultDate = new Date(fechaDefault);
+                    today = new Date(nowD);
+                }
+                today.setDate(today.getDate()-(today.getDay() == 1 ? 2 : 1));
+                if(!(Object.prototype.toString.call(date) === "[object Date]") || isNaN(date.getTime())) {
+                    hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
+                } else if(date.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0)) {
+                    hasError = !alert("La fecha de surtido programada no puede ser menor a la fecha de mañana.\nSe reasigna el valor por defecto.");
+                } else if(date > defaultDate.setDate(defaultDate.getDate()+maxPresaleDays)) {
+                    hasError = !alert("El máximo de días de preventa permitidos es de "+maxPresaleDays+".\nSe reasigna el valor por defecto.");
+                } else if(date.getDay() == 0) {
+                    hasError = !alert("Los domingos no se surten pedidos.\nSe reasigna el valor por defecto.");
+                }
+            } catch(exception) {
+                hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
+            }
+            if(hasError) {
+                fechaSurtido.val(fechaSurtidoDefault);
+            }
+        	setIsPreventa();
+            validateOnPreventa();
+   
+        }
+    
+   ///// PedidoWizard.zip
+   /**
+ * Description: PedidoWizard.component JavaScript methods.
+ * Author: Oscar Becerra
+ * Company: gA
+ * Email: obecerra@grupoassa.com
+ * Created date: 03/12/2014
+ **/
+var isEditablePedido, productMap, inventarioMap, preciosMap, currentIndex, currentProductCode, fechaSurtido, isPreventa, ieStylesheetUrl, conversionKiloPound = 2.2046, maxPresaleDays, exchangeRateDolarPeso, unitPriceMaxIncrementalPercentage, unitPriceMaxDecrementalPercentage;
+$(document).ready(function() {
+    setIEStylesheet();
+    setViewIfPedidoIsNotEditable();
+
+});
+
+(function() {
+	try {
+		if( (typeof sforce != 'undefined') && (sforce != null) ) {
+			var s = document.createElement('style');
+			s.innerHTML = "html,html body{overflow: auto;-webkit-overflow-scrolling:touch;}body{position:absolute;left:0;right:0;top:0;bottom:0;}";
+			document.getElementsByTagName('head')[0].appendChild(s);
+		}
+	} catch (e) {}
+})();
+
+function setIEStylesheet() {
+    if(msieVersion() != 0) {
+        $("head").append('<link rel="stylesheet" type="text/css" href="'+ieStylesheetUrl+'">');
+    }
+}
+
+function msieVersion() {
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf("MSIE ");
+    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) { // If Internet Explorer, return version number.
+        return parseInt(ua.substring(msie + 5, ua.indexOf(".", msie)));
+    } else { // If another browser, return 0.
+        return 0;
+    }
+}
+
+function setViewIfPedidoIsNotEditable() {
+    if(!isEditablePedido && $(".pageBlockTableProductos")[0]) {
+        $(".lookupIcon, #divProductoButtons, .pageBlockTableProductos td:nth-child(3) input").hide();
+        $(".pageBlockTableProductos tr.dataRow td:first-child").addClass("textCenter").find("input[type=button]").replaceWith("n.d.");
+        $("input[type=text]:not(.disabledInput), input[type=checkbox], select, textarea").attr("disabled", "disabled").addClass("disabled");
+    }
+}
+
+$(document).keydown(function(event) {
+    if((event.keyCode == 8 || event.keyCode == 13) && event.target.tagName != "INPUT" && event.target.tagName != "TEXTAREA") {
+        event.preventDefault();
+    }
+});
+
+function hideActionButtons() {
+    $(".outputPanelActionButtons").hide();
+}
+
+function showActionButtons() {
+    $(".outputPanelActionButtons").show();
+}
+
+function setTableGenerales2() {
+    setFechaSurtido();
+    setFacturaNoFiscal();
+}
+
+function setFechaSurtido() {
+    if(isEditablePedido) {
+        if(!fechaSurtido) {
+            fechaSurtido = $("#tableGenerales2 .dateInput input").val();
+        }
+        var anchorDateFormat = $("#tableGenerales2 .dateFormat a");
+        anchorDateFormat.html(fechaSurtido);
+        var href = anchorDateFormat.attr("href");
+        href = href.substring(0, href.indexOf("'")+1)+fechaSurtido+href.substring(href.indexOf("'", href.indexOf("'")+1), href.length);
+        anchorDateFormat.attr("href", href);
+        setIsPreventa();
+    }
+}
+
+function setIsPreventa() {
+    var fecha = $("#tableGenerales2 .dateInput input").val();
+    fecha = new Date(fecha.substring(fecha.indexOf("/")+1, fecha.lastIndexOf("/"))+"/"+fecha.substring(0, fecha.indexOf("/"))+"/"+fecha.substring(fecha.lastIndexOf("/")+1, fecha.length));
+    var nextPresaleDate = new Date();
+    nextPresaleDate.setDate(nextPresaleDate.getDate()+2);
+    if(nextPresaleDate.getDay() == 0 || new Date().getDay() == 6) {
+        nextPresaleDate.setDate(nextPresaleDate.getDate()+1);
+    }
+    isPreventa = fecha.setHours(0, 0, 0, 0) >= nextPresaleDate.setHours(0, 0, 0, 0);
+}
+
+function setFacturaNoFiscal() {
+    if(($("#tdFormaPago select").length ? $("#tdFormaPago select").val() : $("#tdFormaPago").text()).trim() != "1 - Contado") {
+        $("[id$=inputFacturaNoFiscal]").attr("disabled", "disabled").prop("checked", false);
+    } else {
+        $("[id$=inputFacturaNoFiscal]").removeAttr("disabled");
+    }
+}
+
+function validateFechaSurtido() {
+    var hasError;
+    var fechaSurtido = $("#tableGenerales2 .dateInput input");
+    var fechaSurtidoDefault = $("#tableGenerales2 .dateFormat a").html();
+    try {
+        var fecha = fechaSurtido.val();
+        fecha = fecha.substring(fecha.indexOf("/")+1, fecha.lastIndexOf("/"))+"/"+fecha.substring(0, fecha.indexOf("/"))+"/"+fecha.substring(fecha.lastIndexOf("/")+1, fecha.length);
+        var fechaDefault = fechaSurtidoDefault.substring(fechaSurtidoDefault.indexOf("/")+1, fechaSurtidoDefault.lastIndexOf("/"))+"/"+fechaSurtidoDefault.substring(0, fechaSurtidoDefault.indexOf("/"))+"/"+fechaSurtidoDefault.substring(fechaSurtidoDefault.lastIndexOf("/")+1, fechaSurtidoDefault.length);
+        var date = new Date(fecha);
+        var defaultDate = new Date(fechaDefault);
+        var today = new Date(fechaDefault);
+        today.setDate(today.getDate()-(today.getDay() == 1 ? 2 : 1));
+        if(!(Object.prototype.toString.call(date) === "[object Date]") || isNaN(date.getTime())) {
+            hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
+        } else if(date.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0)) {
+            hasError = !alert("La fecha de surtido programada no puede ser menor a la fecha de mañana.\nSe reasigna el valor por defecto.");
+        } else if(date > defaultDate.setDate(defaultDate.getDate()+maxPresaleDays)) {
+            hasError = !alert("El máximo de días de preventa permitidos es de "+maxPresaleDays+".\nSe reasigna el valor por defecto.");
+        } else if(date.getDay() == 0) {
+            hasError = !alert("Los domingos no se surten pedidos.\nSe reasigna el valor por defecto.");
+        }
+    } catch(exception) {
+        hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
+    }
+    if(hasError) {
+        fechaSurtido.val(fechaSurtidoDefault);
+    }
+    setIsPreventa();
+    validateOnPreventa();
+}
+
+function validateOnPreventa() {
+    if(!isPreventa) {
+        $(".pageBlockTableProductos tr.dataRow").each(function(index) {
+            if($(this).find("[id$=inputProducto]").val()) {
+                var pedidoItem = getPedidoItem(index+1);
+                validaInventario(pedidoItem.values);
+                setPedidoItemValues(pedidoItem);
+            }
+        });
+    }
+}
+
+function validateTipoSurtido(element, diasEntrega) {
+    if(!diasEntrega && $(element).val() != "4 - LOCAL") {
+        alert("Tipo de surtido inválido. El cliente no tiene definido un itinerario.\nSe reasigna el valor previo.");
+        $(element).val("4 - LOCAL");
+    }
+}
+
+function setPreciosMap() {
+    preciosMap = new Object();
+    $("#modalPrecios tr.dataRow").each(function() {
+        var data = $(this).find("input[type=hidden]");
+        var precio = {
+            pve_volini:stringNumberToFloat($(this).find("td:nth-child(1)").text()),
+            pve_volfin:stringNumberToFloat($(this).find("td:nth-child(2)").text()),
+            precio:stringCurrencyToFloat($(this).find("td:nth-child(3)").text()),
+            pve_tipprec:$(this).find("td:nth-child(4)").text(),
+            pve_folgral:$(data[1]).val(),
+        }
+        var productCode = $(data[0]).val();
+        if(!preciosMap[productCode]) {
+            preciosMap[productCode] = new Array();
+        }
+        preciosMap[productCode].push(precio);
+    });
+}
+
+function setProductMap() {
+    productMap = new Object();
+    $(".pageBlockTablePortafolio tr.dataRow").each(function() {
+        var productCode = $(this).find("td:nth-child(2)").text();
+        var data = $(this).find("input[type=hidden]");
+        productMap[productCode] = {
+            Name:$(this).find("td:nth-child(1)").text(),
+            Description:$(this).find("td:nth-child(3)").text(),
+            Id:$(data[0]).val(),
+            Ficha_comercial__c:$(data[1]).val(),
+            Peso_Promedio__c:stringNumberToFloat($(data[2]).val()),
+            Unidad_de_medida_base__c :$(data[3]).val()
+        };
+        if(!preciosMap[productCode]) {
+            $(this).find("td").addClass("textDisabled");
+        }
+    });
+}
+
+function setInventarioMap() {
+    inventarioMap = new Object();
+    $(".pageBlockTableInventario tr.dataRow").each(function() {
+        var data = $(this).find("input[type=hidden]");
+        inventarioMap[$(data[0]).val()] = {
+            Name:$(this).find("td:nth-child(1)").text(),
+            InvActual:stringNumberToFloat($(this).find("td:nth-child(2)").text()),
+            CompAlmHoy:stringNumberToFloat($(this).find("td:nth-child(3)").text()),
+            CompAlmMan:stringNumberToFloat($(this).find("td:nth-child(4)").text()),
+            DispAlm:stringNumberToFloat($(this).find("td:nth-child(5)").text()),
+            InvConf:stringNumberToFloat($(this).find("td:nth-child(6)").text()),
+            CompConfMan:stringNumberToFloat($(this).find("td:nth-child(7)").text()),
+            DispConf:stringNumberToFloat($(this).find("td:nth-child(8)").text()),
+            ResAlm:stringNumberToFloat($(this).find("td:nth-child(9)").text()),
+            ResConf:stringNumberToFloat($(this).find("td:nth-child(10)").text()),
+            PermiteApartarSinexistencias:$(data[1]).val() == "true" ? true : false,
+            TipoInventario:parseInt($(data[2]).val()),
+            TipoManejoInventario:parseInt($(data[3]).val()),
+            EsPesoEstandar:$(data[4]).val() == "true" ? true : false,
+            Contenido:stringNumberToFloat($(data[5]).val())
+        };
+    });
+    setTableProductos();
+}
+
+function setTableProductos() {
+    setImporteAsDisabled();
+    if(inventarioMap) {
+        setExistingProductos();
+        setSummaryRow();
+    }
+}
+
+function setImporteAsDisabled() {
+    $(".pageBlockTableProductos td:nth-child(16) input").attr("disabled", "disabled");
+}
+
+function setExistingProductos() {
+    for(var property in productMap) {
+        productMap[property].isSet = false;
+    }
+    $(".pageBlockTableProductos td:nth-child(2) input").each(function(index) {
+        setProducto($(this).val(), index+1);
+    });
+}
+
+function setSummaryRow() {
+//console.log('-------------------------------' );
+    var summary = { 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 16:0 };
+    for(var index in summary) {
+  //   console.log('INDEX: '+ index );
+        $(".pageBlockTableProductos td:nth-child("+index+") input:last-child").each(function() {
+        	var value =  $.trim($(this).val().replace("$","").replace(",",""));
+            //var value = stringCurrencyToFloat($(this).val());
+            if(value) {
+           		var importe  =  parseFloat(value);
+                summary[index] += importe;
+    //            console.log('value: '+value +'SUMARY : '+ summary[index] +' IMPORTE: '+ importe);
+            }
+        });
+    }
+    var totals = { 2:8, 3:9, 4:10, 5:11, 6:12, 7:13, 9:16 };
+    for(var index in totals) {
+        $(".pageBlockTableProductos tr.totalRow th:nth-child("+index+")").html(index == "4" || index == "7" ? floatToString(summary[totals[index]], 2) : index == "9" ? floatToCurrency(summary[totals[index]]) : numberToString(summary[totals[index]]));
+    }
+    $("[id$=inputImporte]").val(summary["16"]);
+     // console.log('SUMARY16 : '+ summary["16"] );
+}
+
+function removeRow(index) {
+	
+	
+    if(confirm("¿Desea quitar el producto?")) {
+        removePedidoItem(index);
+    }
+}
+
+function removeAllRows() {
+    return confirm("¿Realmente desea quitar todos los productos de la lista?");
+}
+
+function showInventario(index) {
+    var productCode = $(".pageBlockTableProductos tr.dataRow:nth-child("+index+") td:nth-child(2) input").val();
+    if(productMap[productCode] && currentProductCode != productCode) {
+        $(".pageBlockTableInventario tr.dataRow").each(function() {
+            $(this).css("display", $(this).find("input[type=hidden]:first-child").val() == productCode ? "table-row" : "none");
+        });
+        currentProductCode = productCode;
+    }
+}
+
+function openModal(elementId) {
+    $(elementId+', #overlay').show();
+}
+
+function closeModal(elementId) {
+    $(elementId+', #overlay').hide();
+}
+
+function openModalPortafolio(index) {
+    openModal("#modalPortafolio");
+    currentIndex = index;
+}
+
+function filterProducts() {
+    var searchText = $("#inputSearchText").val().toLowerCase();
+    $(".pageBlockTablePortafolio tr.dataRow").each(function() {
+        $(this).css("display", $(this).find("td:first-child").text().toLowerCase().indexOf(searchText) > -1 ? "table-row" : "none");
+    });
+}
+
+function selectItemPortafolio(productCode) {
+    preSetProducto(productCode, currentIndex);
+    closeModalPortafolio();
+}
+
+function closeModalPortafolio() {
+    closeModal("#modalPortafolio");
+    resetProductFilter();
+}
+
+function resetProductFilter() {
+    $("#inputSearchText").val("").keyup();
+}
+
+function openModalPrecios(productCode) {
+    $("#modalPrecios .pbBody table").each(function() {
+        $(this).css("display", $(this).attr("summary") == productCode ? "table" : "none");
+    });
+    var height = $("#modalPrecios").css("height");
+    $("#modalPrecios").css("margin-top", "-"+parseInt(height.substring(0, height.length-2))/2+"px");
+    $("#modalPrecios .pbHeader td:nth-child(2)").html(productMap[productCode].Name);
+    openModal("#modalPrecios");
+}
+
+function preSetProducto(productCode, index) {
+    resetRow(getRow(index));
+    setProducto(productCode, index);
+    showInventario(index);
+}
+
+function getRow(index) {
+    return $(".pageBlockTableProductos tr.dataRow:nth-child("+index+")");
+}
+
+function setProducto(productCode, index) {
+    var row = getRow(index);
+    var inputProductCode = row.find(".inputProductCode");
+    if(productMap[inputProductCode.data("old")]) {
+        productMap[inputProductCode.data("old")].isSet = false;
+        inputProductCode.data("old", "");
+    }
+    if(isValidProductCode(productCode, row)) {
+        var producto = row.find("[id$=inputProducto]");
+        if(!producto.val()) {
+            producto.val(productMap[productCode].Id);
+            row.find("td:nth-child(3) span").html(productMap[productCode].Description);
+        }
+        inputProductCode.val(productCode);
+        inputProductCode.data("old", productCode);
+        var inputPrecioListaPrecios = row.find("[id$=inputPrecioListaPrecios]");
+        if(!inputPrecioListaPrecios.val()) {
+            inputPrecioListaPrecios.val(preciosMap[productCode][0].pve_folgral);
+        }
+       	var inputMoneda = row.find("[id$=inputMoneda]");
+        var inputUnidad = row.find("[id$=inputUnidad]");
+        
+        var opera = $('[id$=inputOperaSap]').val();        
+         if (opera == "true") {
+            if(productMap[productCode].Unidad_de_medida_base__c.substring(0,1) == ""){
+            	row.find("td:nth-child(3) span").html("El producto no contiene Unidad de Medida Base configurado.");
+            	return;            	
+            }
+        }
+        
+        row.find("td:nth-child(4)").html('<input type="button" value="Ver" class="btn" onclick="openModalPrecios(\''+productCode+'\')"/>');
+        row.find("td:nth-child(5)").html(productMap[productCode].Ficha_comercial__c ? '<a href="'+productMap[productCode].Ficha_comercial__c+'" target="_blank">Ver</a>' : "n.d.");
+        row.find("td:nth-child(8) input, td:nth-child(11) input").css("display", inventarioMap[productCode].TipoManejoInventario == 2 ? "none" : "inline-block");
+        row.find("td:nth-child(9) input, td:nth-child(12) input").css("display", inventarioMap[productCode].TipoManejoInventario == 2 || !(inventarioMap[productCode].Contenido > 0 && inventarioMap[productCode].EsPesoEstandar) ? "none" : "inline-block");
+        
+        
+        
+        var kilosInputs = row.find("td:nth-child(10) input[type=text], td:nth-child(13) input[type=text]");
+        if(inventarioMap[productCode].TipoManejoInventario == 1 || (inventarioMap[productCode].Contenido > 0 && inventarioMap[productCode].EsPesoEstandar)) {
+            kilosInputs.addClass("disabledInput").attr("disabled", "disabled");
+        } else {
+            kilosInputs.removeClass("disabledInput").removeAttr("disabled");
+        }
+        kilosInputs.css("display", "inline-block");
+        row.find("td:nth-child(14) input").css("display", "inline-block");
+       
+    
+        if(!inputMoneda.val()) {
+            inputMoneda.val(preciosMap[productCode][0].pve_tipprec.substring(0, 1));
+        }
+        if(!inputUnidad.val()) {
+            inputUnidad.val(preciosMap[productCode][0].pve_tipprec.substring(1));
+        }
+        if(opera == 'true'){
+       		 inputUnidad.val(preciosMap[productCode][0].pve_tipprec.substring(1));
+       		 row.find("td:nth-child(9) input, td:nth-child(12) input").css("display", "inline-block");
+       	}
+        var selectedOption = inputMoneda.val()+inputUnidad.val();
+        var currencyArray = ["P", "D"];
+        var unitArray = inputUnidad.val() == "K" || inputUnidad.val() == "L" ? ["K", "L"] : [inputUnidad.val()];
+        var noOptions = { PL:1 };
+        var tipoPrecioSelect = '<select onchange="processTipoPrecio('+index+')" id="selectTipoPrecio'+index+'">';
+        for(var currency in currencyArray) {
+            for(var unit in unitArray) {
+                var option = currencyArray[currency]+unitArray[unit];
+                if(!noOptions[option]) {
+                    tipoPrecioSelect += '<option value="'+option+'" label="'+option+'"'+(option == selectedOption ? ' selected="selected"' : '""')+'>'+option+'</option>';
+                }
+            }
+        }
+        tipoPrecioSelect += "</select>";
+        row.find("td:nth-child(15)").html(tipoPrecioSelect);       
+        //Se agrega ComboBox para la unidad de medida.
+        if (opera == "true") 
+        {
+       
+            var unidadMedidaBase = row.find("[id$=inputUnidadBase]").val() ==""? productMap[productCode].Unidad_de_medida_base__c.substring(0,1):row.find("[id$=inputUnidadBase]").val();
+             var selectUnidadMedida = '<select onchange="hiddenUnidadMedida('+index+')" id="selectUnidadMedida'+index+'">'; 
+                selectUnidadMedida += '<option value="C" >Cajas</option>';
+                selectUnidadMedida += '<option value="K">Kilos</option>';
+                selectUnidadMedida += '<option value="P">Piezas</option>';    
+            selectUnidadMedida += "</select>";
+            row.find("td:nth-child(7)").html(selectUnidadMedida);
+          	 $("#selectUnidadMedida"+index+" option[value=" + unidadMedidaBase + "]").prop("selected", "selected").change();  
+            
+        }
+      
+        
+        row.find("td:nth-child(16) input").css("display", "inline-block");
+        row.find("#inputPesoPromedioKg").val(floatToString(productMap[productCode].Peso_Promedio__c, 2));
+        row.find("td:nth-child(6)").html(floatToString(inputUnidad.val() == "L" ? productMap[productCode].Peso_Promedio__c*conversionKiloPound : productMap[productCode].Peso_Promedio__c, 2));
+        var precioUnitarioOriginal = row.find("[id$=inputPrecioUnitarioOriginal]");
+        if(!precioUnitarioOriginal.val()) {
+            precioUnitarioOriginal.val(preciosMap[productCode][0].precio);
+        }
+        var precioUnitarioOtorgado = row.find("td:nth-child(14) input:first-child");
+        if(!precioUnitarioOtorgado.val()) {
+            precioUnitarioOtorgado.val(precioUnitarioOriginal.val());
+        }
+        var precioUnitarioOriginalPesos = row.find("#inputPrecioUnitarioOriginalPesos").val(precioUnitarioOriginal.val());
+        var precioUnitarioOtorgadoPesos = row.find("td:nth-child(14) input:last-child").val(precioUnitarioOtorgado.val());
+        if(inputMoneda.val() == "D") {
+            precioUnitarioOriginalPesos.val(precioUnitarioOriginalPesos.val()*exchangeRateDolarPeso);
+            precioUnitarioOtorgadoPesos.val(precioUnitarioOtorgadoPesos.val()*exchangeRateDolarPeso);
+        }
+        if(inputUnidad.val() == "L") {
+            precioUnitarioOriginalPesos.val(precioUnitarioOriginalPesos.val()*conversionKiloPound);
+            precioUnitarioOtorgadoPesos.val(precioUnitarioOtorgadoPesos.val()*conversionKiloPound);
+        }
+        //row.find("td:nth-child(16) input").val(floatToCurrency(stringCurrencyToFloat(row.find("td:nth-child(16) input").val())));
+        var importe = parseFloat(row.find("td:nth-child(16) input").val().replace("$","").replace(",",""));
+        row.find("td:nth-child(16) input").val(importe);
+        productMap[productCode].isSet = true;
+        setPedidoItemValues(getPedidoItem(index));
+    } else {
+        resetRow(row);
+        setSummaryRow();
+    }
+    inputProductCode.val(productCode);
+}
+
+function hiddenUnidadMedida(index) {
+    var row = getRow(index);
+    var unidad = row.find("[id$=selectUnidadMedida"+index+"]").val();  
+    row.find("[id$=inputUnidadBase]").val(unidad);   
+
+    switch(unidad) {
+        case "C":  
+            row.find("td:nth-child(8) input").removeClass("disabledInput").removeAttr("disabled").focus();
+            row.find("td:nth-child(11) input").removeClass("disabledInput").removeAttr("disabled");       
+            row.find("td:nth-child(10) input").addClass("disabledInput").attr("disabled", "disabled");      
+            row.find("td:nth-child(13) input").addClass("disabledInput").attr("disabled", "disabled"); 
+           
+          	row.find("td:nth-child(9) input").addClass("disabledInput").attr("disabled", "disabled");      
+            row.find("td:nth-child(12) input").addClass("disabledInput").attr("disabled", "disabled"); 
+			
+            break;
+        case "K":
+            row.find("td:nth-child(8) input").addClass("disabledInput").attr("disabled", "disabled");  
+            row.find("td:nth-child(11) input").addClass("disabledInput").attr("disabled", "disabled");             
+            row.find("td:nth-child(10) input").removeClass("disabledInput").removeAttr("disabled").focus();           
+            row.find("td:nth-child(13) input").removeClass("disabledInput").removeAttr("disabled");
+            
+           	row.find("td:nth-child(9) input").addClass("disabledInput").attr("disabled", "disabled");      
+            row.find("td:nth-child(12) input").addClass("disabledInput").attr("disabled", "disabled"); 
+            		
+            break;
+        case "L":
+            row.find("td:nth-child(8) input").addClass("disabledInput").attr("disabled", "disabled");  
+            row.find("td:nth-child(11) input").addClass("disabledInput").attr("disabled", "disabled");        
+            row.find("td:nth-child(10) input").removeClass("disabledInput").removeAttr("disabled").focus();  
+            row.find("td:nth-child(13) input").removeClass("disabledInput").removeAttr("disabled"); 
+            
+           	row.find("td:nth-child(9) input").addClass("disabledInput").attr("disabled", "disabled");      
+            row.find("td:nth-child(12) input").addClass("disabledInput").attr("disabled", "disabled"); 
+            		
+            break;
+        case "P":
+                   
+            row.find("td:nth-child(9) input").removeClass("disabledInput").removeAttr("disabled").focus();  
+            row.find("td:nth-child(12) input").removeClass("disabledInput").removeAttr("disabled"); 
+
+            row.find("td:nth-child(8) input").addClass("disabledInput").attr("disabled", "disabled");  
+            row.find("td:nth-child(11) input").addClass("disabledInput").attr("disabled", "disabled");  
+            row.find("td:nth-child(10) input").addClass("disabledInput").attr("disabled", "disabled");    
+            row.find("td:nth-child(13) input").addClass("disabledInput").attr("disabled", "disabled");      
+
+            break;
+        default:        
+    }      
+}
+
+function isValidProductCode(productCode, row) {
+    var hasError;
+    if(!productCode) {
+        hasError = row.find("td:nth-child(3) span").html("Seleccione un producto.");
+    } else if(!productMap[productCode]) {
+        hasError = row.find("td:nth-child(3) span").html("Código de producto no encontrado.");
+    } else if(productMap[productCode].isSet) {
+        hasError = row.find("td:nth-child(3) span").html("El producto ya existe en la lista.");
+    } else if(!preciosMap[productCode]) {
+        hasError = row.find("td:nth-child(3) span").html("El producto no tiene precios definidos.");
+    }
+    return !hasError;
+}
+
+function resetRow(row) {
+    var outputColumnsIndexes = [4, 5, 6];
+    for(var index in outputColumnsIndexes) {
+        row.find("td:nth-child("+outputColumnsIndexes[index]+")").html("");
+    }
+    var inputColumnsIndexes = [1, 7, 8, 9, 10, 11, 12, 13, 14,15,16];
+    for(var index in inputColumnsIndexes) {
+        row.find("td:nth-child("+inputColumnsIndexes[index]+")").find("input[type=text], input[type=hidden]").val("").css("display", "none");
+    }
+    row.find("td:nth-child(3) span").removeClass("textError");
+}
+
+function integerInputOnly(event) {
+    if(event.which < 48 || event.which > 57) {
+        event.preventDefault();
+    }
+    onInputEnterKeydown(event);
+}
+
+function floatInputOnly(event, input) {
+    if((event.which != 46 || $(input).val().indexOf('.') != -1) && (event.which < 48 || event.which > 57)) {
+        event.preventDefault();
+    }
+    onInputEnterKeydown(event);
+}
+
+function onInputEnterKeydown(event) {
+    if(event.keyCode == 13) {
+        event.preventDefault();
+        $(":focus").blur().focus();
+    }
+}
+
+function stringCurrencyToFloat(value) {
+//     return $.type(value) == "string" && value ? parseFloat(value.replace(" ", "").replace(new RegExp("\\$", "g"), "").replace(/,/g, "")) : "";
+    if($.type(value) == "string" && value){
+        value = value.replace(" ", "").replace("\\$", "g").replace("g","");
+        return  parseFloat(value);        
+    }
+    return "";
+}
+
+function stringNumberToFloat(value) {
+    return $.type(value) == "string" && value ? parseFloat(value.replace(" ", "").replace(/,/g, "")) : "";
+}
+
+function floatToCurrency(value) {
+    return $.isNumeric(value) ? "$"+floatToString(value, 2) : "$0.00";
+}
+
+function floatToString(value, precision) {
+    return $.isNumeric(value) ? numberToString(parseFloat(value).toFixed(precision)) : "";
+}
+
+function numberToString(value) {
+    var valueReturn = "", integerValue = "";
+    if($.isNumeric(value)) {
+        var stringValue = value.toString();
+        if(stringValue.indexOf(".") != -1) {
+            valueReturn = stringValue.substring(stringValue.indexOf("."));
+            integerValue = stringValue.substring(0, stringValue.indexOf("."));
+        } else {
+            integerValue = stringValue;
+        }
+        valueReturn = integerValue.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")+valueReturn;
+    }
+    return valueReturn;
+}     
+    function getPedidoItem(index) {
+        var row = getRow(index);
+         var objects = {
+            index : index,
+            PrecioListaPrecios__c:row.find("[id$=inputPrecioListaPrecios]"),
+            PrecioUnitarioOriginal__c:row.find("[id$=inputPrecioUnitarioOriginal]"),
+            precioUnitarioOriginalPesos:row.find("[id$=inputPrecioUnitarioOriginalPesos]"),
+            precioUnitarioRequiereAutorizacion:row.find("[id$=inputPrecioUnitarioRequiereAutorizacion]"),
+            pesoPromedio:row.find("td:nth-child(6)"),
+            Cajas__c:row.find("td:nth-child(8) input"),
+            Piezas__c:row.find("td:nth-child(9) input"),
+            kilos:row.find("td:nth-child(10) input:first-child"),
+            Kilos__c:row.find("td:nth-child(10) input:last-child"),
+            CajasConf__c:row.find("td:nth-child(11) input"),
+            PiezasConf__c:row.find("td:nth-child(12) input"),
+            kilosConf:row.find("td:nth-child(13) input:first-child"),
+            KilosConf__c:row.find("td:nth-child(13) input:last-child"),
+            PrecioUnitarioOtorgado__c:row.find("td:nth-child(14) input:first-child"),
+            precioUnitarioOtorgadoPesos:row.find("td:nth-child(14) input:last-child"),
+            tipoPrecio:row.find("td:nth-child(15) select"),
+            Importe__c:row.find("td:nth-child(16) input")
+            ,Unidad__c :row.find("td:nth-child(7) select")
+        };
+        var values = {
+            index: objects.index,
+            productCode:row.find("td:nth-child(2) input").val(),
+            PrecioListaPrecios__c:objects.PrecioListaPrecios__c.val(),
+            PrecioUnitarioOriginal__c:stringNumberToFloat(objects.PrecioUnitarioOriginal__c.val()),
+            precioUnitarioOriginalPesos:stringNumberToFloat(objects.precioUnitarioOriginalPesos.val()),
+            precioUnitarioRequiereAutorizacion:objects.precioUnitarioRequiereAutorizacion.val(),
+            pesoPromedioKg:stringNumberToFloat(row.find("#inputPesoPromedioKg").val()),
+            pesoPromedio:stringNumberToFloat(objects.pesoPromedio.text()),
+            Cajas__c:stringNumberToFloat(objects.Cajas__c.val()),
+            Piezas__c:stringNumberToFloat(objects.Piezas__c.val()),
+            kilos:stringNumberToFloat(objects.kilos.val()),
+            Kilos__c:stringNumberToFloat(objects.Kilos__c.val()),
+            CajasConf__c:stringNumberToFloat(objects.CajasConf__c.val()),
+            PiezasConf__c:stringNumberToFloat(objects.PiezasConf__c.val()),
+            kilosConf:stringNumberToFloat(objects.kilosConf.val()),
+            KilosConf__c:stringNumberToFloat(objects.KilosConf__c.val()),
+            PrecioUnitarioOtorgado__c:stringNumberToFloat(objects.PrecioUnitarioOtorgado__c.val()),
+            precioUnitarioOtorgadoPesos:stringNumberToFloat(objects.precioUnitarioOtorgadoPesos.val()),
+            tipoPrecio:objects.tipoPrecio.val(),
+            //Importe__c:stringCurrencyToFloat(objects.Importe__c.val())
+            Importe__c:objects.Importe__c.val()
+            ,Unidad__c: objects.Unidad__c.val()
+        };
+        values["currency"] = values.tipoPrecio.substring(0, 1);
+        values["unit"] = values.tipoPrecio.substring(1);
+        return { objects:objects, values:values };
+    }
+
+
+ function setPedidoItemValues(pedidoItem) {
+ 
+ 		pedidoItem.objects.Unidad__c.data("old",pedidoItem.values.Unidad__c);
+        pedidoItem.objects.PrecioListaPrecios__c.data("old", pedidoItem.values.PrecioListaPrecios__c);
+        pedidoItem.objects.PrecioUnitarioOriginal__c.data("old", pedidoItem.values.PrecioUnitarioOriginal__c);
+        pedidoItem.objects.precioUnitarioOriginalPesos.data("old", pedidoItem.values.precioUnitarioOriginalPesos);
+        pedidoItem.objects.precioUnitarioRequiereAutorizacion.data("old", pedidoItem.values.precioUnitarioRequiereAutorizacion);
+        pedidoItem.objects.pesoPromedio.data("old", pedidoItem.values.pesoPromedio);
+        pedidoItem.objects.Cajas__c.data("old", pedidoItem.values.Cajas__c);
+        pedidoItem.objects.Piezas__c.data("old", pedidoItem.values.Piezas__c);
+        pedidoItem.objects.kilos.data("old", pedidoItem.values.kilos);
+        pedidoItem.objects.Kilos__c.data("old", pedidoItem.values.Kilos__c);
+        pedidoItem.objects.CajasConf__c.data("old", pedidoItem.values.CajasConf__c);
+        pedidoItem.objects.PiezasConf__c.data("old", pedidoItem.values.PiezasConf__c);
+        pedidoItem.objects.kilosConf.data("old", pedidoItem.values.kilosConf);
+        pedidoItem.objects.KilosConf__c.data("old", pedidoItem.values.KilosConf__c);
+        pedidoItem.objects.PrecioUnitarioOtorgado__c.data("old", pedidoItem.values.PrecioUnitarioOtorgado__c);
+        pedidoItem.objects.precioUnitarioOtorgadoPesos.data("old", pedidoItem.values.precioUnitarioOtorgadoPesos);
+        pedidoItem.objects.Importe__c.data("old", pedidoItem.values.Importe__c);
+        pedidoItem.objects.PrecioListaPrecios__c.val(pedidoItem.values.PrecioListaPrecios__c);
+        pedidoItem.objects.PrecioUnitarioOriginal__c.val(pedidoItem.values.PrecioUnitarioOriginal__c);
+        pedidoItem.objects.precioUnitarioOriginalPesos.val(pedidoItem.values.precioUnitarioOriginalPesos);
+        pedidoItem.objects.pesoPromedio.html(floatToString(pedidoItem.values.pesoPromedio, 2));
+        pedidoItem.objects.Cajas__c.val(pedidoItem.values.Cajas__c);
+        pedidoItem.objects.Piezas__c.val(pedidoItem.values.Piezas__c);
+        pedidoItem.objects.kilos.val(floatToString(pedidoItem.values.kilos, 2));
+        pedidoItem.objects.Kilos__c.val(pedidoItem.values.Kilos__c);
+        pedidoItem.objects.CajasConf__c.val(pedidoItem.values.CajasConf__c);
+        pedidoItem.objects.PiezasConf__c.val(pedidoItem.values.PiezasConf__c);
+        pedidoItem.objects.kilosConf.val(floatToString(pedidoItem.values.kilosConf, 2));
+        pedidoItem.objects.KilosConf__c.val(pedidoItem.values.KilosConf__c);
+        pedidoItem.objects.PrecioUnitarioOtorgado__c.val(floatToString(pedidoItem.values.PrecioUnitarioOtorgado__c, 4));
+        pedidoItem.objects.precioUnitarioOtorgadoPesos.val(pedidoItem.values.precioUnitarioOtorgadoPesos);
+        pedidoItem.objects.Importe__c.val(floatToCurrency(parseFloat(pedidoItem.values.Importe__c)));
+        //pedidoItem.objects.Importe__c.val(pedidoItem.values.Importe__c);
+        
+        setSummaryRow();
+    }
+    
+    function restoreData(pedidoItem) {   
+        var valueUnidadMedida =  pedidoItem.objects.Unidad__c.data("old");
+        $("#selectUnidadMedida"+pedidoItem.values.index+" option[value="+valueUnidadMedida+"]").prop("selected", "selected").change();
+       	pedidoItem.values.PrecioListaPrecios__c = pedidoItem.objects.PrecioListaPrecios__c.data("old");        
+        pedidoItem.values.PrecioUnitarioOriginal__c = pedidoItem.objects.PrecioUnitarioOriginal__c.data("old");
+        pedidoItem.values.precioUnitarioOriginalPesos = pedidoItem.objects.precioUnitarioOriginalPesos.data("old");
+        pedidoItem.values.precioUnitarioRequiereAutorizacion = pedidoItem.objects.precioUnitarioRequiereAutorizacion.data("old");
+        pedidoItem.values.pesoPromedio = pedidoItem.objects.pesoPromedio.data("old");
+        pedidoItem.values.Cajas__c = pedidoItem.objects.Cajas__c.data("old");
+        pedidoItem.values.Piezas__c = pedidoItem.objects.Piezas__c.data("old");
+        pedidoItem.values.kilos = pedidoItem.objects.kilos.data("old");
+        pedidoItem.values.Kilos__c = pedidoItem.objects.Kilos__c.data("old");
+        pedidoItem.values.CajasConf__c = pedidoItem.objects.CajasConf__c.data("old");
+        pedidoItem.values.PiezasConf__c = pedidoItem.objects.PiezasConf__c.data("old");
+        pedidoItem.values.kilosConf = pedidoItem.objects.kilosConf.data("old");
+        pedidoItem.values.KilosConf__c = pedidoItem.objects.KilosConf__c.data("old");
+        pedidoItem.values.PrecioUnitarioOtorgado__c = pedidoItem.objects.PrecioUnitarioOtorgado__c.data("old");
+        pedidoItem.values.precioUnitarioOtorgadoPesos = pedidoItem.objects.precioUnitarioOtorgadoPesos.data("old");
+        pedidoItem.values.Importe__c = pedidoItem.objects.Importe__c.data("old");
+        pedidoItem.values.Unidad__c =  pedidoItem.objects.Unidad__c.data("old");
+    }
+    
+  function copySolicitadoToConfirmado(pedidoItemValues) {
+    pedidoItemValues.CajasConf__c = pedidoItemValues.Cajas__c;
+    pedidoItemValues.PiezasConf__c = pedidoItemValues.Piezas__c;
+    pedidoItemValues.KilosConf__c = pedidoItemValues.Kilos__c;
+    pedidoItemValues.kilosConf = pedidoItemValues.kilos;
+    pedidoItemValues.Unidad__c =  pedidoItemValues.Unidad__c;
+    $("#selectUnidadMedida"+pedidoItemValues.index+" option[value="+pedidoItemValues.Unidad__c +"]").prop("selected", "selected").change();
+    validaInventario(pedidoItemValues);
+    calculaImporte(pedidoItemValues, true);
+}
+ function resetHalf(pedidoItemValues, isConfirmado) {
+    pedidoItemValues["Cajas"+isConfirmado+"__c"] = pedidoItemValues["Piezas"+isConfirmado+"__c"] = pedidoItemValues["Kilos"+isConfirmado+"__c"] = pedidoItemValues["kilos"+isConfirmado] = "";
+    if(isConfirmado) {
+        pedidoItemValues.PrecioListaPrecios__c = preciosMap[pedidoItemValues.productCode][0].pve_folgral;
+        pedidoItemValues.precioUnitarioOriginalPesos = pedidoItemValues.precioUnitarioOtorgadoPesos = preciosMap[pedidoItemValues.productCode][0].pve_tipprec.substring(0, 1) == "D" ? preciosMap[pedidoItemValues.productCode][0].precio*exchangeRateDolarPeso : preciosMap[pedidoItemValues.productCode][0].precio;
+        pedidoItemValues.PrecioUnitarioOriginal__c = pedidoItemValues.PrecioUnitarioOtorgado__c = pedidoItemValues.currency == "D" ? pedidoItemValues.precioUnitarioOriginalPesos/exchangeRateDolarPeso : pedidoItemValues.precioUnitarioOriginalPesos;
+        pedidoItemValues.Importe__c = 0;
+    }
+}
+
+function calculaEnBaseACajas(pedidoItemValues, type) 
+{
+    if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
+        pedidoItemValues["Piezas"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
+    }
+    /// Ramon Atondo 28/05/2018
+	pedidoItemValues["Piezas"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
+	pedidoItemValues["Piezas"+type] =pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
+ 		
+    pedidoItemValues["Kilos"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
+    pedidoItemValues["kilos"+type] = pedidoItemValues.unit == "L" ? pedidoItemValues["Kilos"+type+"__c"]*conversionKiloPound : pedidoItemValues["Kilos"+type+"__c"];
+}
+
+function calculaEnBaseAPiezas(pedidoItemValues, type) {
+    var cantidad;
+    if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
+        pedidoItemValues["Cajas"+type+"__c"] = pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido;
+    }
+    if(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 3) {
+    	  		
+		pedidoItemValues["Cajas"+type+"__c"] = pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido;
+ 		pedidoItemValues["Cajas"+type] = pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido;
+        pedidoItemValues["Kilos"+type+"__c"] = inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar ? pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido*productMap[pedidoItemValues.productCode].Peso_Promedio__c : pedidoItemValues["Piezas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
+        pedidoItemValues["kilos"+type] = pedidoItemValues.unit == "L" ? pedidoItemValues["Kilos"+type+"__c"]*conversionKiloPound : pedidoItemValues["Kilos"+type+"__c"];
+    }
+    console.log('Piezas :'+pedidoItemValues["Piezas"+type+"__c"]);
+}
+
+function calculaEnBaseAKilos(pedidoItemValues, type) {
+    var cantidad = inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 2 ? pedidoItemValues["Kilos"+type+"__c"] : inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 3 ? redondeoSK(pedidoItemValues["Kilos"+type+"__c"]/productMap[pedidoItemValues.productCode].Peso_Promedio__c) : 0;
+    if(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 3) {
+        if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
+            pedidoItemValues["Piezas"+type+"__c"] = cantidad*inventarioMap[pedidoItemValues.productCode].Contenido;
+        }
+        pedidoItemValues["Piezas"+type+"__c"] = cantidad*inventarioMap[pedidoItemValues.productCode].Contenido;
+        pedidoItemValues["Piezas"+type] = cantidad*inventarioMap[pedidoItemValues.productCode].Contenido;
+        pedidoItemValues["Cajas"+type+"__c"] = cantidad;
+    }
+}
+
+function redondeoSK(value) {
+    return value-parseInt(value) < 0.8 ? parseInt(value) : Math.ceil(value);
+}
+function asignaPrecioEnBaseARango(pedidoItemValues, property) {
+    for(var index in preciosMap[pedidoItemValues.productCode]) {
+        var precio = preciosMap[pedidoItemValues.productCode][index];
+        if(precio.pve_volini <= pedidoItemValues[property]) {
+            pedidoItemValues.PrecioListaPrecios__c = precio.pve_folgral;
+            pedidoItemValues.precioUnitarioOriginalPesos = pedidoItemValues.precioUnitarioOtorgadoPesos = precio.pve_tipprec.substring(0, 1) == "D" ? precio.precio*exchangeRateDolarPeso : precio.precio;
+            pedidoItemValues.PrecioUnitarioOriginal__c = pedidoItemValues.PrecioUnitarioOtorgado__c = pedidoItemValues.currency == "D" ? pedidoItemValues.precioUnitarioOriginalPesos/exchangeRateDolarPeso : pedidoItemValues.precioUnitarioOriginalPesos;
+        } else {
+            break;
+        }
+    }
+}
+
+function validaInventario(pedidoItemValues) {
+    if(!isPreventa && !inventarioMap[pedidoItemValues.productCode].PermiteApartarSinexistencias) {
+        var amount, type;
+        if(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 2) {
+            amount = pedidoItemValues.KilosConf__c;
+            type = "float";
+        } else {
+            amount = pedidoItemValues.CajasConf__c;
+            type = "number";
+        }
+         var opera = $('[id$=inputOperaSap]').val();
+        /// Si no opera en SAP  Toma de  DispAlm y si Opera en SAP toma InvActual
+//        if (opera == "false") {
+            if(amount != 0 && amount > inventarioMap[pedidoItemValues.productCode].DispAlm) {
+                alert("No existe suficiente inventario disponible para surtir la cantidad confirmada.\nCantidad asignada: "+(type == "float" ? floatToString(amount, 2) : numberToString(amount))+". Cantidad disponible: "+(type == "float" ? floatToString(inventarioMap[pedidoItemValues.productCode].DispAlm, 2) : numberToString(inventarioMap[pedidoItemValues.productCode].DispAlm))+".\nSe limpian las cantidades confirmadas.\n");
+                resetHalf(pedidoItemValues, "Conf");
+                return false;
+            }
+//         }
+//         else {           
+//             if(amount != 0 && amount > inventarioMap[pedidoItemValues.productCode].InvActual) {
+//                 alert("No existe suficiente inventario disponible para surtir la cantidad confirmada.\nCantidad asignada: "+(type == "float" ? floatToString(amount, 2) : numberToString(amount))+". Cantidad disponible: "+(type == "float" ? floatToString(inventarioMap[pedidoItemValues.productCode].DispAlm, 2) : numberToString(inventarioMap[pedidoItemValues.productCode].DispAlm))+".\nSe limpian las cantidades confirmadas.\n");
+//                 resetHalf(pedidoItemValues, "Conf");
+//                 return false;
+//             }
+//         }
+    }
+    return true;
+}
+
+function calculaImporte(pedidoItemValues, isPreset) {
+    var property;
+    if(!(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 2)) {
+        property = "CajasConf__c";
+    } else if(!(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 2 || !(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar))) {
+        property = "PiezasConf__c";
+    } else if(!(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 1 || (inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar))) {
+        property = "KilosConf__c";
+    } else {
+        property = "CajasConf__c";
+    }
+    if(isPreset) {
+        asignaPrecioEnBaseARango(pedidoItemValues, property);
+    }
+    if(pedidoItemValues.unit == "C") {
+        pedidoItemValues.Importe__c = pedidoItemValues.CajasConf__c*pedidoItemValues.precioUnitarioOtorgadoPesos;
+    } else if(pedidoItemValues.unit == "P") {
+        pedidoItemValues.Importe__c = pedidoItemValues.PiezasConf__c*pedidoItemValues.precioUnitarioOtorgadoPesos;
+    } else if(!(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 1 || (inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar))) {
+        pedidoItemValues.Importe__c = pedidoItemValues.KilosConf__c*pedidoItemValues.precioUnitarioOtorgadoPesos;
+    } else {
+        pedidoItemValues.Importe__c = pedidoItemValues.pesoPromedioKg*pedidoItemValues.CajasConf__c*pedidoItemValues.precioUnitarioOtorgadoPesos;
+    }
+}
+
+function processCajasSolicitadas(index) {
+    var pedidoItem = getPedidoItem(index);
+    var hasError;
+    if(!$.isNumeric(pedidoItem.values.Cajas__c)) {
+        resetHalf(pedidoItem.values, "");
+    } else {        
+        if(pedidoItem.values.Cajas__c == 0) {
+            hasError = !alert("El número de cajas solicitadas debe ser mayor a 1.");
+        } else if(pedidoItem.values.Cajas__c < pedidoItem.values.CajasConf__c) {
+            hasError = !alert("El producto solicitado debe ser mayor o igual al producto confirmado.");
+        }
+        if(!hasError) {
+            calculaEnBaseACajas(pedidoItem.values, "");
+            if(!$.isNumeric(pedidoItem.values.CajasConf__c)) {
+                copySolicitadoToConfirmado(pedidoItem.values);
+            } else if(pedidoItem.values.Kilos__c < pedidoItem.values.KilosConf__c) {
+                hasError = !alert("El producto solicitado debe ser mayor o igual al producto confirmado.");
+            }
+        }
+        if(hasError) {
+            pedidoItem.objects.Cajas__c.focus();
+            restoreData(pedidoItem);
+        }
+    }
+    setPedidoItemValues(pedidoItem);
+}
+
+function processPiezasSolicitadas(index) {
+    var pedidoItem = getPedidoItem(index);
+    if(!$.isNumeric(pedidoItem.values.Piezas__c)) {
+        resetHalf(pedidoItem.values, "");
+    } else {
+        var hasError;
+        if(pedidoItem.values.Piezas__c % inventarioMap[pedidoItem.values.productCode].Contenido != 0) {
+            hasError = !alert("La cantidad solicitada no forma por lo menos una caja.");
+        } else if(pedidoItem.values.Piezas__c < pedidoItem.values.PiezasConf__c) {
+            hasError = !alert("El producto solicitado debe ser mayor o igual al producto confirmado.");
+        }
+        if(!hasError) {
+            calculaEnBaseAPiezas(pedidoItem.values, "");
+            if(!$.isNumeric(pedidoItem.values.PiezasConf__c)) {
+                copySolicitadoToConfirmado(pedidoItem.values);
+            }
+        } else {
+            pedidoItem.objects.Piezas__c.focus();
+            restoreData(pedidoItem);
+        }
+    }
+    setPedidoItemValues(pedidoItem);
+}
+
+function processKilosSolicitados(index) {
+    var pedidoItem = getPedidoItem(index);
+    pedidoItem.values.Kilos__c = pedidoItem.values.kilos && pedidoItem.values.unit == "L" ? pedidoItem.values.kilos/conversionKiloPound : pedidoItem.values.kilos;
+    if(!$.isNumeric(pedidoItem.values.kilos)) {
+        resetHalf(pedidoItem.values, "");
+    } else {
+        var hasError;
+        var cantidad = redondeoSK(pedidoItem.values.Kilos__c/productMap[pedidoItem.values.productCode].Peso_Promedio__c);
+        if(inventarioMap[pedidoItem.values.productCode].TipoManejoInventario == 3 && (cantidad < 1 || (inventarioMap[pedidoItem.values.productCode].Contenido > 0 && inventarioMap[pedidoItem.values.productCode].EsPesoEstandar && cantidad % inventarioMap[pedidoItem.values.productMap].Contenido != 0))) {
+            hasError = !alert("La cantidad solicitada no forma por lo menos una caja.");
+        } else if(pedidoItem.values.Kilos__c < pedidoItem.values.KilosConf__c) {
+            hasError = !alert("El producto solicitado debe ser mayor o igual al producto confirmado.");
+        }
+        if(!hasError) {
+            calculaEnBaseAKilos(pedidoItem.values, "");
+            if(!$.isNumeric(pedidoItem.values.KilosConf__c)) {
+                copySolicitadoToConfirmado(pedidoItem.values);
+            }
+        } else {
+            pedidoItem.objects.kilos.focus();
+            restoreData(pedidoItem);
+        }
+    }
+    setPedidoItemValues(pedidoItem);
+}
+
+function processCajasConfirmadas(index) {
+    var pedidoItem = getPedidoItem(index);
+    if(!$.isNumeric(pedidoItem.values.CajasConf__c)) {
+        resetHalf(pedidoItem.values, "Conf");
+    } else {
+        if(pedidoItem.values.CajasConf__c > pedidoItem.values.Cajas__c) {
+            alert("El producto confirmado debe ser menor o igual al producto solicitado.");
+            pedidoItem.objects.CajasConf__c.focus();
+            restoreData(pedidoItem);
+        } else {
+            calculaEnBaseACajas(pedidoItem.values, "Conf");
+            calculaImporte(pedidoItem.values, true);
+            validaInventario(pedidoItem.values);
+        }
+    }
+    setPedidoItemValues(pedidoItem);
+}
+
+function processPiezasConfirmadas(index) {
+    var pedidoItem = getPedidoItem(index);
+    if(!$.isNumeric(pedidoItem.values.PiezasConf__c)) {
+        resetHalf(pedidoItem.values, "Conf");
+    } else {
+        var hasError;
+        if(pedidoItem.values.PiezasConf__c > pedidoItem.values.Piezas__c) {
+            hasError = !alert("El producto confirmado debe ser menor o igual al producto solicitado.");
+        } else if(pedidoItem.values.PiezasConf__c % inventarioMap[pedidoItem.values.productCode].Contenido != 0) {
+            hasError = !alert("La cantidad confirmada no forma por lo menos una caja.");
+        }
+        if(!hasError) {
+            calculaEnBaseAPiezas(pedidoItem.values, "Conf");
+            calculaImporte(pedidoItem.values, true);
+            validaInventario(pedidoItem.values);
+        } else {
+            pedidoItem.objects.PiezasConf__c.focus();
+            restoreData(pedidoItem);
+        }
+    }
+    setPedidoItemValues(pedidoItem);
+}
+
+function processKilosConfirmados(index) {
+    var pedidoItem = getPedidoItem(index);
+    pedidoItem.values.KilosConf__c = pedidoItem.values.kilosConf && pedidoItem.values.unit == "L" ? pedidoItem.values.kilosConf/conversionKiloPound : pedidoItem.values.kilosConf;
+    if(!$.isNumeric(pedidoItem.values.kilosConf)) {
+        resetHalf(pedidoItem.values, "Conf");
+    } else {
+        var hasError;
+        var cantidad = redondeoSK(pedidoItem.values.KilosConf__c/productMap[pedidoItem.values.productCode].Peso_Promedio__c);
+        if(pedidoItem.values.KilosConf__c > pedidoItem.values.Kilos__c) {
+            hasError = !alert("El producto confirmado debe ser menor o igual al producto solicitado.");
+        } else if(pedidoItem.values.KilosConf__c != 0 && inventarioMap[pedidoItem.values.productCode].TipoManejoInventario == 3 && (cantidad < 1 || (inventarioMap[pedidoItem.values.productCode].Contenido > 0 && inventarioMap[pedidoItem.values.productCode].EsPesoEstandar && cantidad % inventarioMap[pedidoItem.values.productMap].Contenido != 0))) {
+            hasError = !alert("La cantidad solicitada no forma por lo menos una caja.");
+        }
+        if(!hasError) {
+            calculaEnBaseAKilos(pedidoItem.values, "Conf");
+            calculaImporte(pedidoItem.values, true);
+            validaInventario(pedidoItem.values);
+        } else {
+            pedidoItem.objects.kilosConf.focus();
+            restoreData(pedidoItem);
+        }
+    }
+    setPedidoItemValues(pedidoItem);
+}
+
+function processPrecioUnitario(index) {
+    var pedidoItem = getPedidoItem(index);
+    pedidoItem.values.precioUnitarioOtorgadoPesos = pedidoItem.values.PrecioUnitarioOtorgado__c && pedidoItem.values.currency == "D" ? pedidoItem.values.PrecioUnitarioOtorgado__c*exchangeRateDolarPeso : pedidoItem.values.PrecioUnitarioOtorgado__c;
+    var hasError;
+    var validatePrice = false;
+    pedidoItem.values.precioUnitarioRequiereAutorizacion = false;
+    if(pedidoItem.values.precioUnitarioOtorgadoPesos*(1-unitPriceMaxIncrementalPercentage/100) > pedidoItem.values.precioUnitarioOriginalPesos) {
+        hasError = !alert("El precio otorgado no puede ser mayor al "+unitPriceMaxIncrementalPercentage+" porciento del precio unitario original.");
+    /*} else if(pedidoItem.values.precioUnitarioOtorgadoPesos*(1+unitPriceMaxDecrementalPercentage/100) < pedidoItem.values.precioUnitarioOriginalPesos) {
+        //FIXME
+    	pedidoItem.values.precioUnitarioRequiereAutorizacion = true;
+    	pedidoItem.objects.precioUnitarioRequiereAutorizacion.val("true");
+    }*/
+    // Deprecated
+    // Validación obsoleta
+    }else if(pedidoItem.values.precioUnitarioOtorgadoPesos*(1+unitPriceMaxDecrementalPercentage/100) < pedidoItem.values.precioUnitarioOriginalPesos) {
+        hasError = !alert("El precio otorgado no puede ser menor al "+unitPriceMaxDecrementalPercentage+" porciento del precio unitario original.");
+    } 
+    if(!hasError) {
+        calculaImporte(pedidoItem.values, false);
+    } else {
+        pedidoItem.objects.PrecioUnitarioOtorgado__c.focus();
+        restoreData(pedidoItem);
+    }
+    setPedidoItemValues(pedidoItem);
+}
+
+function processTipoPrecio(index) {
+    var pedidoItem = getPedidoItem(index);
+    var row = getRow(index);
+    row.find("[id$=inputMoneda]").val(pedidoItem.values.currency);
+    row.find("[id$=inputUnidad]").val(pedidoItem.values.unit);    
+//     var opera = $('[id$=inputOperaSap]').val();        
+//     if (opera == "true") {
+//     		row.find("[id$=inputUnidadBase]").val(pedidoItem.values.Unidad__C);
+//     }
+    pedidoItem.values.pesoPromedio = pedidoItem.values.unit == "L" ? pedidoItem.values.pesoPromedioKg*conversionKiloPound : pedidoItem.values.pesoPromedioKg;
+    pedidoItem.values.kilos = pedidoItem.values.Kilos__c && pedidoItem.values.unit == "L" ? pedidoItem.values.Kilos__c*conversionKiloPound : pedidoItem.values.Kilos__c;
+    pedidoItem.values.kilosConf = pedidoItem.values.KilosConf__c && pedidoItem.values.unit == "L" ? pedidoItem.values.KilosConf__c*conversionKiloPound : pedidoItem.values.KilosConf__c;
+    pedidoItem.values.PrecioUnitarioOriginal__c = pedidoItem.values.precioUnitarioOriginalPesos;
+    pedidoItem.values.PrecioUnitarioOtorgado__c = pedidoItem.values.precioUnitarioOtorgadoPesos;
+    if(pedidoItem.values.currency == "D") {
+        pedidoItem.values.PrecioUnitarioOriginal__c = pedidoItem.values.precioUnitarioOriginalPesos/exchangeRateDolarPeso;
+        pedidoItem.values.PrecioUnitarioOtorgado__c = pedidoItem.values.precioUnitarioOtorgadoPesos/exchangeRateDolarPeso;
+    }
+    if(pedidoItem.values.unit == "L") {
+        pedidoItem.values.PrecioUnitarioOriginal__c = pedidoItem.values.PrecioUnitarioOriginal__c/conversionKiloPound;
+        pedidoItem.values.PrecioUnitarioOtorgado__c = pedidoItem.values.PrecioUnitarioOtorgado__c/conversionKiloPound;
+    }
+    setPedidoItemValues(pedidoItem);
+}
+
+function guardar() {
+    if(isValidData()) {
+        submit();
+        currentProductCode = undefined;
+    }
+}
+
+function isValidData() {
+    var hasError;
+    if(!$(".pageBlockTableProductos tr.dataRow [id$=inputProducto][value!='']").val()) {
+        hasError = !alert("Debe agregar por lo menos un producto.");
+    } else {
+        $(".pageBlockTableProductos tr.dataRow").each(function(index) {
+            if($(this).find("[id$=inputProducto]").val()) {
+                var pedidoItem = getPedidoItem(index+1);
+                if(!validaInventario(pedidoItem.values)) {
+                    setPedidoItemValues(pedidoItem);
+                }
+                $(this).find("input[type=text]").each(function() {
+                    if($(this).css("display") != "none" && $(this).val() == "") {
+                        hasError = true;
+                        return !$(this).parents("tr").find("td:nth-child(3) span").addClass("textError");
+                    } else {
+                        $(this).parents("tr").find("td:nth-child(3) span").removeClass("textError");
+                    }
+                });
+            }
+        });
+        if(hasError) {
+            alert("Debe capturar toda la información para los productos capturados.");
+        }
+    }
+    return !hasError;
+}
+
+function cancelarPedido() {
+    var hasError;
+    if($("[id$=inputPedidoCancelado]").val() == "true") {
+        hasError = !alert("No se puede cancelar el pedido. El pedido se encuentra cancelado.");
+    } else if($("[id$=inputPedidoCanceladoPorElSistema]").val() == "true") {
+        hasError = !alert("No se puede cancelar el pedido. El pedido se encuentra cancelado por el sistema.");
+    } else if($("[id$=inputEstatusPedido]").val() && $("[id$=inputEstatusPedido]").val() != "0 - Rechazado" && $("[id$=inputEstatusPedido]").val() != "1 - Pedido Colocado") {
+        hasError = !alert("No se puede cancelar el pedido. El estatus del pedido no es válido para cancelación.");
+    }
+    if(!hasError && confirm("¿Realmente desea cancelar el pedido?")) {
+        cancel();
+    }
+}
+
+function rowOn(element) {
+    if(window.hiOn) {
+        hiOn(element);
+    }
+}
+
+function rowOff(element) {
+    if(window.hiOff) {
+        hiOff(element);
+    } 
+}
+      
+            
+        
+  </script>
+<apex:form id="form">
+    <apex:pageMessages />
+    <apex:variable value="{!accountWrapper.account.Id != null && accountWrapper.oficinaVentasSelectOptionList != null && accountWrapper.oficinaVentasSelectOptionList.size > 1}" var="isSelectableOficinaVentas"/>
+    <apex:pageBlock rendered="{!externalSources.precioListXProductCodeMap == null && pedidoWrapper.pedido.Id == null}">
+        <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+            <h3>Generales</h3>
+        </div>
+        <table id="tableGenerales1">
+            <tr>
+                <td class="labelCol">Código de la sucursal:</td>
+                <td id="tdSucursalGenerales1">
+                    <apex:outputText value="{!accountWrapper.account.Numero_Cliente_SAP__c}" styleClass="fieldSucursalGenerales1" rendered="{!!accountWrapper.isSelectable}"/>
+                    <apex:outputField value="{!pedidoWrapper.pedido.Cuenta__c}" rendered="{!!accountWrapper.isSelectable}"/>
+                    <apex:actionRegion rendered="{!accountWrapper.isSelectable}">
+                        <apex:inputText value="{!accountWrapper.sucursal}" styleClass="fieldSucursalGenerales1">
+                            <apex:actionSupport action="{!queryAccount}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="form">
+                                <apex:param name="accountId" assignTo="{!pedidoWrapper.pedido.Cuenta__c}" value=""/>
+                            </apex:actionSupport>
+                        </apex:inputText>
+                    </apex:actionRegion>
+                    <apex:actionRegion rendered="{!accountWrapper.isSelectable}">
+                        <apex:inputField value="{!pedidoWrapper.pedido.Cuenta__c}">
+                            <apex:actionSupport action="{!queryAccount}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="form">
+                                <apex:param name="accountId" assignTo="{!accountWrapper.sucursal}" value=""/>
+                            </apex:actionSupport>
+                        </apex:inputField>
+                    </apex:actionRegion>
+                    <apex:actionStatus id="actionStatusSucursal">
+                        <apex:facet name="start">
+                            <img src="/img/loading.gif" class="imgLoading"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </td>
+                <td class="labelCol">Tipo de surtido:</td>
+                <td>
+                    <apex:inputField value="{!pedidoWrapper.pedido.TipoSurtido__c}" required="true" onchange="validateTipoSurtido(this, '{!IF(accountWrapper.account.Id != null, accountWrapper.account.DiasEntrega__c, 'N/A')}')"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="labelCol">Prospecto:</td>
+                <td>
+                    <apex:inputField value="{!pedidoWrapper.pedido.Prospecto__c}"/>
+                </td>
+                <!--
+                <td class="labelCol">Fecha de surtido:</td>
+                <td colspan="4">
+                    <apex:inputField value="{!pedidoWrapper.pedido.FechaSurtidoProgramada__c}" required="true" onkeydown="onInputEnterKeydown(event)" onchange="validateFechaSurtidoD()" />
+                </td>
+				-->
+                <apex:repeat value="{!0}" rendered="{!isSelectableOficinaVentas}">
+                    <td class="labelCol">Oficina de ventas:</td>
+                    <td>
+                        <apex:selectList value="{!accountWrapper.oficinaVentasName}" size="1">
+                            <apex:selectOptions value="{!accountWrapper.oficinaVentasSelectOptionList}"/>
+                        </apex:selectList>
+                    </td>
+                </apex:repeat>
+            </tr>
+        </table>
+        <apex:pageBlockButtons location="bottom">
+            <apex:actionStatus id="actionStatusGenerales1">
+                <apex:facet name="stop">
+                    <apex:commandButton action="{!stepForth}" id="btnSiguiente" status="actionStatusGenerales1" timeout="300000"  value="Siguiente" rerender="form,panel1,panel2"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <input type="button" value="Procesando..." disabled="disabled" class="btnDisabled"/>
+                    <img src="/img/loading.gif" class="imgLoading"/>
+                </apex:facet>
+            </apex:actionStatus>
+            <apex:commandButton action="{!URLFOR('/'+$CurrentPage.parameters.retURL)}" value="Volver" rendered="{!$CurrentPage.parameters.retURL != null}"/>
+        </apex:pageBlockButtons>
+    </apex:pageBlock>
+    <apex:pageBlock rendered="{!externalSources.precioListXProductCodeMap != null}">
+        <apex:variable value="{!pedidoWrapper.pedido.Id == null || (DATEVALUE(pedidoWrapper.pedido.FechaSurtidoProgramada__c) >= TODAY() && !pedidoWrapper.pedido.Pedido_Cancelado__c && pedidoWrapper.pedido.EstatusPedido__c=='1 - Pedido Colocado')}" var="isEditablePedido"/>
+        <apex:actionFunction name="submit" action="{!submit}" status="actionStatusSubmit" timeout="180000" rerender="form" rendered="{!isEditablePedido}"/>
+        <apex:actionFunction name="cancel" action="{!submit}" status="actionStatusSubmit" timeout="180000" oncomplete="setViewIfPedidoIsNotEditable()" rerender="form" rendered="{!isEditablePedido}">
+            <apex:param name="isCancelacion" assignTo="{!pedidoWrapper.isCancelacion}" value="true"/>
+        </apex:actionFunction>
+        <script type="text/javascript">
+            isEditablePedido = {!isEditablePedido};
+            exchangeRateDolarPeso = {!pedidoWrapper.pedidoParameters.TipoCambioDolarPeso__c};
+            unitPriceMaxIncrementalPercentage = {!pedidoWrapper.pedidoParameters.PrecioUnitarioIncrementoMaximo__c};
+            unitPriceMaxDecrementalPercentage = {!pedidoWrapper.pedidoParameters.PrecioUnitarioDecrementoMaximo__c};
+            maxPresaleDays = {!pedidoWrapper.pedidoParameters.DiasPreventaMaximos__c};
+        </script>
+        <apex:pageBlockButtons >
+            <apex:actionStatus id="actionStatusSubmit" onstart="hideActionButtons()" onstop="showActionButtons()">
+                <apex:facet name="stop">
+                    <apex:outputPanel styleClass="outputPanelActionButtons">
+                        <apex:outputPanel rendered="{!isEditablePedido}">
+                            <input type="button" value="{!IF(pedidoWrapper.pedido.Id == null, 'Guardar pedido', 'Guardar cambios')}" class="btn" onclick="guardar()"/>
+                            <apex:commandButton value="Cancelar pedido" onclick="cancelarPedido()" rerender="null" rendered="{!pedidoWrapper.pedido.Id != null}"/>
+                        </apex:outputPanel>
+                        <apex:commandButton action="{!URLFOR(IF($CurrentPage.parameters.id != null && LEFT($CurrentPage.parameters.id, 3) == '001', $Page.PedidoWizardAccount, IF($CurrentPage.parameters.id != null && LEFT($CurrentPage.parameters.id, 3) == '00Q', $Page.PedidoWizardLead, $Action.Pedido__c.New)), null, ['id'=IF($CurrentPage.parameters.id != null && (LEFT($CurrentPage.parameters.id, 3) == '001' || LEFT($CurrentPage.parameters.id, 3) == '00Q'), $CurrentPage.parameters.id, ''), 'CF00N500000030Mvx_lkid'=$CurrentPage.parameters.CF00N500000030Mvx_lkid, 'retURL'=$CurrentPage.parameters.retURL])}" value="Empezar un nuevo pedido" rendered="{!pedidoWrapper.pedido.Id != null}"/>
+                        <apex:commandButton action="{!URLFOR('/'+$CurrentPage.parameters.retURL)}" value="Volver" rendered="{!$CurrentPage.parameters.retURL != null}"/>
+                    </apex:outputPanel>
+                </apex:facet>
+                <apex:facet name="start">
+                    <input type="button" value="Guardando..." disabled="disabled" class="btnDisabled"/>
+                    <img src="/img/loading.gif" class="imgLoading"/>
+                </apex:facet>
+            </apex:actionStatus>
+            <apex:outputPanel styleClass="folio" rendered="{!pedidoWrapper.pedido.Id == null}">
+                <label class="labelCol">Id de sesión:</label>{!pedidoWrapper.preId}
+            </apex:outputPanel>
+            <apex:outputPanel styleClass="folio" rendered="{!pedidoWrapper.pedido.Id != null}">
+                <label class="labelCol">Folio NSC:</label>{!pedidoWrapper.pedido.Numero_de_Pedido_NSC__c}
+                <label class="labelCol">Folio Salesforce:</label>{!pedidoWrapper.pedido.Name}
+            </apex:outputPanel>
+        </apex:pageBlockButtons>
+        <apex:pageMessage summary="La plaza se encuentra cerrada. Sólo se permite capturar o modificar pedidos de preventa." severity="warning" strength="1" rendered="{!externalSources.IsClosedPlaza && isEditablePedido}"/>
+        <apex:pageMessage summary="No se permite modificar o cancelar pedidos con fecha de surtido menor al día de hoy." severity="info" strength="1" rendered="{!!isEditablePedido && !pedidoWrapper.pedido.Pedido_Cancelado__c}"/>
+        <apex:pageMessage summary="El pedido se encuentra cancelado." severity="info" strength="1" rendered="{!!isEditablePedido && pedidoWrapper.pedido.Pedido_Cancelado__c}"/>
+        <apex:pageMessage summary="No se permite modificar pedidos con estatus diferente de '1 - Pedido Colocado'." severity="info" strength="1" rendered="{!!isEditablePedido && NOT(pedidoWrapper.pedido.EstatusPedido__c=='1 - Pedido Colocado')}"/>
+        <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+            <h3>Generales</h3>
+        </div>
+        <table id="tableGenerales2">
+            <tr>
+                <td class="labelCol" id="tdCliente">Cliente:</td>
+                <td id="tdNumeroClienteSAP">
+                    <apex:outputField value="{!accountWrapper.account.Parent.Numero_Cliente_SAP__c}"/>
+                </td>
+                <td colspan="2">
+                    <apex:outputField value="{!accountWrapper.account.ParentId}"/>
+                </td>
+                <td class="labelCol">Fecha del pedido:</td>
+                <td colspan="4">
+                    <apex:outputField value="{!pedidoWrapper.pedido.Fecha_Registro__c}"/>
+                    <div id="divUser">
+                        <label class="labelCol">Atiende:</label>{!$User.FirstName+' '+$User.LastName}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="labelCol">Sucursal:</td>
+                <td>
+                    <apex:outputField value="{!accountWrapper.account.Numero_Cliente_SAP__c}"/>
+                </td>
+                <td colspan="2">
+                    <apex:outputField value="{!pedidoWrapper.pedido.Cuenta__c}"/>
+                </td>
+                <td class="labelCol">Fecha de surtido:</td>
+                <td colspan="4">
+                    <apex:inputField value="{!pedidoWrapper.pedido.FechaSurtidoProgramada__c}" required="true" onkeydown="onInputEnterKeydown(event)" onchange="validateFechaSurtidoD()" rendered="{!isEditablePedido}" />
+                    <apex:outputField value="{!pedidoWrapper.pedido.FechaSurtidoProgramada__c}" rendered="{!!isEditablePedido}"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="labelCol">Prospecto:</td>
+                <td colspan="3">
+                    <apex:variable value="{!isEditablePedido && (accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' || accountWrapper.account.Ramo__c == 'VENTAS DE MOSTRADOR - 36')}" var="isEditableProspecto"/>
+                    <diV id="divProspecto">
+                        <apex:inputField value="{!pedidoWrapper.pedido.Prospecto__c}" onkeydown="onInputEnterKeydown(event)" rendered="{!isEditableProspecto}"/>
+                        <apex:outputField value="{!pedidoWrapper.pedido.Prospecto__c}" rendered="{!!isEditableProspecto}"/>
+                    </diV>
+                    <div id="divMuestra">
+                        <label class="labelCol">Muestra:</label>
+                        <apex:inputField value="{!pedidoWrapper.pedido.Muestra__c}" onkeydown="onInputEnterKeydown(event)"/>
+                    </div>
+                </td>
+                <td class="labelCol">Pago de:</td>
+                <td colspan="2" id="tdFormaPago">
+                    <apex:variable value="{!IF(isEditablePedido && (accountWrapper.account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3'), true, IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (accountWrapper.account.Parent.RFC__c != null || accountWrapper.account.Parent.RFC_Generico__c != null), false, false))}" var="isEditableFormaPago"/>
+                    <apex:inputField value="{!pedidoWrapper.pedido.Forma_Pago__c}" required="true" onchange="setFacturaNoFiscal()" rendered="{!isEditableFormaPago}"/>
+                    <apex:outputField value="{!pedidoWrapper.pedido.Forma_Pago__c}" rendered="{!!isEditableFormaPago}"/>
+                </td>
+                <td class="labelCol">Imprime factura:</td>
+                <td class="width1">
+                    <apex:outputField value="{!pedidoWrapper.pedido.Factura__c}"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="labelCol">Tipo de surtido:</td>
+                <td>
+                    <apex:inputField value="{!pedidoWrapper.pedido.TipoSurtido__c}" required="true" onchange="validateTipoSurtido(this, '{!accountWrapper.account.DiasEntrega__c}')" rendered="{!pedidoWrapper.pedido.Id == null}"/>
+                    <!--<apex:outputField value="{!pedidoWrapper.pedido.TipoSurtido__c}" rendered="{!pedidoWrapper.pedido.Id == null}"/>-->
+                    <apex:outputField value="{!pedidoWrapper.pedido.TipoSurtido__c}" rendered="{!pedidoWrapper.pedido.Id != null}"/>
+                </td>
+                <td class="labelCol width1">Canal:</td>
+                <td>
+                    <apex:outputField value="{!accountWrapper.account.Canal_de_Distribucion_NSC__r.Name}"/>
+                </td>
+                <td class="labelCol">Oficina de ventas:</td>
+                <td colspan="2">{!IF(NOT(ISBLANK(pedidoWrapper.pedido.OficinaVentas__r.Name)),pedidoWrapper.pedido.OficinaVentas__r.Name,accountWrapper.oficinaVentasName)}</td>
+                <td class="labelCol">Factura NO fiscal:</td>
+                <td>
+                    <apex:inputField value="{!pedidoWrapper.pedido.Factura_No_Fiscal__c}" id="inputFacturaNoFiscal" onkeydown="onInputEnterKeydown(event)"/>
+                </td>
+            </tr>
+        </table>
+        <script type="text/javascript">setTableGenerales2()</script>
+        <div id="modalPrecios">
+            <apex:pageBlock title="Lista de precios">
+                <apex:repeat value="{!externalSources.precioListXProductCodeMap}" var="productCode">
+                    <table summary="{!productCode}" class="list hidden" border="0" cellpadding="0" cellspacing="0">
+                        <tr class="headerRow">
+                            <th>Volumen inicial</th>
+                            <th>Volumen final</th>
+                            <th>Precio</th>
+                            <th>Tipo de precio</th>
+                        </tr>
+                        <apex:repeat value="{!externalSources.precioListXProductCodeMap[productCode]}" var="precio">
+                            <tr class="dataRow">
+                                <td>
+                                    <apex:outputText value="{0, number, ###,###,##0}">
+                                        <apex:param value="{!precio.pve_volini}"/>
+                                    </apex:outputText>
+                                    <input type="hidden" value="{!productCode}"/>
+                                    <input type="hidden" value="{!precio.pve_folgral}"/>
+                                </td>
+                                <td>
+                                    <apex:outputText value="{0, number, ###,###,##0}">
+                                        <apex:param value="{!precio.pve_volfin}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td>
+                                    <apex:outputText value="{0, number, currency}">
+                                        <apex:param value="{!precio.precio}"/>
+                                    </apex:outputText>
+                                </td>
+                                <td>{!precio.pve_tipprec}</td>
+                            </tr>
+                        </apex:repeat>
+                    </table>
+                </apex:repeat>
+                <script type="text/javascript">setPreciosMap()</script>
+                <apex:pageBlockButtons location="bottom">
+                    <input type="button" value="Cerrar" class="btn" onclick="closeModal('#modalPrecios')"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+        </div>
+        <div id="modalPortafolio">
+            <apex:pageBlock title="Búsqueda de producto">
+                <apex:pageBlockButtons location="top">
+                    <label class="labelCol">Nombre del producto:</label>
+                    <input type="text" id="inputSearchText" onkeyup="filterProducts()"/>
+                </apex:pageBlockButtons>
+                <table class="list pageBlockTablePortafolio" border="0" cellpadding="0" cellspacing="0">
+                    <tr class="headerRow">
+                        <td>Nombre del producto</td>
+                        <td>Código del producto</td>
+                        <td>Descripción del producto</td>
+                    </tr>
+                    <apex:repeat value="{!product2XproductCodeMap}" var="productCode">
+                        <tr class="dataRow" onclick="selectItemPortafolio('{!product2XproductCodeMap[productCode].ProductCode}')" onmouseover="rowOn(this)" onmouseout="rowOff(this)">
+                            <td>
+                                {!product2XproductCodeMap[productCode].Name}
+                                <input type="hidden" value="{!product2XproductCodeMap[productCode].Id}"/>
+                                <input type="hidden" value="{!product2XproductCodeMap[productCode].Ficha_comercial__c}"/>
+                                <input type="hidden" value="{!product2XproductCodeMap[productCode].Peso_Promedio__c}"/>
+                                <input type="hidden" value="{!product2XproductCodeMap[productCode].Unidad_de_medida_base__c}" id="UnidadMedidaBase"/>
+                            </td>
+                            <td>{!product2XproductCodeMap[productCode].ProductCode}</td>
+                            <td>{!product2XproductCodeMap[productCode].Description}</td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+                <script type="text/javascript">setProductMap()</script>
+                <apex:pageBlockButtons location="bottom">
+                    <input type="button" value="Cerrar" class="btn" onclick="closeModalPortafolio()"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+        </div>
+        <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+            <h3>Productos</h3>
+        </div>
+        <div id="divProductoButtons">
+            <apex:commandButton action="{!pedidoWrapper.addPedidoItem}" status="actionStatusProducto" timeout="60000" value="Agregar producto" rerender="outputPanelProductos"/>
+            <apex:commandButton action="{!pedidoWrapper.clearPedidoItemList}" status="actionStatusProducto" timeout="60000" value="Eliminar todos" onclick="if(!removeAllRows()) return;" rerender="outputPanelProductos"/>
+            <apex:actionStatus id="actionStatusProducto">
+                <apex:facet name="start">
+                    <img src="/img/loading.gif" class="imgLoading"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+        <apex:actionFunction action="{!pedidoWrapper.removePedidoItem}" status="actionStatusProducto" timeout="60000" name="removePedidoItem" rerender="outputPanelProductos">
+            <apex:param name="indexToRemove" assignTo="{!pedidoWrapper.indexToRemove}" value=""/>
+        </apex:actionFunction>
+        <apex:outputPanel id="outputPanelProductos">
+            <apex:inputHidden value="{!pedidoWrapper.importe}" id="inputImporte"/>
+            <apex:inputHidden value="{!pedidoWrapper.pedido.Pedido_Cancelado__c}" id="inputPedidoCancelado"/>
+            <apex:inputHidden value="{!pedidoWrapper.pedido.PedidoCanceladoPorElSistema__c}" id="inputPedidoCanceladoPorElSistema"/>
+            <apex:inputHidden value="{!pedidoWrapper.pedido.EstatusPedido__c}" id="inputEstatusPedido"/>
+            <apex:inputHidden value="{!OperaSap}" id="inputOperaSap"/>
+            
+            <apex:variable var="index" value="{!0}"/>
+            <table class="list pageBlockTableProductos" border="0" cellpadding="0" cellspacing="0">
+                <thead>
+                    <tr class="headerRow">
+                        <th colspan="7"/>
+                        <th class="textCenter" colspan="3">Solicitado</th>
+                        <th class="textCenter" colspan="3">Confirmado</th>
+                        <th colspan="3"/>
+                    </tr>
+                    <tr class="headerRow">
+                        <th class="w2">Acción</th>
+                        <th class="w52">Código</th>
+                        <th>Descripción</th>
+                        <th class="w2">Rng</th>
+                        <th class="w2">Fch</th>
+                        <th class="w30">Kg P</th>
+                        <th class="w30">UM</th>
+                        <th class="w40">Cajas</th>
+                        <th class="w40">Piezas</th>
+                        <th class="w40">Kg</th>
+                        <th class="w40">Cajas</th>
+                        <th class="w40">Piezas</th>
+                        <th class="w40">Kg</th>
+                        <th class="w46">Precio</th>
+                        <th class="w35">TP</th>
+                        <th class="w80">Importe</th>
+                        <!--<th class="w35">RA</th>
+                        <th class="w35">ASup</th>
+                        <th class="w35">APr</th>-->
+                    </tr>
+                </thead>
+                <apex:repeat value="{!pedidoWrapper.pedidoItemList}" var="pedidoItem">
+                    <tr class="dataRow" onclick="showInventario({!index+1})" onmouseover="rowOn(this)" onmouseout="rowOff(this)">
+                        <td>
+                        	
+                            <input type="button" value="Eliminar" class="btn" onclick="removeRow({!index})"/>
+                            <apex:variable var="index" value="{!index+1}"/>
+                            <apex:inputHidden value="{!pedidoItem.Producto__c}" id="inputProducto"/>
+                            <apex:inputHidden value="{!pedidoItem.PrecioUnitarioOriginal__c}" id="inputPrecioUnitarioOriginal"/>
+                            <apex:inputHidden value="{!pedidoItem.PrecioListaPrecios__c}" id="inputPrecioListaPrecios"/>
+                            <apex:inputHidden value="{!pedidoItem.Moneda__c}" id="inputMoneda"/>
+                            <apex:inputHidden value="{!pedidoItem.Tipo_Precio__c}" id="inputUnidad"/>
+                            <apex:inputHidden value="{!pedidoItem.Unidad__c}" id="inputUnidadBase"/>
+                            <input type="hidden" id="inputPrecioUnitarioOriginalPesos"/>
+                            <input type="hidden" id="inputPesoPromedioKg"/>
+                            <apex:inputHidden value="{!pedidoItem.Precio_Requiere_Aprobacion__c}" id="inputPrecioUnitarioRequiereAutorizacion"/>
+                            <apex:inputHidden value="{!pedidoItem.Precio_Aprobado_Supervisor__c}" id="inputPrecioAprobado"/>
+                          
+                        </td>
+                        <td class="inputColumn">
+                            <input type="text" value="{!pedidoItem.Producto__r.ProductCode}" class="inputProductCode" onkeypress="integerInputOnly(event)" onchange="preSetProducto(this.value, {!index})"/>
+                        </td>
+                        <td class="columnDescripcion">
+                            <span>{!pedidoItem.Producto__r.Description}</span>
+                            <input type="button" value="Buscar" class="btn" onclick="openModalPortafolio({!index})"/>
+                        </td>
+                        <td class="textCenter"/>
+                        <td class="textCenter"/>
+                        <td/>
+                        <td class="inputColumn" width="5%">
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.Cajas__c}" onkeypress="integerInputOnly(event)" onchange="processCajasSolicitadas({!index})"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.Piezas__c}" onkeypress="integerInputOnly(event)" onchange="processPiezasSolicitadas({!index})"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.CantidadPedidaUnidadMovimiento__c}" onkeypress="floatInputOnly(event, this)" onchange="processKilosSolicitados({!index})"/>
+                            <apex:inputHidden value="{!pedidoItem.Kilos__c}"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.Cajas_Conf__c}" onkeypress="integerInputOnly(event)" onchange="processCajasConfirmadas({!index})"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.Piezas_Conf__c}" onkeypress="integerInputOnly(event)" onchange="processPiezasConfirmadas({!index})"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.CantidadConfirmadaUnidadMovimiento__c}" onkeypress="floatInputOnly(event, this)" onchange="processKilosConfirmados({!index})"/>
+                            <apex:inputHidden value="{!pedidoItem.Kilos_Conf__c}"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:inputField value="{!pedidoItem.PrecioUnitarioOtorgado__c}" onkeypress="floatInputOnly(event, this)" onchange="processPrecioUnitario({!index})"/>
+                            <input type="hidden"/>
+                        </td>
+                        <td/>
+                        <td class="textColumn">
+                            <apex:inputField value="{!pedidoItem.Importe__c}" styleClass="disabledInput"/>
+                        </td>
+                        <!--<td class="inputColumn">
+                            <apex:outputField value="{!pedidoItem.Precio_Requiere_Aprobacion__c}"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:outputField value="{!pedidoItem.Precio_Aprobado_Supervisor__c}"/>
+                        </td>
+                        <td class="inputColumn">
+                            <apex:outputField value="{!pedidoItem.Precio_Aprobado_Pr__c}"/>
+                        </td>-->
+                    </tr>
+                </apex:repeat>
+                <tr class="totalRow">
+                    <th colspan="7">Total</th>
+                    <th/>
+                    <th/>
+                    <th/>
+                    <th/>
+                    <th/>
+                    <th/>
+                    <th colspan="2"/>
+                    <th/>
+                    <!--<th/>
+                    <th/>
+                    <th/>-->
+                </tr>
+            </table>
+            <script type="text/javascript">setTableProductos()</script>
+        </apex:outputPanel>
+        <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+            <h3>Inventario</h3>
+        </div>
+        <!--Se muestra tabla solo dispinibilidad de inventario cuando opera en sap-->
+           <div id="contentToToggle" style="display:{!if(OperaSap,"block","none")};">
+                 <table class="list pageBlockTableInventario" border="0" cellpadding="0" cellspacing="0">
+                            <tr class="headerRow">
+                            <th>Producto</th>
+                               <th width="111px">Inv. Act</th>
+				               <th width="111px">CompHoy</th>
+				               <th width="111px">CompMan</th>
+				               <th width="111px">DispHoy</th> 
+				           </tr>              
+		                 <apex:repeat value="{!product2XproductCodeMap}" var="productCode">
+                          <tr class="dataRow hidden">
+                            <td>
+		                        {!product2XproductCodeMap[productCode].Name}
+		                        <input type="hidden" value="{!productCode}"/>
+		                        <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].PermiteApartarSinexistencias}"/>
+		                        <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].TipoInventario}"/>
+		                        <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].TipoManejoInventario}"/>
+		                        <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].EsPesoEstandar}"/>
+		                        <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].Contenido}"/>
+		                    </td>
+		                    <td>
+		                        <apex:outputText value="{0, number, ###,###,##0}">
+		                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].InvActual}"/>
+		                        </apex:outputText>
+		                    </td>
+		                    <td>
+		                        <apex:outputText value="{0, number, ###,###,##0}">
+		                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].CompAlmHoy}"/>
+		                        </apex:outputText>
+		                    </td>
+		                    <td>
+		                        <apex:outputText value="{0, number, ###,###,##0}">
+		                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].CompAlmMan}"/>
+		                        </apex:outputText>
+		                    </td>
+		                    <td>
+		                        <apex:outputText value="{0, number, ###,###,##0}">
+		                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].DispAlm}"/>
+		                        </apex:outputText>
+		                    </td>
+                                </tr>
+                            </apex:repeat>
+                        </table>
+                </div>
+           <!--Se muestra tabla completa de inventario cuando no opera en sap-->
+           <div id="contentToToggle" style="display:{!if(OperaSap,"none","block")};">
+			 		<table class="list pageBlockTableInventario" border="0" cellpadding="0" cellspacing="0">
+			            <tr class="headerRow">
+			                <th>Producto</th>
+			                <th width="60px">Inv. Act</th>
+			                <th width="60px">CompHoy</th>
+			                <th width="60px">CompMan</th>
+			                <th width="60px">DispHoy</th>
+			                <th width="60px">Recibir</th>
+			                <th width="60px">ManComp</th>
+			                <th width="60px">ManDisp</th>
+			                <th width="60px">RsvaAlm</th>
+			                <th width="60px">RsvaConf</th>
+			            </tr>
+			            <apex:repeat value="{!product2XproductCodeMap}" var="productCode">
+			                <tr class="dataRow hidden">
+			                    <td>
+			                        {!product2XproductCodeMap[productCode].Name}
+			                        <input type="hidden" value="{!productCode}"/>
+			                        <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].PermiteApartarSinexistencias}"/>
+			                        <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].TipoInventario}"/>
+			                        <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].TipoManejoInventario}"/>
+			                        <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].EsPesoEstandar}"/>
+			                        <input type="hidden" value="{!externalSources.inventarioXProductCodeMap[productCode].Contenido}"/>
+			                    </td>
+			                    <td>
+			                        <apex:outputText value="{0, number, ###,###,##0}">
+			                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].InvActual}"/>
+			                        </apex:outputText>
+			                    </td>
+			                    <td>
+			                        <apex:outputText value="{0, number, ###,###,##0}">
+			                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].CompAlmHoy}"/>
+			                        </apex:outputText>
+			                    </td>
+			                    <td>
+			                        <apex:outputText value="{0, number, ###,###,##0}">
+			                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].CompAlmMan}"/>
+			                        </apex:outputText>
+			                    </td>
+			                    <td>
+			                        <apex:outputText value="{0, number, ###,###,##0}">
+			                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].DispAlm}"/>
+			                        </apex:outputText>
+			                    </td>
+			                    <td>
+			                        <apex:outputText value="{0, number, ###,###,##0}">
+			                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].InvConf}"/>
+			                        </apex:outputText>
+			                    </td>
+			                    <td>
+			                        <apex:outputText value="{0, number, ###,###,##0}">
+			                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].CompConfMan}"/>
+			                        </apex:outputText>
+			                    </td>
+			                    <td>
+			                        <apex:outputText value="{0, number, ###,###,##0}">
+			                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].DispConf}"/>
+			                        </apex:outputText>
+			                    </td>
+			                    <td>
+			                        <apex:outputText value="{0, number, ###,###,##0}">
+			                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].ResAlm}"/>
+			                        </apex:outputText>
+			                    </td>
+			                    <td>
+			                        <apex:outputText value="{0, number, ###,###,##0}">
+			                            <apex:param value="{!externalSources.inventarioXProductCodeMap[productCode].ResConf}"/>
+			                        </apex:outputText>
+			                    </td>
+			                </tr>
+			            </apex:repeat>
+			        </table>
+      </div>
+        <script type="text/javascript">setInventarioMap()</script>
+        <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+            <h3>Observaciones</h3>
+        </div>
+        <div id="divObservacion">
+            <apex:inputTextarea value="{!pedidoWrapper.pedido.Observacion__c}" rows="5"/>
+        </div>
+    </apex:pageBlock>
+    <apex:pageBlock rendered="{!pedidoWrapper.pedido.Id != null && externalSources.precioListXProductCodeMap == null}">
+        <apex:pageBlockButtons location="top">
+            <apex:commandButton action="{!URLFOR($Action.Pedido__c.View, pedidoWrapper.pedido.Id)}" value="Volver"/>
+            <apex:actionStatus id="actionStatusRetry">
+                <apex:facet name="stop">
+                    <apex:commandButton action="{!stepForth}" status="actionStatusRetry" timeout="300000" value="Reintentar" rerender="form"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <input type="button" value="Procesando..." disabled="disabled" class="btnDisabled"/>
+                    <img src="/img/loading.gif" class="imgLoading"/>
+                </apex:facet>
+            </apex:actionStatus>
+        </apex:pageBlockButtons>
+    </apex:pageBlock>
+    <div id="overlay"/>
+</apex:form>
+</apex:component>

@@ -1,0 +1,3020 @@
+<apex:page id="registrationPage" controller="BLDS.RegistrationController" sidebar="false" >
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryCS, 'jquery-1.9.0.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Scripts/MergeJS.js')}" />
+    <div class="bPageTitle">    
+       <div class="ptBody">    
+          <div class="content">
+             <img src="/s.gif" alt="" class="pageTitleIcon" title=""/>
+             <h1 class="pageType noSecondHeader">Data Suite Settings</h1>
+             <div class="blank">&nbsp;</div>
+          </div>
+          
+          <div class="links">
+                <a href="javascript:openPopupFocusEscapePounds(%27https://login.salesforce.com/services/auth/sso/00D30000000XsfGEAS/HTAuthProvider?startURL=%252Fapex%252Fhtdoor%253Floc%253Dhelp%2526target%253Dmanaging_the_sharing_model.htm%2526section%253DSecurity%2526language%253Den_US%2526release%253D186.12.52%2526instance%253DNA15&site=https%3A%2F%2Fhelp.salesforce.com%27, %27Help%27, 1024, 768, %27width=1024,height=768,resizable=yes,toolbar=yes,status=yes,scrollbars=yes,menubar=yes,directories=no,location=yes,dependant=no%27, false, false);" title="Help for this Page (New Window)">
+                    <span class="helpLink">Help for this Page</span><img src="/s.gif" alt="" class="helpIcon"/>
+                </a>
+          </div>          
+       </div>
+       
+       <div class="ptBreadcrumb"></div>
+       
+    </div>
+    
+     
+    <style>
+strong:hover {
+    text-decoration: none; 
+}
+
+strong.tooltip span {
+    display: none;
+    padding: 2px 3px;
+    margin-left: 8px;
+    width: 370px;
+    z-index: 1000;
+}
+
+strong.tooltip:hover span {
+    display: inline;
+    position: absolute;
+    background: #FFC;
+    border: 1px solid #cccccc;
+    color: #000000;
+}
+
+div:hover {
+    text-decoration: none;
+}
+
+div.tooltip {
+	background-image: url({!URLFOR($Resource.image,'helpOrbs.gif')});
+	background-position: 0 0;
+	width: 20px;
+	height: 15px;
+}
+
+div.tooltip:hover {
+	background-image: url({!URLFOR($Resource.image,'helpOrbs.gif')});
+	background-position: 20px 0;
+	width: 20px;
+	height: 15px;
+}
+
+div.tooltip span {
+    display: none;
+    padding: 2px 3px;
+    margin-left: 18px;
+    width: 370px;
+    z-index: 1000;
+}
+
+div.tooltip:hover span {
+    display: inline;
+    position: absolute;
+    background: #fefdb9;
+    border: 1px solid orange;
+    color: #000000;
+}
+.popupBackground{
+               background-color:black;
+               opacity: 0.20;
+               filter: alpha(opacity = 20);
+               position: absolute;
+               width: 100%;
+               height: 100%;
+               top: 0;
+               left: 0;
+               z-index: 9998;
+           }
+            .custPopup{
+               background-color: white;
+               border-width: 2px;
+               border-style: solid;
+               z-index: 9999;
+               left: 50%;
+               padding:10px;
+               position: absolute;
+               overflow: auto;
+               max-height: 300px;
+               width: 800px;
+               margin-left: -400px;
+               top:100px;
+           }    
+.tab-tab {
+    background-image: none;
+    background-color: white;
+    font-size:110%;
+    font-family: "Open Sans","lucida grande","Segoe UI",arial,verdana,"lucida sans unicode",tahoma,sans-serif;
+    
+    color: #3d464d;
+    font-weight: normal;
+    
+    
+    border: 1px solid #a0d1fa;
+    border-bottom-color: #bdc4c9;
+    border-right: none;
+    color: #2895f1;
+    cursor: pointer;
+    display: table-cell;
+    margin: 0 0 -1px -1px;
+    padding: 8px 16px;
+    position: relative;
+    text-align: center;
+    vertical-align: top;
+    z-index: 2;
+}
+
+.rich-tabpanel-content {
+color: #000;
+font-size: 100%;
+font-family: Arial,Verdana,sans-serif;
+}
+
+.tab-tab:first-child {
+    margin-left: 0;
+    -webkit-border-top-left-radius: 5px;
+    -ms-border-top-left-radius: 5px;
+    -o-border-top-left-radius: 5px;
+    border-top-left-radius: 5px;
+}
+
+.tab-tab.rightmost-tab {
+    border-right: 1px solid #a0d1fa;
+    -webkit-border-top-right-radius: 5px;
+    -ms-border-top-right-radius: 5px;
+    -o-border-top-right-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.tab-tab.selected {
+    background-image: none;
+    background-color: white;
+    
+    border: 1px solid #bdc4c9;
+    border-bottom-color: #fff;
+    color: #3d464d;
+}
+
+.tab-tab.selected+.tab-tab {
+    border-left: none;
+}
+
+.tab-bar-border {
+    border-top: 1px solid #bdc4c9;
+    margin: -1px 0 30px;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.selected {
+    display: block;
+}
+
+.BL_tabStyle {
+    background-color:white;
+}
+
+/*
+.bPageBlock .pbBody { background-color:white; }
+*/
+
+            
+</style>
+
+<script>
+    //checkSaveData('{!isInputMode}');"
+    
+    // ------------------------- Tab Profier 
+     j$= jQuery.noConflict();
+    
+    // -------------------------- End Tab Profier customize
+    
+    
+
+    function checkSaveData(isInputMode, tabName){
+        if(isInputMode == 'true' || isInputMode == true){
+            var result = confirm('You have not saved the setting. Do you want to save ? ');
+            if(result){
+                //alert('bla bla');
+                // call saved data 
+                if(tabName == 'GeneralTab'){
+                    saveGeneralTabJS();
+                    return false;
+                    
+                } else
+                    if(tabName == 'ProfilerTab'){
+                    saveProfilerTabJS();
+                    return false;
+                } else
+                    if(tabName == 'DataShieldTab'){
+                    saveDataShieldTabJS();
+                    return false;
+                    
+                } else
+                    if(tabName == 'ExportTab'){
+                    saveExportTabJS();
+                    return false;
+                    
+                } else
+                    if(tabName == 'FieldMappingTab'){
+                    saveFieldMappingTabJS();
+                    return false;
+                    
+                }
+            }
+            else
+            {
+            //changeToOutputModeJS();
+            return false;
+            }
+        }
+    
+    }
+    
+
+</script>
+        
+
+    <apex:form id="formParent">
+	
+	<script>
+		/* function clearOrphanProfilerResultJS(){
+			var result = confirm('Clearing all orphan profiler result?');
+			if(result == true){
+			   // delete go here, call actionFunction
+			   handleClearOrphanProfilerCacheJS();
+			} 
+		} */
+		function deleteProfilerResultJS() { 
+		var result = confirm('Clearing the profiler cache will remove all previously profiled URLs. All URLs will need to be re-profiled to repopulate this information for accounts, leads, and profiler campaigns. So you wish to continue clearing the profiler cache?');
+		if(result == true){
+		   // delete go here, call actionFunction
+		   handleDeleteProfilerCacheJS();
+		} 
+	
+	}
+	</script>
+	<apex:actionFunction name="handleDeleteProfilerCacheJS" action="{!handleDeleteProfilerCache}" >
+	</apex:actionFunction>
+	<!-- <apex:actionFunction name="handleClearOrphanProfilerCacheJS" action="{!clearOrphanProfilerResult}" > 
+	</apex:actionFunction> -->
+        <apex:outputPanel id="popUpWindow">
+            <apex:outputPanel styleClass="popupBackground" layout="block"
+                rendered="{!isShowPopUpWindow}" />
+            <apex:outputPanel styleClass="custPopup" layout="block"
+                rendered="{!isShowPopUpWindow}">
+
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="text-align: center; font-size: 13px;">
+                            <h1>
+                                {!$Label.Popup_Header} <a href="#"
+                                    style="color: #015BA7; text-decoration: none;"
+                                    onclick="window.open ('http://www.RingLead.com/help/');">here</a>
+                                {!$Label.Popup_Header2}
+                            </h1>
+                        </td>
+                    </tr>
+                </table>
+                <apex:pageBlock >
+                    <apex:pageBlockButtons >
+                        <apex:commandButton value="Register Key"
+                            rerender="popUpWindow,licenseBlock" action="{!btnSave}"
+                            style="margin-left:25%" />
+                        <apex:commandButton value="Cancel"
+                            rerender="popUpWindow,licenseBlock" action="{!btnCancel}" />
+                    </apex:pageBlockButtons>
+                    <br />
+                    <apex:outputPanel style="margin-left:20%">
+                        <apex:outputText >
+                            <b>{!lstBindLicenseKeyWithUpdateLink[intRowIndex].objLicenseKey.Product__c}
+                                License Key</b>
+                        </apex:outputText>&nbsp;&nbsp;
+                    <apex:inputText label=""
+                            value="{!lstBindLicenseKeyWithUpdateLink[intRowIndex].objLicenseKey.License_Key__c}"
+                            style="width:45%" />
+                    </apex:outputPanel>
+                </apex:pageBlock>
+
+            </apex:outputPanel>
+        </apex:outputPanel>
+    <apex:actionFunction name="lnkUpdate" action="{!linkUpdate}" rerender="popUpWindow">
+            <apex:param name="row" value="" assignTo="{!intRowIndex}"> </apex:param>
+        </apex:actionFunction>
+        <apex:actionFunction name="changeToOutputModeJS" action="{!changeToOutputMode}" rerender="RegistrationTabPanel" status="processStatusLoad">
+        </apex:actionFunction>
+        
+        <apex:actionFunction name="saveGeneralTabJS" action="{!saveGeneralTab}" rerender="RegistrationTabPanel" status="processStatusLoad">
+        </apex:actionFunction>
+        <apex:actionFunction name="saveProfilerTabJS" action="{!saveProfilerTab}" rerender="RegistrationTabPanel" status="processStatusLoad">
+        </apex:actionFunction>
+        <apex:actionFunction name="saveDataShieldTabJS" action="{!saveDataShieldTab}" rerender="RegistrationTabPanel" status="processStatusLoad">
+        </apex:actionFunction>
+        <apex:actionFunction name="saveExportTabJS" action="{!saveExportTab}" rerender="RegistrationTabPanel" status="processStatusLoad">
+        </apex:actionFunction>
+        <apex:actionFunction name="saveFieldMappingTabJS" action="{!saveFieldMappingTab}" rerender="RegistrationTabPanel" status="processStatusLoad">
+        </apex:actionFunction>
+        
+        <!-------------------------------------  Welcome screen when user first install -------------------------------------------------- -->
+        <apex:pageMessages id="msg" escape="false"/>
+        <apex:outputPanel rendered="{! !isRegistered}" id="UnRegisteredPanel">
+            <apex:outputPanel id="step1Panel" rendered="{!isShowStep1}">
+                <br />
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="text-align: center; font-size: 15px;">
+                            <h1 >{!$Label.Registration_Screen_Header}</h1>  
+                        </td>
+                    </tr>
+                </table>
+                
+                <br/><br/>
+                <apex:pageBlock title="Registration Information" mode="edit" >
+                        <apex:pageBlockSection columns="2" >
+                           <apex:pageBlockSectionItem >
+                              <apex:outputLabel value="Company Name"/>
+                              <apex:outputText value="{!strOrganizationName}"/>
+                           </apex:pageBlockSectionItem>
+                           <apex:pageBlockSectionItem >
+                              <apex:outputText >{!$Label.blds__Org_Id} </apex:outputText>
+                              <apex:outputText value="{!strOrganizationId}"/>
+                           </apex:pageBlockSectionItem>
+                           <apex:pageBlockSectionItem >
+                              <apex:outputLabel value="Contact Name" for="NameId"/>
+                              <apex:outputPanel styleClass="requiredInput" layout="block" 
+                             id="c1" >
+                                 <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                                 <apex:inputText value="{!objRegistContactName}" id="NameId" 
+                                size="30"/>
+                              </apex:outputPanel>
+                           </apex:pageBlockSectionItem>
+                           <apex:pageBlockSectionItem >
+                              <apex:outputLabel value="Contact Title" for="TitleId"/>
+                              <apex:outputPanel styleClass="requiredInput" layout="block" id="c1" >
+                                 <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                                 <apex:inputText value="{!objRegistContactTitle}" id="TitleId" 
+                                size="30"/>
+                              </apex:outputPanel>
+                           </apex:pageBlockSectionItem>
+                           <apex:pageBlockSectionItem >
+                              <apex:outputLabel value="Contact Phone" for="PhoneId"/>
+                              <apex:outputPanel styleClass="requiredInput" layout="block" id="c1" >
+                                 <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                                 <apex:inputText value="{!objRegistContactPhone}" id="PhoneId" 
+                                size="30"/>
+                              </apex:outputPanel>
+                           </apex:pageBlockSectionItem>
+                           <apex:pageBlockSectionItem >
+                              <apex:outputLabel value="Contact Email" for="EmailId"/>
+                              <apex:outputPanel styleClass="requiredInput" layout="block" id="c1" >
+                                 <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                                 <apex:inputText value="{!objRegistContactEmail}" id="EmailId"
+                                size="30"/>
+                              </apex:outputPanel>
+                           </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>                    
+                            
+                            
+                        <apex:pageBlockButtons >
+                            <apex:commandButton action="{!btnRegister}" value="Register" rerender="UnRegisteredPanel, msg" status="processStatusLoad"/>                          
+                        </apex:pageBlockButtons>                                        
+                    </apex:pageBlock>               
+            </apex:outputPanel>
+            
+            <apex:outputPanel id="step2Panel" rendered="{!isShowStep2}">
+                <apex:outputPanel >
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="font-size: 15px;">
+                                <h1 >If you have purchased the full version of this product, please take a moment to 
+                                input the license key provided to you for your products by clicking Upgrade.<br/>
+                                If you have not purchased the full version and would like to also, please click upgrade. 
+                                If you wish to continue with the trial version go to the next page.
+                                </h1> 
+                            </td>
+                        </tr>
+                    </table>
+                    <br/>
+                </apex:outputPanel>
+                <apex:pageBlock title="License Keys" mode="edit" >                      
+                        <apex:outputPanel >
+                            <apex:repeat value="{!lstBindLicenseKeyWithUpdateLink}" var="obj">
+                                
+                                <!-- Profiler  -->
+                                <apex:outputPanel style="position:absolute;left:10%;">
+                                    <b><apex:outputText value="{!obj.objLicenseKey.BLDS__Product__c}"/></b>
+                                </apex:outputPanel>
+                                <br />  
+                                
+                                <apex:outputPanel style="position:absolute;left:18%;font-style: italic;" rendered="{!if(OR(obj.objLicenseKey.BLDS__Status__c == 'Not activated', obj.objLicenseKey.BLDS__Status__c == 'Not Activated'), true, false)}">
+                                        <apex:outputText ><b style=" color: red">Not Valid &nbsp;</b>
+                                            <apex:outputLink id="theContactLink" value="http://www.RingLead.com/help/" target="_blank" title="contactSupport" ><b style=" color: red ; ">Contact Support</b></apex:outputLink>
+                                        </apex:outputText>
+                                </apex:outputPanel>
+                                
+                                <!-- Active  -->
+                                <apex:outputPanel style="position:absolute;left:18%;font-style: italic;" rendered="{!if(OR(obj.objLicenseKey.BLDS__Status__c == 'activated', obj.objLicenseKey.BLDS__Status__c == 'Activated'), true, false)}">
+                                    <apex:outputText >{!obj.objLicenseKey.BLDS__Status__c}</apex:outputText>
+                                </apex:outputPanel>
+                                                    
+                                <apex:outputPanel style="position:absolute;left:60%;" rendered="{!if(obj.objLicenseKey.BLDS__Product__c != 'Data Shield', true, false)}">
+                                    <apex:outputText ><b>License Details </b></apex:outputText>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel style="position:absolute;left:68%;" rendered="{!if(obj.objLicenseKey.BLDS__Product__c != 'Data Shield', true, false)}">
+                                    <apex:outputText ><b>Options: </b><span style="font-style: italic;">{!obj.objLicenseKey.BLDS__Options__c}</span></apex:outputText>
+                                </apex:outputPanel> 
+                                
+                                <br/>
+                                
+                                <apex:outputPanel style="position:absolute;left:18%;">
+                                    <apex:outputText ><b>License Key</b></apex:outputText>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel style="position:absolute;left:25%;">
+                                    <apex:outputText value="{!obj.objLicenseKey.BLDS__License_Key__c}"/>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel style="position:absolute;left:47%;">
+                                    <a style="cursor: pointer; color: #015BA7;" onclick="lnkUpdate({!obj.intRow});" > Update </a>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel style="position:absolute;left:60%;">
+                                    <apex:outputText ><b>Expires On</b></apex:outputText>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel style="position:absolute;left:68%; font-style: italic;">
+                                    <apex:outputText >{!obj.objLicenseKey.BLDS__Expiration_Date__c}</apex:outputText>
+                                </apex:outputPanel>                     
+                                <br/><br/>                      
+                            </apex:repeat>
+                        </apex:outputPanel>
+                        
+                        <apex:pageBlockButtons >
+                            <apex:commandButton action="{!btnNext}" value="Next"    rerender="UnRegisteredPanel"      status="processStatusLoad"/>                          
+                        </apex:pageBlockButtons>
+                                                
+                    </apex:pageBlock>               
+            </apex:outputPanel>
+            
+            <!-- --------------------------------------- This is the latest step -------------------------------------------->
+            
+            <apex:outputPanel id="step3Panel" rendered="{!isShowStep3}">
+                <apex:pageBlock >
+                    <br />
+                    <apex:pageBlockSection >
+                        <center><apex:outputText ><b style="font-size: 15px;"> {!$Label.blds__Finish_Screen_Line_1} </b></apex:outputText></center>
+                    </apex:pageBlockSection>
+                    <br/>
+                    <apex:outputPanel style="font-size : 14.183px;  font-weight:bold ">
+                        <apex:outputText > {!$Label.blds__Finish_Screen_Line_2}</apex:outputText>
+                    </apex:outputPanel>
+                    <br/><br/>
+                    <apex:outputpanel style="font-size : 14.183px; ">
+                    
+                        <apex:outputPanel style="font-size : 14.183px;" id="LeadId">
+                            <apex:outputText ><b>{!$Label.blds__CustmizeLead} </b>
+                                <ul style="list-style-type:disc; margin-top: 2px;  font-size:12px">
+                                     <li>{!$Label.blds__CustomizeLead1}</li>
+                                     <li>{!$Label.blds__CustomizeLead2}</li>
+                                     <li>{!$Label.blds__CustomizeLead3}</li>
+                                     <li>{!$Label.blds__CustomizeLead4}</li>
+                                </ul>
+                            </apex:outputText>
+                        </apex:outputPanel>
+                       
+                        
+                        <apex:outputPanel style="font-size : 14.183px; padding-top:103px;" id="accountId">
+                            <apex:outputText ><b>{!$Label.blds__CustomizeAccounts}</b>
+                                <ul style="list-style-type:disc; margin-top: 2px; font-size:12px">
+                                     <li>{!$Label.blds__CustomizeAccount1}</li>
+                                     <li>{!$Label.blds__CustomizeAccount2}</li>
+                                 </ul>
+                            </apex:outputText>
+                        </apex:outputPanel>
+                                                
+                        <apex:outputPanel style="font-size : 14.183px;" id="contactId">
+                            <apex:outputText ><b>{!$Label.blds__Customize_Contacts} </b>
+                            <ul style="list-style-type:disc; margin-top: 2px; font-size:12px">
+                                 <li>{!$Label.blds__Customize_Contact1}</li>
+                                 <li>{!$Label.blds__Customize_Contact2}</li>
+                                 </ul>
+                            </apex:outputText>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel style="font-size : 14.183px;" id="appsId">
+                            <apex:outputText ><b>{!$Label.blds__Custmize}</b>
+                            <ul style="list-style-type:disc; margin-top: 2px; font-size:12px">
+                                 <li>{!$Label.blds__CustmizeApp1}</li>
+                                 </ul>
+                            </apex:outputText>
+                        </apex:outputPanel>
+                    </apex:outputpanel>
+                    
+                    <apex:pageBlockButtons >
+                        <apex:commandButton action="{!btnFinished}" value="Finished"    rerender="formParent"     status="processStatusLoad"/>                          
+                    </apex:pageBlockButtons>
+                    
+                </apex:pageBlock>
+                
+                
+                
+            </apex:outputPanel>
+            
+        </apex:outputPanel>
+        
+        <!--------------------------------------  User have registered -------------------------------------------------------------------- -->
+        
+        <apex:outputPanel rendered="{!isRegistered}" id="RegisteredPanel">
+            <apex:tabPanel selectedTab="GeneralTab" switchType="ajax" id="RegistrationTabPanel" activeTabClass="tab-tab selected" inactiveTabClass="tab-tab">
+        
+            <!-- ------------------------------------------------- section.GeneralTab  ---------------------------------------------->
+            
+                <apex:tab label="Registration" name="GeneralTab" id="GeneralTab" ontableave=" return checkSaveData('{!isInputMode}','GeneralTab');" styleClass="BL_tabStyle" >                               
+                    <apex:pageBlock title="Registration Information" mode="edit" id="registrationInfo">
+                        <apex:outputPanel >
+                            <apex:pageBlockSection columns="2" >    
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Company Name"/>                                    
+                                    <apex:outputText value="{!strOrganizationName}"/>
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputText >{!$Label.blds__Org_Id} </apex:outputText>
+                                    <apex:outputText value="{!strOrganizationId}"/>
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Contact Name" for="NameId"/>
+                                    <apex:outputPanel styleClass="requiredInput" layout="block" id="c1" >
+                                        <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                                        <apex:inputText value="{!objRegistContactName}" id="NameId" 
+                            size="30" />
+                                    </apex:outputPanel> 
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Contact Title" for="TitleId"/>
+                                    <apex:outputPanel styleClass="requiredInput" layout="block" id="c1" >
+                                        <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                                        <apex:inputText value="{!objRegistContactTitle}" id="TitleId" 
+                            size="30"/>
+                                    </apex:outputPanel> 
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Contact Phone" for="PhoneId"/>
+                                    <apex:outputPanel styleClass="requiredInput" layout="block" id="c1" >
+                                        <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                                        <apex:inputText value="{!objRegistContactPhone}" id="PhoneId"
+                            size="30" />
+                                    </apex:outputPanel> 
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Contact Email" for="EmailId"/>
+                                    <apex:outputPanel styleClass="requiredInput" layout="block" id="c1" >
+                                        <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                                        <apex:inputText value="{!objRegistContactEmail}" id="EmailId"
+                            size="30" />
+                                    </apex:outputPanel> 
+                                </apex:pageBlockSectionItem>
+                            
+                                    
+                            </apex:pageBlockSection>
+                        </apex:outputPanel>
+                        
+                        <!-- <apex:outputPanel rendered="{! !isInputMode}">
+                            <apex:pageBlockSection >
+                                <apex:outputText value="{!strOrganizationName}" label="Company Name"/>
+                                <apex:outputText value="{!strOrganizationId}" label="{!$Label.blds__Org_Id}"/>
+                                <apex:outputField value="{!objRegistration.Contact_Name__c}" label="Contact Name"/>
+                                <apex:outputField value="{!objRegistration.Contact_Title__c}"  label="Contact Title" />
+                                <apex:outputField value="{!objRegistration.Contact_Phone__c}" label="Contact Phone"/>
+                                <apex:outputField value="{!objRegistration.Contact_Email__c}" label="Contact Email"/>
+                            </apex:pageBlockSection>
+                        </apex:outputPanel> -->
+                        
+                        <apex:pageBlockButtons location="bottom">
+                            <apex:commandButton action="{!saveGeneralTab}" value="Save"
+                                rerender="licenseBlock,registrationInfo,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                            <!-- <apex:commandButton action="{!cancelGeneralTab}" value="Cancel"
+                                rendered="{!isInputMode}"
+                                rerender="licenseBlock,registrationInfo,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                            <apex:commandButton action="{!btnEdit}" value="Edit"
+                                rendered="{! !isInputMode}"
+                                rerender="licenseBlock,registrationInfo,RegistrationTabPanel"
+                                status="processStatusLoad" /> -->
+                        </apex:pageBlockButtons>
+                    </apex:pageBlock>
+                    
+                    
+                    <apex:pageBlock title="License Keys" mode="edit"  id="licenseBlock">
+                        <!-- <apex:outputPanel >
+                            <apex:repeat value="{!lstBindLicenseKeyWithUpdateLink}" var="obj">
+                                
+                                Profiler 
+                                <apex:outputPanel style="position:absolute;left:10%;">
+                                    <b><apex:outputText value="{!obj.objLicenseKey.BLDS__Product__c}"/></b>
+                                </apex:outputPanel>
+                                <br />  
+                                
+                                <apex:outputPanel style="position:absolute;left:18%;font-style: italic;" rendered="{!if(OR(obj.objLicenseKey.BLDS__Status__c == 'Not activated', obj.objLicenseKey.BLDS__Status__c == 'Not Activated'), true, false)}">
+                                        <apex:outputText ><b style=" color: red">Not Valid &nbsp;</b>
+                                            <apex:outputLink id="theContactLink" value="http://www.RingLead.com/help/" target="_blank" title="contactSupport" ><b style=" color: red ; ">Contact Support</b></apex:outputLink>
+                                        </apex:outputText>
+                                </apex:outputPanel>
+                                
+                                Active 
+                                <apex:outputPanel style="position:absolute;left:18%;font-style: italic;" rendered="{!if(OR(obj.objLicenseKey.BLDS__Status__c == 'activated', obj.objLicenseKey.BLDS__Status__c == 'Activated'), true, false)}">
+                                    <apex:outputText >{!obj.objLicenseKey.BLDS__Status__c}</apex:outputText>
+                                </apex:outputPanel>
+                                                    
+                                <apex:outputPanel style="position:absolute;left:60%;" rendered="{!if(obj.objLicenseKey.BLDS__Product__c != 'Data Shield', true, false)}">
+                                    <apex:outputText ><b>License Details </b></apex:outputText>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel style="position:absolute;left:68%;" rendered="{!if(obj.objLicenseKey.BLDS__Product__c != 'Data Shield', true, false)}">
+                                    <apex:outputText ><b>Options: </b><span style="font-style: italic;">{!obj.objLicenseKey.BLDS__Options__c}</span></apex:outputText>
+                                </apex:outputPanel> 
+                                
+                                <br/>
+                                
+                                <apex:outputPanel style="position:absolute;left:18%;">
+                                    <apex:outputText ><b>License Key</b></apex:outputText>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel style="position:absolute;left:25%;">
+                                    <apex:outputText value="{!IF(isInputMode, obj.objLicenseKey.License_Key__c, '********************')}" />
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel style="position:absolute;left:47%;">
+                                    <a style="cursor: pointer; color: #015BA7;" onclick="lnkUpdate({!obj.intRow});" > Update </a>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel style="position:absolute;left:60%;">
+                                    <apex:outputText ><b>Expires On</b></apex:outputText>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel style="position:absolute;left:68%; font-style: italic;">
+                                    <apex:outputText >{!obj.objLicenseKey.BLDS__Expiration_Date__c}</apex:outputText>
+                                </apex:outputPanel>                     
+                                <br/><br/>                      
+                            </apex:repeat>
+                        </apex:outputPanel> -->
+						<apex:outputPanel >
+							<apex:pageBlockTable value="{!lstBindLicenseKeyWithUpdateLink}" var="item" rendered="{!!(lstBindLicenseKeyWithUpdateLink.size == 0)}" >
+				                
+				                <apex:column > 
+				                    <apex:facet name="header">Action</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <a style="cursor: pointer; color: #015BA7;" onclick="lnkUpdate({!item.intRow});" > Change Key </a>
+				                    </div>
+				                </apex:column>
+				                
+				                <apex:column > 
+				                    <apex:facet name="header">Product</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <apex:outputText value="{!HTMLENCODE(item.objLicenseKey.BLDS__Product__c )}"  escape="false" ></apex:outputText>
+				                    </div>
+				                </apex:column>
+				                
+				                <apex:column > 
+				                    <apex:facet name="header">Key</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <apex:outputText value="{!HTMLENCODE(item.objLicenseKey.BLDS__License_Key__c )}"  escape="false" ></apex:outputText>
+				                    </div>
+				                </apex:column>
+				                
+				                <apex:column > 
+				                    <apex:facet name="header">Status</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <apex:outputText value="{!HTMLENCODE(item.objLicenseKey.BLDS__Status__c )}"  escape="false" ></apex:outputText>
+				                    </div>
+				                </apex:column>
+				                
+				                <apex:column > 
+				                    <apex:facet name="header">Expires</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <apex:outputText value="{!HTMLENCODE(item.objLicenseKey.BLDS__Expiration_Date__c )}"  escape="false" ></apex:outputText>
+				                    </div>
+				                </apex:column>
+				                
+				                <apex:column > 
+				                    <apex:facet name="header">Option</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <apex:outputText value="{!HTMLENCODE(item.objLicenseKey.BLDS__Options__c )}"  escape="false" ></apex:outputText>
+				                    </div>
+				                </apex:column>
+				
+				            </apex:pageBlockTable>
+						</apex:outputPanel>
+                    </apex:pageBlock>
+                    
+                </apex:tab>
+                
+                
+    <!---------------------------------------------    Profiler Tab     --------------------------------------------------------------->
+                
+                
+                <!---------------------------------------------    Profiler Tab     --------------------------------------------------------------->
+                
+                
+                <apex:tab label="Profiler" name="ProfilerTab" id="ProfilerTab" ontableave=" return checkSaveData('{!isInputMode}','ProfilerTab');" styleClass="BL_tabStyle" oncomplete=" tab_profiler_enter_event();">
+                    <apex:pageBlock mode="edit" id="profilerBlock">
+                        <apex:outputPanel >    
+                        
+                            <!--  Grid -->
+                            <apex:pageBlockSection columns="1" title="Grid Settings" collapsible="false">
+                            
+                            <apex:facet name="header">
+                            		<table width="100%">
+                            			<tr width="100%">>
+                            				<td width="30%" >
+                            					<h1 style="font-size:small">Profiler Scoring</h1>
+                            				</td>
+                            				<td width="20%" align="center">
+                            					<h1 style="font-size:small">Auto Fill Settings</h1>
+                            				</td>
+                            				<td width="30%" align="right">
+                            					<h1 style="font-size:small">Profiler Result Defaults</h1>
+                            				</td>
+                            				<td width="25%" align="right">
+                            					<table>
+                            						<tr>
+                            							<td><div style="background-color:red; width:3px;">|</div></td>
+                            							<td>= Required Information</td>
+                           							</tr>
+                         						</table>
+                            				</td>
+                            			</tr>
+                            		</table>
+                            	</apex:facet>    
+                            	<apex:outputpanel >
+                            	<table width="100%">
+                            			<tr width="100%">
+											<td width="17%" align="right">
+											<h1 style="font-size:small">Matching Contact Scoring Boost</h1>
+											<!-- <apex:outputLabel value="Matching Contact Scoring Boost" /> -->
+											</td>
+											<td width="7%">
+											<apex:inputField value="{!objProfilerSetting.BLDS__Score_Contact_Parent_Account_Bonus__c}"
+													style="width:50px;"
+													label="Matching Contact Scoring Boost" />
+											</td>
+											<td width="17%" align="right">
+                            					<h1 style="font-size:small">Auto Fill Emails</h1>
+                            				</td>
+											<td width="7%" align="left">
+                            					<apex:inputField value="{!objProfilerSetting.BLDS__Autofill_emails__c}"/>
+                            				</td>
+                            				<td width="10%" align="right">
+                            					<h1 style="font-size:small">Contacts Per Page</h1>
+                            				</td>
+                            				<td width="10%">
+                            					<apex:inputField value="{!objProfilerSetting.BLDS__Grid_Page_Size__c}" style="width:50px;"/>
+                            				</td>
+                            			</tr>
+                            			<tr width="100%">
+											<td  align="right">
+											<h1 style="font-size:small">Matching Lead Scoring Boost</h1>
+											<!-- <apex:outputLabel value="Matching Contact Scoring Boost" /> -->
+											</td>
+											<td >
+											<apex:inputField value="{!objProfilerSetting.BLDS__Score_Lead_Parent_Account_Bonus__c}"
+													style="width:50px;" 
+													label="Matching Contact Scoring Boost" /></td>
+											<td  align="right">
+                            					<h1 style="font-size:small">Minimum Score for Email Auto Fill</h1>
+                            				</td>
+											<td >
+                            					<apex:inputField style="width:50px;" value="{!objProfilerSetting.BLDS__Autofill_emails_contact_score__c}"/>
+                            				</td>
+                            				<td  align="right">
+                            					<h1 style="font-size:small;margin-right:3px;">Minimum Contact Score</h1>
+                            				</td>
+                            				<td width="100px">
+                            					<apex:inputField style="width:50px;" value="{!objProfilerSetting.BLDS__Grid_Display_MinimumScore__c}" />
+                            				</td>
+                            			</tr>
+                            			<tr width="100%">
+											<td  align="right">
+											<h1 style="font-size:small">Matching Account Scoring Boost</h1>
+											<!-- <apex:outputLabel value="Matching Contact Scoring Boost" /> -->
+											</td>
+											<td >
+											<apex:inputField value="{!objProfilerSetting.BLDS__Score_Parent_Account_Bonus__c}"
+													style="width:50px;"
+													label="Matching Contact Scoring Boost" /></td>
+											<td  align="right">
+                            					<h1 style="font-size:small">Required Emails to Establish Email Auto Fill Pattern</h1>
+                            				</td>
+											<td>
+                            					<apex:inputField style="width:50px;" value="{!objProfilerSetting.BLDS__Minimum_email_autofill_sample__c}" styleClass="outPutTextLevel2" />
+                            				</td>
+                            				<td  align="right">
+                            					<h1 style="font-size:small">Default Title Filter</h1>
+                            				</td>
+                            				<td width="100px">
+                            					<apex:selectList value="{!selectedCustomTitleOpt}" multiselect="false"  size="1" id="lstCustomTitle1" >
+                                                <apex:selectOptions value="{!lstCustomTitleFilterOption}" />
+                                             </apex:selectList> 
+                            				</td>
+                            			</tr>
+                            			<tr width="100%">
+											<td  align="right">
+											<!-- <apex:outputLabel value="Matching Contact Scoring Boost" /> -->
+											</td>
+											<td >
+											</td>
+											<td  align="right">
+                            					<h1 style="font-size:small">Auto Fill Phone Numbers</h1>
+                            				</td>
+											<td  align="left">
+                            					<apex:inputField value="{!objProfilerSetting.BLDS__Autofill_Phones__c}"/>
+                            					
+                            				</td>
+                            				<td  align="right">
+                            					<h1 style="font-size:small">Default Campaign</h1>
+                            				</td>
+                            				<td width="100px">
+                            					<apex:selectList value="{!objProfilerSetting.BLDS__Profiler_Default_Campaign__c}" multiselect="false"  size="1" id="lstavailbleCampaign" style="width:250px;">
+                                                <apex:selectOptions value="{!lstAvailbleCampaignOption}" />
+                                             </apex:selectList> 
+                            				</td>
+                            			</tr>
+                            			<tr width="100%">
+											<td >
+											</td>
+											<td >
+											</td>
+											<td  align="right">
+                            					<h1 style="font-size:small">Minimum Score for Phone Number Auto Fill</h1>
+                            				</td>
+											<td>
+                            					<apex:inputField style="width:50px;" value="{!objProfilerSetting.BLDS__Autofill_phones_contact_score__c}"/>
+                            				</td>
+                            				<td  align="right">
+                            					<h1 style="font-size:small">Default Owner</h1><br/>
+                            					<div style="margin-top:8px;"><i>Default Specific Owner</i></div>
+                            				</td>
+                            				<td width="100px">
+                            				<apex:actionFunction name="rerenderSection" action="{!dummy}" rerender="defaultOwner,ownerName" />
+                            				<apex:actionFunction name="updateOption" action="{!dummy}" rerender="defaultOwner,ownerName" /> 
+                            					<apex:outputpanel id="defaultOwner">
+	                            					<apex:selectList value="{!objProfilerSetting.BLDS__Profiler_Default_Owner__c}" multiselect="false"  size="1" id="lstDefaultOwner" >
+		                                                <apex:selectOptions value="{!lstDefaultOwnerOption}" />
+		                                             </apex:selectList>
+		                                             &nbsp;&nbsp;&nbsp;<apex:inputText value="{!ownerName}" id="ownerName" /> 
+											         <a href ="" style="cursor: pointer" onclick="javascript:return openRelatedPopup('User', '', '{!$Component.ownerhiddenId}', '{!$Component.ownerhiddenName}')">
+											            <img src="/s.gif" alt="Security Lookup (New Window)" class="lookupIcon" onblur="this.className = 'lookupIcon';"
+											              onfocus="this.className = 'lookupIconOn';" onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';"
+											                onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" title="Lookup (New Window)" />
+											         </a>
+												   	<apex:inputHidden value="{!objProfilerSetting.BLDS__Profiler_Default_Specific_Owner__c}" id="ownerhiddenId"/>
+										 			<apex:inputHidden value="{!ownerName}" id="ownerhiddenName" />  
+									 			</apex:outputpanel>
+                            				</td>
+                            			</tr>
+                            			<tr width="100%">
+											<td  colspan="2" align="right">
+											
+											
+                                        </td>
+											<td  align="right">
+                            					<!-- <h1 style="font-size:small">Reserved Profiles</h1> -->
+                            				</td>
+											<td><!-- <input type="button" class="btn"
+			                                        onClick='clearOrphanProfilerResultJS();' value="Clear Orphan Profiler Result"
+			                                        id="clearOrphanProfilerCache" /> -->
+                            					
+                            				</td>
+                            				<td >
+                            				</td>
+                            				<td width="100px">
+                            					<input type="button" class="btn"
+			                                        onClick='deleteProfilerResultJS();' value="Clear Profiler Cache"
+			                                        id="clearProfilerCache" />
+                            				</td>
+                            			</tr>
+                            		</table>
+                            		</apex:outputpanel>                     
+                           </apex:pageBlockSection>
+                           
+                           <!-- ----------------        Custom Title Filters ---------------------------->
+                           <apex:actionFunction name="handleCustomTitleSelectedJS" action="{!handleCustomTitleSelected}"   
+                                                    reRender="filterList,inputTitle" status="processStatusLoad">
+                                    <apex:param name="idSelected" assignTo="{!idSelectedTitle}" value="abc"/>                         
+                                </apex:actionFunction>
+                                
+                                
+                                <apex:actionFunction name="handleSaveCustomTitleJS" action="{!handleSaveCustomTitle}"   
+                                                    reRender="filterList" status="processStatusLoad">                            
+                                </apex:actionFunction>
+                                
+                                
+                                 <apex:actionFunction name="handleDeleteCustomTitleJS" action="{!handleDeleteCustomTitle}"   
+                                                    reRender="filterList"  status="processStatusLoad">
+                                     <apex:param name="idSelected" assignTo="{!idSelectedTitle}" value=""/>                            
+                                </apex:actionFunction>
+                                
+                                
+                                
+                                <apex:actionFunction name="handleEditCustomTitleJS" action="{!handleEditCustomTitle}"   
+                                                    reRender="filterList" >
+                                     <apex:param name="idSelected" assignTo="{!idSelectedTitle}" value=""/>                            
+                                </apex:actionFunction>
+                                                       
+                                
+                            
+                            <script>
+                                var isEdit = false;
+                                function addEditNewPanel(idPanel){
+                                    document.getElementById(idPanel).style.display = 'block';
+                                    isEdit = false;
+                                    // set blank value
+                                    document.getElementById('{!$Component.titleName}').value = '';
+                                    document.getElementById('{!$Component.titleValue}').value = '';
+                                                                    
+                                    //var btn = document.getElementById('customTitleBtn');
+                                    /*
+                                    if(btn.value == 'Add'){
+                                        btn.value = 'Update';
+                                    } else {
+                                        btn.value = 'Add';
+                                    }
+                                    */
+                                }
+                                
+                                function deleteCustomTitle(idCustomTitle){                                
+                                    var optionList = document.getElementById('{!$Component.lstCustomTitle}');
+                                    if(optionList.selectedIndex == -1){
+                                          alert('Please select a row to delete!');
+                                          return;
+                                    }
+                                        
+                                    var idDelete = optionList.options[optionList.selectedIndex].value;
+                                       
+                                    var result = confirm('Are you sure you want to delete this ');
+                                    if(result == true){
+                                       // delete go here
+                                       // invisible inputs
+                                       document.getElementById('{!$Component.addEditNewPanel}').style.display = 'none';
+                                       handleDeleteCustomTitleJS(idDelete);
+                                       
+                                       isEdit = false;
+                                       
+                                    }
+                                
+                                }
+                                
+                                function deleteFilterTitle(idCustomTitle){  
+                                    var idDelete = idCustomTitle;
+                                    var result = confirm('Are you sure you want to delete this ');
+                                    if(result == true){
+                                       // delete go here
+                                       // invisible inputs
+                                       //document.getElementById('{!$Component.addEditNewPanel}').style.display = 'none';
+                                       handleDeleteCustomTitleJS(idDelete);
+                                       
+                                       isEdit = false;
+                                       
+                                    }
+                                
+                                }
+                                
+                                function saveCustomTitleJS(name, value) {
+                                    // fill data into                                
+                                    //var optionList = document.getElementById('{!$Component.lstCustomTitle}');
+                                    var titleName = document.getElementById(name).value + "";
+                                    var titleValue= document.getElementById(value).value + "";
+                                    
+                                    if(titleName == null || titleName.trim() == '' ){
+                                        alert('Please enter "Name"');
+                                        return false;
+                                    }                                
+                                    if(titleValue == null || titleValue.trim() == ''){
+                                        alert('Please enter "Filter Values" ');
+                                        return false;
+                                    }
+                                    
+                                    if(isEdit == true){
+                                        //handleEditCustomTitleJS(optionList.options[optionList.selectedIndex].value);
+                                       
+                                    } else {
+                                        // have passed validation rule, pass it to actionFunction.
+                                        handleSaveCustomTitleJS();
+                                        hideInputPanel();
+                                    }
+                                    
+                                    // invisible inputs
+                                    //document.getElementById('{!$Component.addEditNewPanel}').style.display = 'none';
+                                    isEdit = false;
+                                   
+                                }
+                                
+                                function editCustomTitle(){                                
+                                    // display input fields
+                                    document.getElementById('{!$Component.addEditNewPanel}').style.display = 'block';                                
+                                    // fill data into                                
+                                    var optionList = document.getElementById('{!$Component.lstCustomTitle}');
+                                    if(optionList.selectedIndex == -1){
+                                        alert('Please select a row to edit !');
+                                        
+                                    } else {
+                                        document.getElementById('{!$Component.titleName}').value = optionList.options[optionList.selectedIndex].text;                                                                
+                                        document.getElementById('{!$Component.titleValue}').value = document.getElementById('{!$Component.customTitleValue}').value;
+                                        isEdit = true;
+                                    
+                                    }
+                                                                
+                                }
+                                
+                                function hideInputPanel(){
+                                    document.getElementById('{!$Component.titleName}').value = '';
+                                    document.getElementById('{!$Component.titleValue}').value = '';                               
+                                }
+                                
+                                
+                                
+                                
+                                
+                            </script>
+                           <apex:pageBlockSection columns="1" title="Title Filters">   
+                        		<apex:outputPanel id="filterList">
+                        			<apex:pageblockTable value="{!lstCustomTitleFilter}" var="item">
+                        				<apex:column style="Width: 4%;">
+                        					<apex:facet name="header">Action</apex:facet>
+                                        	<a id="deleteTitleBtn" style="cursor: pointer; color: #015BA7;" onclick="deleteFilterTitle('{!item.id}');" > Delete </a>
+                                        	<apex:facet name="footer">
+												<input type="button" value="Add"    class="btn"
+                                            		onClick="saveCustomTitleJS('{!$Component.titleName}', '{!$Component.titleValue}');"/>
+											</apex:facet>		
+                        				</apex:column>
+                        				<apex:column style="Width: 26%;">
+                        					<apex:facet name="header">Name</apex:facet>
+                        					<apex:outputfield value="{!item.name}">
+                       						</apex:outputfield>
+                       						<apex:facet name="footer">
+												<apex:inputText value="{!nameCustomTitle}" id="titleName" />
+											</apex:facet>
+                        				</apex:column>
+                        				
+                        				<apex:column style="Width: 70%;">
+                        					<apex:facet name="header">Filter</apex:facet>
+                        					<apex:outputfield value="{!item.BLDS__Filter_Values__c}">
+                        						<apex:inlineEditSupport event="ondblClick"  />
+                       						</apex:outputfield>
+                       						<apex:facet name="footer">
+                       							<apex:outputpanel >
+													<apex:inputText value="{!valueCustomTitle}" id="titleValue"  style="width:100%"/><br/>
+													(*Separate value by comma, e.g. HR, Human Resource, Admin)
+												</apex:outputpanel>
+											</apex:facet>
+                        				</apex:column>
+                        				
+                        			</apex:pageblockTable>
+                        			 
+                        		</apex:outputPanel>	  
+                        		<apex:commandButton action="{!resetDefaultCustomTitleList}" status="processStatusLoad" value="Reset to Default" id="titleResetButton" rerender="filterList"/>
+                                         
+                                <!-- <apex:outputPanel id="panelCustomTitle">
+                                    <apex:pageMessages id="customTitleMsg"/>    
+                                                                                             
+                                    <table>
+                                       <tr>
+                                          <td align="center"><b>Name</b></td>
+                                          <td align="center"><b>Filter Values</b></td>
+                                       </tr>
+                                       <tr>
+                                          <td align="left">                                     
+                                             <apex:selectList value="{!selectedCustomTitleOpt}" multiselect="false" 
+                                                onchange="handleCustomTitleSelectedJS(this.value + '');"
+                                                 size="8" id="lstCustomTitle" style="height: 110px;">
+                                                <apex:selectOptions value="{!lstCustomTitleFilterOption}" />
+                                             </apex:selectList>
+                                            
+                                           
+                                          </td>
+                                          <td align="left">
+                                               <apex:outputPanel id="inputTitle">                              
+                                                 <apex:inputTextarea value="{!selectedCustomTitleOptValue}" 
+                                                     id="customTitleValue" rows="7" cols="30" readonly="true" style="height: 106px;" />
+                                               </apex:outputPanel>                               
+                                          </td>
+                                       </tr>
+                                    </table>
+                                </apex:outputPanel> -->
+                            
+                                
+                                <!-- <apex:outPutPanel >
+                                    <input id="addTitleBtn" type="button"   value="Add"  class="btn"    
+                                        onclick="addEditNewPanel('{!$Component.addEditNewPanel}');"/>
+                                    <input id="editTitleBtn" type="button"  value="Edit" class="btn"    
+                                        onclick="editCustomTitle();" />
+                                    <input id="deleteTitleBtn" type="button" value="Delete" class="btn"  
+                                        onclick="deleteCustomTitle();"/>
+                                    <apex:commandButton id="defautCustomTitleBtn"  value="Reset to Defaults"   
+                                        action="{!setDefaultCustomTitle}" reRender="panelCustomTitle" status="processStatusLoad" />                                 
+                                </apex:outPutPanel>  -->                            
+                                                               
+                                
+                                <!-- <apex:outputPanel id="addEditNewPanel">
+                                        
+                                        
+                                        
+                                        
+                                        
+                                       	<table width="100%">
+	                                       	<tr>
+	                                       		<td >
+	                                       			<apex:outputLabel value="Name"/>
+	                                       		</td>
+	                                       		<td>
+	                                       			<apex:outputLabel value="Filter Values" /> <br/>
+	                                       		</td>
+	                                       	</tr>
+	                                       	<tr>
+	                                       		<td width="180px">
+	                                       			<apex:inputText value="{!nameCustomTitle}" id="titleName" />
+	                                       		</td>
+	                                       		<td>
+	                                       			<apex:inputText value="{!valueCustomTitle}" id="titleValue"  style="width:100%"/>
+	                                       		</td>
+	                                       	</tr>
+                                       		<tr>
+                                       			<td >
+                                       				<input type="button" value="Add"    class="btn"
+                                            		onClick="saveCustomTitleJS('{!$Component.titleName}', '{!$Component.titleValue}');"/>
+                                       				<input type="button" value="Cancel"  class="btn" style="margin-left:5px"
+                                           				onClick="hideInputPanel();"/>
+                                       			</td>
+                                       			<td>
+                                       				(*Separate value by comma, e.g. HR, Human Resource, Admin)
+                                       			</td>
+                                       		</tr>
+                                       	</table>
+                                        
+                                        
+                                        
+                                </apex:outputPanel> -->
+                            </apex:pageBlockSection>
+                           
+                           <!--  Lead,Account handling-->
+                           
+                           <!-- <apex:pageBlockSection columns="1" title="Lead Handling" collapsible="false">                                                                                                                       
+                                    <apex:inputField value="{!objProfilerSetting.BLDS__Automatic_Lead_Profiling__c}" 
+                                                    label="Automatic Lead profiling"/>                                 
+                                                    
+                                    <apex:inputField value="{!objProfilerSetting.Profile_Lead_Within__c}"
+                                                    label="Profile if Lead has not been profiled within "/>
+                           </apex:pageBlockSection>   -->                      
+                           
+                           <!-- <apex:pageBlockSection columns="1" title="Account Handling">                                                           
+                                    <apex:inputField value="{!objProfilerSetting.BLDS__Automatic_Account_Profiling__c}" 
+                                                    label="Automatic Account profiling"/>
+                                    <apex:inputField value="{!objProfilerSetting.Profile_Account_Within__c}"
+                                                    label="Profile if Account has not been profiled within "
+                                                    />
+                           </apex:pageBlockSection> -->
+                           
+                          
+                           
+                           <!--  Profiler Scoring -->
+                           
+                           
+                           <!--  <apex:pageBlockSection columns="1" title="{!$Label.Profiler_Scoring}" >                                                              
+                                        <apex:inputField value="{!objProfilerSetting.BLDS__Score_Contact_Parent_Account_Bonus__c}"
+                                                        label="Matching Contact Scoring Boost"   />                                      
+                                        <apex:inputField value="{!objProfilerSetting.BLDS__Score_Lead_Parent_Account_Bonus__c}"
+                                                        label="Matching Lead Scoring Boost" />                                
+                                        <apex:inputField value="{!objProfilerSetting.BLDS__Score_Parent_Account_Bonus__c}"
+                                                        label="Matching Account Scoring Boost" />                                
+                                    
+                             </apex:pageBlockSection> -->
+                            
+                            
+                           
+                          <!-- Autofill emails" -->
+                          
+                           
+                           <!-- <apex:pageBlockSection columns="1" title="Autofill Data">                                    
+                            
+                            	<apex:pageBlockSectionItem >
+	                                <apex:outputLabel value="{!$ObjectType.Profiler_Setting__c.fields.Autofill_emails__c.label}" />
+	                                <apex:inputField value="{!objProfilerSetting.BLDS__Autofill_emails__c}"/>
+                               	</apex:pageBlockSectionItem>
+                                   
+                                <apex:pageBlockSectionItem >
+	                               <apex:outputLabel value="Minimum Score for Email Auto Fill" />
+	                               <apex:inputField value="{!objProfilerSetting.BLDS__Autofill_emails_contact_score__c}"/>
+                               	</apex:pageBlockSectionItem>
+
+								<apex:pageBlockSectionItem >
+	                                <apex:outputLabel value="Required Emails to Establish Email Auto Fill Pattern" />
+	                                <apex:inputField value="{!objProfilerSetting.BLDS__Minimum_email_autofill_sample__c}"
+	                                	styleClass="outPutTextLevel2" />
+                               	</apex:pageBlockSectionItem>
+                               	
+                               	<apex:pageBlockSectionItem >
+	                                <apex:outputLabel value="{!$ObjectType.Profiler_Setting__c.fields.Autofill_Phones__c.label}" />
+	                                <apex:inputField value="{!objProfilerSetting.BLDS__Autofill_Phones__c}"/>
+                               	</apex:pageBlockSectionItem>
+                                   
+                                <apex:pageBlockSectionItem >
+	                               <apex:outputLabel value="Minimum Score for Phone Number Auto Fill" />
+	                               <apex:inputField value="{!objProfilerSetting.BLDS__Autofill_phones_contact_score__c}"/>
+                               	</apex:pageBlockSectionItem>
+                                   
+                               	<apex:pageBlockSectionItem >
+	                                <apex:outputLabel value="Reserved Profiles" />
+	                                <apex:inputField value="{!objProfilerSetting.BLDS__Reserved_Profiles__c}"
+	                                	styleClass="outPutTextLevel2" />
+                               	</apex:pageBlockSectionItem>
+                           </apex:pageBlockSection> -->
+                           
+                           
+                           
+                           <!-- Clear Profiler Cache -->
+                          
+                           
+                           <!-- <apex:pageBlockSection columns="1" title="Profiler Cache">                                    
+                            	<input type="button" class="btn"
+                                        onClick='deleteProfilerResultJS();' value="Clear Profiler Cache"
+                                        id="clearProfilerCache" />
+                                   
+                           </apex:pageBlockSection> -->
+                           
+                           
+                           
+                        </apex:outputPanel>
+                        
+                        <!--  output mode -->
+                        
+                        <!-- <apex:outputPanel rendered="{! !isInputMode}">
+                        <strong class="tooltip"
+                                style="position: relative; top: 20px; left: 107px;"> <apex:image styleClass="tooltip"
+                                    url="{!URLFOR($Resource.image,'info16.png')}"></apex:image> <span>Minimum
+                                    score: All contacts in Profiler are scored based on number of
+                                    data references, data completeness and data age. Contacts
+                                    scoring below the minimum are not saved.<br /> Grid page size:
+                                    The height of the Profiler grid and the number of records per
+                                    page.
+
+                            </span>
+                            </strong>
+                            <apex:pageBlockSection columns="2" title="Grid Settings">
+                            	<apex:pageBlockSectionItem HelpText="All contacts in Profiler are scored based on number of data references, data completeness and data age.  Contacts scoring below the minimum are not saved.">
+                            		<apex:outputLabel value="{!$ObjectType.Profiler_Setting__c.fields.Grid_Display_MinimumScore__c.label}" />
+	                                <apex:outputField value="{!objProfilerSetting.BLDS__Grid_Display_MinimumScore__c}"/>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem HelpText="The height of the Profiler grid and the number of records per page">
+                            		<apex:outputLabel value="{!$ObjectType.Profiler_Setting__c.fields.Grid_Page_Size__c.label}" />
+                                	<apex:outputField value="{!objProfilerSetting.BLDS__Grid_Page_Size__c}"/>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            
+                            <apex:pageBlockSection columns="2" title="Title Filters">
+                                <apex:outputPanel id="outputTitle">
+                                    <table style="width: 300px">
+                                        <tr>
+                                            <th align="center"><b>Name</b></th>
+                                            <th align="center"><b>Filter Values</b></th>
+                                        </tr>
+                                        <tr>
+                                            <td align="left"><apex:selectList value="{!selectedCustomTitleOpt}" multiselect="false"
+                                                    onchange="handleCustomTitleSelectedJS2(this.value);" style="height:110px;"
+                                                    size="7">
+                                                    <apex:selectOptions value="{!lstCustomTitleFilterOption}" />
+                                                </apex:selectList> <apex:actionFunction action="{!handleCustomTitleSelected}"
+                                                    name="handleCustomTitleSelectedJS2" rerender="outputTitle"
+                                                    status="processStatusLoad">
+                                                    <apex:param id="firstParam" name="idSelected"
+                                                        assignTo="{!idSelectedTitle}" value="" />
+                                                </apex:actionFunction></td>
+                                            <td align="left"><apex:inputTextarea value="{!selectedCustomTitleOptValue}" rows="7" cols="30"
+                                                    readonly="true"  style="height:106px;"/></td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>                        
+                            </apex:pageBlockSection>
+
+                            <apex:pageBlockSection columns="1" title="Lead Handling">
+								<apex:pageBlockSectionItem HelpText="If checked, Profiler researches new Leads when created.">
+	                                <apex:outputLabel value="{!$ObjectType.Profiler_Setting__c.fields.Automatic_Lead_Profiling__c.label}" />
+	                                <apex:outputField value="{!objProfilerSetting.BLDS__Automatic_Lead_Profiling__c}"/>
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem HelpText="Profiler maintains an internal cache within your CRM.  This cache is used if company has been Profiled within X days.">
+	                                <apex:outputLabel value="Profile if Lead has not been profiled within" />
+	                                <apex:outputText value="{!FLOOR(objProfilerSetting.Profile_Lead_Within__c)} days" />
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+
+                           <apex:pageBlockSection columns="1" title="Account Handling">
+	                           	<apex:pageBlockSectionItem HelpText="If checked, Profiler researches new Accounts when created.">
+	                                <apex:outputLabel value="{!$ObjectType.Profiler_Setting__c.fields.Automatic_Account_Profiling__c.label}" />
+	                                <apex:outputField value="{!objProfilerSetting.BLDS__Automatic_Account_Profiling__c}"/>
+                               	</apex:pageBlockSectionItem>
+                               	<apex:pageBlockSectionItem HelpText="Profiler maintains an internal cache within your CRM.  This cache is used if company has been Profiled within X days.">
+	                                <apex:outputLabel value="Profile if Account has not been profiled within" />
+	                                <apex:outputText value="{!FLOOR(objProfilerSetting.Profile_Account_Within__c)} days" />
+                               	</apex:pageBlockSectionItem>
+                           </apex:pageBlockSection>
+                            <div class="tooltip" style="position: relative; top: 37px; left: 116px;" > 
+                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.image,'s.gif')}"
+                                    style="border:0px"></apex:image> 
+                                <span>Change these values to "increase" the score for matching records that
+                                    are already in your CRM. </span>
+                            </div>
+
+                            <apex:pageBlockSection columns="1" title="Profiler Scoring">
+                                <apex:outputPanel >
+                                    <apex:outputText value="Add {!FLOOR(objProfilerSetting.Score_Contact_Parent_Account_Bonus__c)} points for matching Contact record" />
+                                </apex:outputPanel>
+
+                                <apex:outputPanel styleClass="outPutTextLevel2">
+                                    <apex:outputText value="Add {!FLOOR(objProfilerSetting.Score_Lead_Parent_Account_Bonus__c)} points for matching Lead record" />
+
+                                </apex:outputPanel>
+
+                                <apex:outputPanel styleClass="outPutTextLevel2">
+                                    <apex:outputText value="Add {!FLOOR(objProfilerSetting.Score_Parent_Account_Bonus__c)} points for matching Account record" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSection>
+
+                               <apex:pageBlockSection columns="1" title="Autofill Data">
+                               	<apex:pageBlockSectionItem HelpText="Fill missing emails if Profiler can detect an email pattern. Formats of first@domain will not be used to calculate email patterns.">
+	                                <apex:outputLabel value="{!$ObjectType.Profiler_Setting__c.fields.Autofill_emails__c.label}" />
+	                                <apex:outputField value="{!objProfilerSetting.BLDS__Autofill_emails__c}" />
+                               	</apex:pageBlockSectionItem>
+                                   
+                                <apex:pageBlockSectionItem HelpText="Pick the minimum score for Profiler to autofill an email.  ">
+	                               <apex:outputLabel value="Minimum Score for Email Auto Fill" />
+	                               <apex:outputText value="{!FLOOR(objProfilerSetting.Autofill_emails_contact_score__c)}" />
+                               	</apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem HelpText="The minumum sample size for Profiler to build an email pattern">
+	                                <apex:outputLabel value="Required Emails to Establish Email Auto Fill Pattern" />
+	                                <apex:outputText value="{!FLOOR(objProfilerSetting.Minimum_email_autofill_sample__c)}"
+                                      	 styleClass="outPutTextLevel2" />
+                               	</apex:pageBlockSectionItem>
+                               	
+                               	<apex:pageBlockSectionItem HelpText="Auto Fill Phone Numbers.">
+	                                <apex:outputLabel value="{!$ObjectType.Profiler_Setting__c.fields.Autofill_Phones__c.label}" />
+	                                <apex:outputField value="{!objProfilerSetting.BLDS__Autofill_Phones__c}" />
+                               	</apex:pageBlockSectionItem>
+                                   
+                                <apex:pageBlockSectionItem HelpText="Pick the minimum score for Profiler to autofill a phone.  ">
+	                               <apex:outputLabel value="Minimum Score for Phone Number Auto Fill" />
+	                               <apex:outputText value="{!FLOOR(objProfilerSetting.Autofill_phones_contact_score__c)}" />
+                               	</apex:pageBlockSectionItem>
+                               	
+                               	<apex:pageBlockSectionItem HelpText="Reserved Profiles">
+	                                <apex:outputLabel value="Reserved Profiles" />
+	                                <apex:outputText value="{!FLOOR(objProfilerSetting.Reserved_Profiles__c)}"
+                                      	 styleClass="outPutTextLevel2" />
+                               	</apex:pageBlockSectionItem>
+                           </apex:pageBlockSection>
+                           
+                           
+                           Profiler Cache  
+                           <apex:pageBlockSection columns="1" title="Profiler Cache">                                    
+                            <input type="button" class="btn"
+                                        onClick='deleteProfilerResultJS();' value="Clear Profiler Cache"
+                                        id="clearProfilerCache" />
+                                   
+                           </apex:pageBlockSection>
+
+                        </apex:outputPanel> -->
+                        
+                        <apex:pageBlockButtons location="top">
+                            <apex:commandButton action="{!saveProfilerTab}" value="Save"
+                                rerender="profilerBlock,RegistrationTabPanel"
+                                status="processStatusLoad" oncomplete=" tab_profiler_enter_event();"/>
+                            <!-- <apex:commandButton action="{!cancelProfilerTab}" value="Cancel"
+                                rendered="{!isInputMode}"
+                                rerender="profilerBlock,RegistrationTabPanel"
+                                status="processStatusLoad" oncomplete=" tab_profiler_enter_event();"/>
+                            <apex:commandButton action="{!btnEdit}" value="Edit"
+                                rendered="{! !isInputMode}"
+                                rerender="profilerBlock,RegistrationTabPanel"
+                                status="processStatusLoad" /> -->
+                        </apex:pageBlockButtons>
+                        
+                    </apex:pageBlock>
+                            
+                </apex:tab>
+                
+                <!-----------------------------------------------------------  Auto Profiler ----------------------------------------------------->
+				
+
+                <apex:tab label="Auto Profiler" name="autoProfilerTab"
+                    id="autoProfilerTab"
+                    styleClass="BL_tabStyle">
+					<apex:actionFunction name="handleDeleteAutoScheduleJS"
+						action="{!handleDeleteAutoSchedule}" reRender="autoProfilerList">
+						<apex:param name="idSelected" assignTo="{!idSelectedAutoSchedule}"
+							value="" />
+					</apex:actionFunction>
+					<script>
+                    	function deleteAutoSchedule(idschedule){  
+                                    var idDelete = idschedule;
+                                    var result = confirm('Are you sure you want to delete this ');
+                                    if(result == true){
+                                       // delete go here
+                                       // invisible inputs
+                                       //document.getElementById('{!$Component.addEditNewPanel}').style.display = 'none';
+                                       handleDeleteAutoScheduleJS(idDelete);
+                                       
+                                       isEdit = false;
+                                       
+                                    }
+                                
+                                }
+                    </script>
+                    <apex:pageblock mode="edit" >
+                    	<apex:pageBlockButtons location="Top">
+                            <apex:commandButton action="{!saveAutoProfilerTab}" value="Save"  />
+                        </apex:pageBlockButtons>
+                    	<apex:pageBlockSection columns="2" title="Automatic New Lead Profiling   Automatic New Account Profiling" collapsible="false">
+                    	<apex:facet name="header">
+                            		<table width="100%">
+                            			<tr width="100%">>
+                            				<td width="35%">
+                            					<h1 style="font-size:small">Automatic Profiling</h1>
+                            				</td>
+                            				<td width="35%">
+                            					<h1 style="font-size:small">Profiler Restrictions</h1>
+                            				</td>
+                            			</tr>
+                            		</table>
+                            	</apex:facet>   
+                                    <apex:inputField value="{!objProfilerSetting.BLDS__Automatic_Lead_Profiling__c}" 
+                                                    label="Automatic New Lead Profiling"/>   
+                                    <apex:inputField style="width:50px;" value="{!objProfilerSetting.BLDS__Reserved_Profiles__c}" styleClass="outPutTextLevel2" label="Reserved Profiles for On Demand Profiling" />
+                                    <apex:inputField value="{!objProfilerSetting.BLDS__Automatic_Account_Profiling__c}" 
+                                                    label="Automatic New Account Profiling"/>
+                                    <!-- <apex:inputField value="{!objProfilerSetting.Profile_Lead_Within__c}"
+                                                    label="Profile if Lead has not been profiled within "/>
+                                    <apex:inputField value="{!objProfilerSetting.Profile_Account_Within__c}"
+                                                    label="Profile if Account has not been profiled within "
+                                                    /> -->
+                           </apex:pageBlockSection>
+                    </apex:pageblock>
+	                <style>
+			          	body .bPageBlock .bluePanel .pbSubheader{
+			            	background-color:#75AADB;
+			       		}
+			        </style>
+                    <apex:pageblock id="autoProfilerList" title="Auto Profilers">
+                    <apex:outputPanel id="ControlButtons">
+	                    <apex:commandButton action="{!redirectToNewSchedule}"
+	                                        value="New Schedule" />
+                </apex:outputPanel>
+                    <script>
+                    	function newWindowOrTab(recordId){
+				               {
+				                    var url = "{!$site.prefix}/"+recordId;
+				               }
+					           url = url.trim();
+					           window.open(url);
+					       }
+                    </script>
+                    	<apex:outputPanel id="ViewDetails" styleClass="bluePanel" layout="block">
+                    		<apex:pageBlockTable value="{!autoScheduleList}" var="item" rendered="{!!(autoScheduleList.size == 0)}" >
+                    			<apex:column >
+                        					<apex:facet name="header">Action</apex:facet>
+                        					<a id="editAutoScheduleBtn" style="cursor: pointer; color: #015BA7;" onclick="newWindowOrTab('{!item.Id}');" title="Edit">
+                                            Edit
+                                        	</a>
+                                        	<span style=" color: #015BA7;">|</span>
+                                        	<a id="deleteAutoScheduleBtn" style="cursor: pointer; color: #015BA7;" onclick="deleteAutoSchedule('{!item.id}');" > Del </a>
+                                        			
+                        				</apex:column>
+                    			<apex:column > 
+				                    <apex:facet name="header">Schedule Name</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <apex:outputText value="{!HTMLENCODE(item.Name )}"  escape="false" ></apex:outputText>
+				                    </div>
+				                </apex:column>
+				                
+				                <apex:column > 
+				                    <apex:facet name="header">Est. Records</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <apex:outputText value="{!(item.BLDS__Estimated_Records__c )}"  escape="false"  rendered="{!item.BLDS__Estimated_Records__c >= 0}"/>
+				                    </div>
+				                </apex:column>
+				                
+				                <apex:column > 
+				                    <apex:facet name="header">Avg. Profile Age</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <apex:outputText value="{!(item.BLDS__Average_Profile_Age__c )}"  escape="false" rendered="{!item.BLDS__Average_Profile_Age__c >= 0}"/>
+				                    </div>
+				                </apex:column>
+				                
+				                <apex:column > 
+				                    <apex:facet name="header">Oldest Profile Age</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <apex:outputText value="{!(item.BLDS__Oldest_Profile_Age__c )}"  escape="false" rendered="{!item.BLDS__Oldest_Profile_Age__c >= 0}"/>
+				                    </div>
+				                </apex:column>
+				                
+				                <apex:column > 
+				                    <apex:facet name="header">Max Age</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <apex:outputText value="{!(item.BLDS__Max_Profile_Age__c )}"  escape="false" rendered="{!item.BLDS__Max_Profile_Age__c >= 0}"/>&nbsp;
+				                        <apex:outputText value="{!(item.BLDS__Profiles_Age_Unit__c )}"  escape="false" rendered="{!item.BLDS__Max_Profile_Age__c >= 0}"/>
+				                    </div>
+				                </apex:column>
+				                
+				                <apex:column > 
+				                    <apex:facet name="header">Max Daily Usage</apex:facet>
+				                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+				                        <apex:outputText value="{!(item.BLDS__Max_Daily_Consumption__c )}"  escape="false" rendered="{!(item.BLDS__Max_Daily_Consumption__c >= 0) && (item.BLDS__Is_Limited_Consumption__c)}"/>
+				                    </div>
+				                </apex:column>
+                    		</apex:pageBlockTable>
+                    	</apex:outputPanel>
+                    	
+                    </apex:pageblock>
+                    
+                    </apex:tab>
+                
+                <apex:tab label="Data Shield" name="DataShieldTab" id="DataShieldTab" ontableave=" return checkSaveData('{!isInputMode}', 'DataShieldTab');" 
+                styleClass="BL_tabStyle"
+                oncomplete=" tab_datashield_enter_event();">
+                <apex:tabpanel id="shieldInnerTab"  activeTabClass="tab-tab selected" inactiveTabClass="tab-tab" switchType="ajax" >
+                	
+                	<!-- <apex:tab label="Shield full old" styleClass="BL_tabStyle">
+                	<apex:actionFunction name="handleDeleteLeadShieldFieldJS" action="{!handleDeleteLeadShieldField}"   
+                                                    reRender="FieldShieldLeadPanel,msgDelLead, leadFieldDataTypeMapping" status="processStatusLoad">
+                                    <apex:param name="idSelected" assignTo="{!selectedShieldField}" value="abc"/>                         
+                                </apex:actionFunction>                        
+                                
+                                <apex:actionFunction name="handleDeleteContactShieldFieldJS" action="{!handleDeleteContactShieldField}"   
+                                                    reRender="FieldShieldContactPanel,msgDelContact" status="processStatusLoad">
+                                    <apex:param name="idSelected" assignTo="{!selectedShieldField}" value="abc"/>                         
+                                </apex:actionFunction>                        
+                                
+                                <apex:actionFunction name="handleDeleteAccountShieldFieldJS" action="{!handleDeleteAccountShieldField}"   
+                                                reRender="FieldShieldAccountPanel,msgDelAccount" status="processStatusLoad">
+                                <apex:param name="idSelected" assignTo="{!selectedShieldField}" value="abc"/>                         
+                            </apex:actionFunction>
+                            
+                            
+                <script>
+//---------------------                Shield DELETE setting. --------------------------------------------------
+
+function deleteShieldField(objectName){
+	if(objectName == "Lead"){
+		deleteLeadShieldFieldJS();
+	} else if(objectName == "Contact"){
+		deleteContactShieldFieldJS();
+	} else if (objectName == "Account"){
+		deleteAccountShieldFieldJS();
+	}
+							   
+}
+
+function deleteShieldField1(objectName, idValue, text){
+	alert(objectName);
+	alert(idValue);
+	alert(text);
+	if(objectName == "Lead"){
+		deleteLeadShieldFieldJS(idValue, text);
+	} else if(objectName == "Contact"){
+		deleteContactShieldFieldJS(idValue, text);
+	} else if (objectName == "Account"){
+		deleteAccountShieldFieldJS(idValue, text);
+	}							   
+}
+
+function deleteLeadShieldFieldJS(){ 
+	var id7 = '{!$Component.registrationPage.formParent.dataShieldBlock.FieldShieldLeadPanel}:plLeadShield:multiPicklistCus:multiselectPanel:leftList';   
+								 
+	var optionList = document.getElementById(id7);                                
+	
+	if(optionList.selectedIndex == -1){
+		  alert('Please select a row to delete!');
+		  return;
+	}
+		
+	var idDelete = optionList.options[optionList.selectedIndex].value;
+	var textDelete = optionList.options[optionList.selectedIndex].text;
+	   
+	var result = confirm('Are you sure you want to delete : '  + textDelete);
+	if(result == true){
+	   // delete go here, call actionFunction
+										 
+	   handleDeleteLeadShieldFieldJS(idDelete);
+	   
+	}
+
+}
+
+function deleteLeadShieldFieldJS1(idValue, text){ 
+		
+	var idDelete = idValue;
+	var textDelete = text;
+	   
+	var result = confirm('Are you sure you want to delete : '  + textDelete);
+	if(result == true){
+	   // delete go here, call actionFunction
+										 
+	   handleDeleteLeadShieldFieldJS(idDelete);
+	   
+	}
+
+}
+
+function deleteContactShieldFieldJS(){ 
+	var id7 = '{!$Component.registrationPage.formParent.dataShieldBlock.FieldShieldContactPanel}:plContactShield:multiPicklistCus:multiselectPanel:leftList';    
+	var optionList = document.getElementById(id7);                                
+	
+	if(optionList.selectedIndex == -1){
+		  alert('Please select a row to delete!');
+		  return;
+	}
+		
+	var idDelete = optionList.options[optionList.selectedIndex].value;
+	var textDelete = optionList.options[optionList.selectedIndex].text;
+	   
+	var result = confirm('Are you sure you want to delete : '  + textDelete);
+	if(result == true){
+	   // delete go here, call actionFunction
+										 
+	   handleDeleteContactShieldFieldJS(idDelete);
+	   
+	}
+
+}
+
+function deleteContactShieldFieldJS1(idValue, text){ 
+		
+	var idDelete = idValue;
+	var textDelete = text;
+	   
+	var result = confirm('Are you sure you want to delete : '  + textDelete);
+	if(result == true){
+	   // delete go here, call actionFunction
+										 
+	   handleDeleteContactShieldFieldJS(idDelete);
+	   
+	}
+
+}
+
+function deleteAccountShieldFieldJS(){ 
+	var id7 = '{!$Component.registrationPage.formParent.dataShieldBlock.FieldShieldAccountPanel}:plAccountShield:multiPicklistCus:multiselectPanel:leftList';     
+	var optionList = document.getElementById(id7);                                
+	
+	if(optionList.selectedIndex == -1){
+		  alert('Please select a row to delete!');
+		  return;
+	}
+		
+	var idDelete = optionList.options[optionList.selectedIndex].value;
+	var textDelete = optionList.options[optionList.selectedIndex].text;
+	   
+	var result = confirm('Are you sure you want to delete : '  + textDelete);
+	if(result == true){
+	   // delete go here, call actionFunction
+										 
+	   handleDeleteAccountShieldFieldJS(idDelete);
+	   
+	}
+
+}
+
+function deleteAccountShieldFieldJS1(idValue, text){ 
+		
+	var idDelete = idValue;
+	var textDelete = text;
+	   
+	var result = confirm('Are you sure you want to delete : '  + textDelete);
+	if(result == true){
+	   // delete go here, call actionFunction
+										 
+	   handleDeleteAccountShieldFieldJS(idDelete);
+	   
+	}
+
+}
+
+                
+                </script>
+                    <apex:pageBlock mode="edit" id="dataShieldBlock">
+                        <apex:outputPanel rendered="{! !isInputMode}">
+                            
+                            <apex:pageBlockSection columns="2" title="General">
+                                <apex:pageBlockSectionItem HelpText="DataShield controls the data standards that are enforced within your CRM.">
+                                    <apex:outputLink style="color: #015BA7"
+                                                     value="{!strManageLink}" id="theLink2" target="_blank"
+                                                     title="Edit DataShield scheme">Edit DataShield scheme</apex:outputLink>
+                                    <apex:outputPanel ></apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem HelpText="Turning this on will pass all new Leads through the DataShield engine to stanardize the data">
+                                    <apex:outputLabel value="Enable Shield for Lead Changes" />
+                                    <apex:outputField value="{!objShieldSetting.BLDS__Shield_Trigger_for_Leads_On__c}" />
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem HelpText="Turning this on will pass all new Contacts through the DataShield engine to stanardize the data">
+                                    <apex:outputLabel value="Shield Trigger for Contacts" />
+                                    <apex:outputField value="{!objShieldSetting.BLDS__Shield_Trigger_for_Contacts_On__c}" />
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem HelpText="Turning this on will pass all new Accounts through the DataShield engine to stanardize the data">
+                                    <apex:outputLabel value="Shield Trigger for Accounts" />
+                                    <apex:outputField value="{!objShieldSetting.BLDS__Shield_Trigger_for_Accounts_On__c}" />
+                                </apex:pageBlockSectionItem>
+                                
+                                <apex:pageBlockSectionItem HelpText="DataShield displays when a record has been modified by DataShield.  If you turn this setting on, the orginal page is reloaded automatically.  For any initial training period, you may want to leave this setting OFF.  This will teach your team the selected data standards for your organization.">
+                                    <apex:outputLabel value="DataShield page change redirect" />
+                                    <apex:outputField value="{!objShieldSetting.Automatic_redirect_to_original_page__c}" />
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            
+
+							<div class="tooltip" style="position: relative; top: 35px; left: 231px;" > 
+                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.image,'s.gif')}"
+                                    style="border:0px"></apex:image> 
+                                <span>Choose which Lead fields are modified by DataShield</span>
+                            </div>
+	
+                            <apex:pageBlockSection columns="2"
+                                title="DataShield options for Lead fields">
+                                <apex:outputPanel >
+                                    <table style="width:300px">
+                                        <tr>
+                                            <th align="center"><b>Shield On</b></th>
+                                            <th align="center"><b>Shield Off</b></th>
+                                            
+                                        </tr>
+                                        <tr>
+                                            <td><apex:selectList value="{!lstShieldOnLead}"
+                                                    multiselect="true" readonly="true"
+                                                    style="width:150px; color:black !important" size="6">
+                                                    <apex:selectOptions value="{!lstShieldOnLead}" />
+                                                </apex:selectList></td>
+                                            <td><apex:selectList value="{!lstShieldOffLead}"
+                                                    multiselect="true" readonly="true"
+                                                    style="width:150px; color:black !important" size="6">
+                                                    <apex:selectOptions value="{!lstShieldOffLead}" />
+                                                </apex:selectList></td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                                <br/><br/>
+                            </apex:pageBlockSection>
+
+                            <strong class="tooltip"
+                                style="position: relative; top: 32px; left: 159px;"> <apex:image styleClass="tooltip"
+                                    url="{!URLFOR($Resource.image,'info16.png')}"></apex:image> <span>DataShield
+                                    filter for Leads: Target specific Lead records to be
+                                    standardized with DataShield. For example: country = US. </span>
+                            </strong>
+                            <div class="tooltip" style="position: relative; top: 35px; left: 180px;" > 
+                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.image,'s.gif')}"
+                                    style="border:0px"></apex:image> 
+                                <span>Target specific Lead records to be
+                                    standardized with DataShield. For example: country = US.</span>
+                            </div>
+                            Shield Filter Setting
+                            <apex:pageBlockSection columns="1"
+                                title="DataShield filter for Leads">
+                                <apex:outputPanel >
+                                    <apex:outputText value="There is currently no setting." rendered="{!IF(LeadShieldWrapperDisplay.Size =0,true,false)}"/>
+                                    <apex:pageBlockTable value="{!LeadShieldWrapperDisplay}" var="wrapper"  style="width:60%;" rendered="{!IF(LeadShieldWrapperDisplay.Size >0,true,false)}">
+                                     <apex:column headerValue="Field Name" style="width:30%;">
+                                        
+                                        <apex:outputText value="{!wrapper.FilterField}"></apex:outputText>
+                                        
+                                     </apex:column>
+                                     <apex:column headerValue="Operator" style="width:30%;">
+                                         <apex:outputText value="{!wrapper.OperatorText}"></apex:outputText>
+                                      
+                                     </apex:column>
+                                     <apex:column headerValue="Value">
+                                        <apex:outputText value="{!wrapper.value}"></apex:outputText> 
+                                     </apex:column>
+                                 </apex:pageBlockTable>
+                                </apex:outputPanel>
+                                
+                            </apex:pageBlockSection>
+
+                            <strong class="tooltip"
+                                style="position: relative; top: 32px; left: 225px;"> <apex:image styleClass="tooltip"
+                                    url="{!URLFOR($Resource.image,'info16.png')}"></apex:image> <span>DataShield
+                                    options for Contact fields: Choose which Contact fields are
+                                    modified by DataShield.<br />
+
+                            </span>
+                            </strong>
+                            
+                            <div class="tooltip" style="position: relative; top: 35px; left: 247px;" > 
+                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.image,'s.gif')}"
+                                    style="border:0px"></apex:image> 
+                                <span>Choose which Contact fields are
+                                    modified by DataShield.</span>
+                            </div>
+
+                            <apex:pageBlockSection columns="2"
+                                title="DataShield options for Contact fields">
+                                <apex:outputPanel >
+                                    <table style="width: 300px">
+                                        <tr>
+                                            <th align="center"><b>Shield On</b></th>
+                                            <th align="center"><b>Shield Off</b></th>
+
+                                        </tr>
+                                        <tr>
+                                            <td><apex:selectList value="{!lstShieldOnContact}"
+                                                    multiselect="true" readonly="true"
+                                                    style="width:150px; color:black !important" size="6">
+                                                    <apex:selectOptions value="{!lstShieldOnContact}" />
+                                                </apex:selectList></td>
+                                            <td><apex:selectList value="{!lstShieldOffContact}"
+                                                    multiselect="true" readonly="true"
+                                                    style="width:150px; color:black !important" size="6">
+                                                    <apex:selectOptions value="{!lstShieldOffContact}" />
+                                                </apex:selectList></td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </apex:pageBlockSection>
+
+                            <strong class="tooltip"
+                                style="position: relative; top: 32px; left: 177px;"> <apex:image styleClass="tooltip"
+                                    url="{!URLFOR($Resource.image,'info16.png')}"></apex:image> <span>DataShield
+                                    filter for Contacts: Target specific Contact records to be
+                                    standardized with DataShield. For example: country = US. </span>
+                            </strong>
+                            <div class="tooltip" style="position: relative; top: 35px; left: 199px;" > 
+                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.image,'s.gif')}"
+                                    style="border:0px"></apex:image> 
+                                <span>Target specific Contact records to be standardized with DataShield.  For example: country = US.  </span>
+                            </div>
+                            Shield Filter Setting
+                            <apex:pageBlockSection columns="1"
+                                title="DataShield filter for Contacts">
+                                <apex:outputPanel >
+                                    <apex:outputText value="There is currently no setting."
+                                        rendered="{!IF(ContactShieldWrapperDisplay.Size =0,true,false)}" />
+                                    <apex:pageBlockTable value="{!ContactshieldWrapperDisplay}"
+                                        var="wrapper" style="width:60%;"
+                                        rendered="{!IF(ContactShieldWrapperDisplay.Size >0,true,false)}">
+                                        <apex:column headerValue="Field Name" style="width:30%;">
+
+                                            <apex:outputText value="{!wrapper.FilterField}"></apex:outputText>
+
+                                        </apex:column>
+                                        <apex:column headerValue="Operator" style="width:30%;">
+                                            <apex:outputText value="{!wrapper.OperatorText}"></apex:outputText>
+
+                                        </apex:column>
+                                        <apex:column headerValue="Value">
+                                            <apex:outputText value="{!wrapper.value}"></apex:outputText>
+                                        </apex:column>
+                                    </apex:pageBlockTable>
+                                </apex:outputPanel>
+
+                            </apex:pageBlockSection>
+
+                            <strong class="tooltip"
+                                style="position: relative; top: 32px; left: 225px;"> <apex:image styleClass="tooltip"
+                                    url="{!URLFOR($Resource.image,'info16.png')}"></apex:image> <span>DataShield
+                                    options for Account fields: Choose which Account fields are
+                                    modified by DataShield.<br />
+
+                            </span>
+                            </strong>
+
+							<div class="tooltip" style="position: relative; top: 35px; left: 254px;" > 
+                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.image,'s.gif')}"
+                                    style="border:0px"></apex:image> 
+                                <span>Choose which Account fields are
+                                    modified by DataShield.</span>
+                            </div>
+
+                            <apex:pageBlockSection columns="2"
+                                title="DataShield options for Account fields">
+                                <apex:outputPanel >
+                                    <table style="width: 300px">
+                                        <tr>
+                                            <th align="center"><b>Shield On</b></th>
+                                            <th align="center"><b>Shield Off</b></th>
+
+                                        </tr>
+                                        <tr>
+                                            <td align="left"><apex:selectList value="{!lstShieldOnAccount}" multiselect="true"
+                                                    readonly="true" style="width:150px; color:black !important"
+                                                    size="6">
+                                                    <apex:selectOptions value="{!lstShieldOnAccount}" />
+                                                </apex:selectList></td>
+                                            <td align="left"><apex:selectList value="{!lstShieldOffAccount}" multiselect="true"
+                                                    readonly="true" style="width:150px; color:black !important"
+                                                    size="6">
+                                                    <apex:selectOptions value="{!lstShieldOffAccount}" />
+                                                </apex:selectList></td>
+                                        </tr>
+                                    </table>
+                                </apex:outputPanel>
+                            </apex:pageBlockSection>
+
+                            <strong class="tooltip"
+                                style="position: relative; top: 32px; left: 180px;"> <apex:image styleClass="tooltip"
+                                    url="{!URLFOR($Resource.image,'info16.png')}"></apex:image> <span>DataShield
+                                    filter for Accounts: Target specific Account records to be
+                                    standardized with DataShield. For example: country = US. </span>
+                            </strong>
+                            <div class="tooltip" style="position: relative; top: 35px; left: 203px;" > 
+                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.image,'s.gif')}"
+                                    style="border:0px"></apex:image> 
+                                <span>Target specific Account records to be
+                                    standardized with DataShield. For example: country = US.</span>
+                            </div>
+                            Shield Filter Setting
+                            <apex:pageBlockSection columns="1"
+                                title="DataShield filter for Accounts">
+                                <apex:outputPanel >
+                                    <apex:outputText value="There is currently no setting."
+                                        rendered="{!IF(AccountShieldWrapperDisplay.Size =0,true,false)}" />
+                                    <apex:pageBlockTable value="{!AccountshieldWrapperDisplay}"
+                                        var="wrapper" style="width:60%;"
+                                        rendered="{!IF(AccountShieldWrapperDisplay.Size > 0,true,false)}">
+                                        <apex:column headerValue="Field Name" style="width:30%;">
+
+                                            <apex:outputText value="{!wrapper.FilterField}"></apex:outputText>
+
+                                        </apex:column>
+                                        <apex:column headerValue="Operator" style="width:30%;">
+                                            <apex:outputText value="{!wrapper.OperatorText}"></apex:outputText>
+
+                                        </apex:column>
+                                        <apex:column headerValue="Value">
+                                            <apex:outputText value="{!wrapper.value}"></apex:outputText>
+                                        </apex:column>
+                                    </apex:pageBlockTable>
+                                </apex:outputPanel>
+
+                            </apex:pageBlockSection>
+
+                        </apex:outputPanel>
+
+                        <apex:outputPanel rendered="{!isInputMode}">
+                        <apex:outputPanel >
+
+                            <apex:pageBlockSection columns="1" title="General">
+                                   <apex:outputText value="Shield Setting" style="color:#4A4A56; font-weight:bold"> 
+                                <apex:outputLink style="position:absolute;left:20%;color: #015BA7"
+                                    value="{!strManageLink}" id="theLink1" target="_blank"
+                                    title="Edit DataShield scheme">Edit DataShield scheme</apex:outputLink>
+                                   </apex:outputText> 
+                                <apex:pageBlockSection columns="2">
+                                    <apex:pageBlockSectionItem >
+		                               <apex:outputLabel value="{!$ObjectType.Shield_Setting__c.fields.Shield_Trigger_for_Leads_On__c.label}" />
+		                               <apex:inputField value="{!objShieldSetting.BLDS__Shield_Trigger_for_Leads_On__c}" />
+	                               	</apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+		                               <apex:outputLabel value="{!$ObjectType.Shield_Setting__c.fields.Shield_Trigger_for_Contacts_On__c.label}" />
+		                               <apex:inputField value="{!objShieldSetting.BLDS__Shield_Trigger_for_Contacts_On__c}" />
+	                               	</apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+		                               <apex:outputLabel value="{!$ObjectType.Shield_Setting__c.fields.Shield_Trigger_for_Accounts_On__c.label}" />
+		                               <apex:inputField value="{!objShieldSetting.BLDS__Shield_Trigger_for_Accounts_On__c}" />
+	                               	</apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+		                               <apex:outputLabel value="DataShield page change redirect" />
+		                               <apex:inputField value="{!objShieldSetting.Automatic_redirect_to_original_page__c}" />
+	                               	</apex:pageBlockSectionItem>
+                                </apex:pageBlockSection>
+                            </apex:pageBlockSection>
+
+                            <apex:pageBlockSection columns="1" id="FieldShieldLeadPanel"
+                                title="Shield setting for Lead fields">
+                                <apex:outputPanel >
+                                    <c:MultiselectPicklistCustom leftLabel="Shield On"
+                                        id="plLeadShield" leftOptions="{!lstShieldOnLead}"
+                                        rightLabel="Shield Off" rightOptions="{!lstShieldOffLead}"
+                                        size="14" width="150px" />
+                                </apex:outputPanel>
+
+                                <apex:outputPanel id="controlLeadComponents">
+                                    <apex:commandButton action="{!AddLeadShield}"
+                                        value="Add Lead Field" reRender="FieldShieldLeadPanel, controlLeadComponents" />
+                                    <apex:selectList value="{!SelectedLeadField}"
+                                        multiselect="false" size="1">
+                                        <apex:selectOptions value="{!lstCustomLeadField}" />
+                                    </apex:selectList>
+                                        
+                                       Data Type :  
+                                                                      
+                                        <apex:selectList value="{!SelectedDataTypeLead}" multiselect="false" size="1">
+                                        <apex:selectOptions value="{!PersonTypes}" />
+                                    </apex:selectList>
+                                    <br />
+
+                                    <apex:pageMessages id="msgDelLead" />
+                                     
+                                    <input type="button" class="btn"
+                                        onClick='deleteShieldField("Lead");' value="Delete" />
+                                         
+                                </apex:outputPanel>
+
+                            </apex:pageBlockSection>
+
+
+
+                            Edit Shield Filter
+                            <apex:pageBlockSection columns="1"
+                                title="Shield filter for Leads">
+                                <apex:outputPanel >
+                                    <apex:pageBlockTable value="{!LeadshieldWrapper}" var="wrapper"
+                                        id="wtablelead" style="width:60%;">
+                                        <apex:column headerValue="Field Name" style="width:20%;">
+                                            <apex:SelectList value="{!wrapper.FilterField}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!LeadFilterFields}" />
+                                            </apex:SelectList>
+                                        </apex:column>
+                                        <apex:column headerValue="Operator" style="width:20%;">
+                                            <apex:SelectList value="{!wrapper.Operator}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!Operators}" />
+                                            </apex:SelectList>
+                                        </apex:column>
+                                        <apex:column headerValue="Value" style="width:40%;">
+                                            <apex:inputText value="{!wrapper.value}" style="width:100%;" />
+                                        </apex:column>
+
+                                        <apex:column >
+
+                                            <apex:image id="theImage"
+                                                value="{!URLFOR($Resource.ProfilerResources,'Images/deleteFilter.png')}"
+                                                width="20" height="20" style="cursor: pointer;">
+                                                <apex:actionSupport event="onclick"
+                                                    action="{!DeleteLogicFilterLead}" rerender="wtablelead">
+                                                    <apex:param name="toDelIdentLead" value="{!wrapper.sOrder}"
+                                                        assignTo="{!toDelIdentLead}" />
+                                                </apex:actionSupport>
+                                            </apex:image>
+
+                                        </apex:column>
+
+                                    </apex:pageBlockTable>
+                                    <apex:commandButton value="Add Row"
+                                        action="{!AddLogicFilterLead}" rerender="wtablelead">
+                                        <apex:param name="addCountLead" value="1"
+                                            assignTo="{!addCountLead}" />
+                                    </apex:commandButton>
+                                </apex:outputPanel>
+                            </apex:pageBlockSection>
+
+
+                            <apex:pageBlockSection columns="1" id="FieldShieldContactPanel"
+                                title="Shield setting for Contact fields">
+
+                                <apex:outputPanel >
+                                    <c:MultiselectPicklistCustom leftLabel="Shield On"
+                                        id="plContactShield" leftOptions="{!lstShieldOnContact}"
+                                        rightLabel="Shield Off" rightOptions="{!lstShieldOffContact}"
+                                        size="14" width="150px" />
+                                </apex:outputPanel>
+
+                                <apex:outputPanel id="controlContactComponents">
+
+                                    <apex:commandButton action="{!AddContactShield}"
+                                        value="Add Contact Field" reRender="FieldShieldContactPanel, controlContactComponents" />
+                                    <apex:selectList value="{!SelectedContactField}"
+                                        multiselect="false" size="1">
+                                        <apex:selectOptions value="{!lstCustomContactField}" />
+                                    </apex:selectList>
+                                        Data Type :     
+                                        
+                                        <apex:selectList value="{!SelectedDataTypeContact}" multiselect="false"
+                                        size="1">
+                                        <apex:selectOptions value="{!PersonTypes}" />
+                                    </apex:selectList>
+                                    <br />
+
+
+                                    <apex:pageMessages id="msgDelContact" />
+                                     
+                                    <input type="button" class="btn"
+                                        onClick='deleteShieldField("Contact");' value="Delete"
+                                        id="delOnContactShield" />
+                                         
+                                </apex:outputPanel>
+
+                            </apex:pageBlockSection>
+
+                            Edit Shield Filter
+                            <apex:pageBlockSection columns="1"
+                                title="Shield filter for Contacts">
+                                <apex:outputPanel >
+                                    <apex:pageBlockTable value="{!ContactshieldWrapper}"
+                                        var="wrapper" id="wtableContact" style="width:60%;">
+                                        <apex:column headerValue="Field Name" style="width:20%;">
+                                            <apex:SelectList value="{!wrapper.FilterField}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!ContactFilterFields}" />
+                                            </apex:SelectList>
+                                        </apex:column>
+                                        <apex:column headerValue="Operator" style="width:20%;">
+                                            <apex:SelectList value="{!wrapper.Operator}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!Operators}" />
+                                            </apex:SelectList>
+                                        </apex:column>
+                                        <apex:column headerValue="Value" style="width:40%;">
+                                            <apex:inputText value="{!wrapper.value}" style="width:100%;" />
+                                        </apex:column>
+
+                                        <apex:column >
+
+                                            <apex:image id="theImage"
+                                                value="{!URLFOR($Resource.ProfilerResources,'Images/deleteFilter.png')}"
+                                                width="20" height="20" style="cursor: pointer;">
+                                                <apex:actionSupport event="onclick"
+                                                    action="{!DeleteLogicFilterContact}"
+                                                    rerender="wtableContact">
+                                                    <apex:param name="toDelIdentContact"
+                                                        value="{!wrapper.sOrder}" assignTo="{!toDelIdentContact}" />
+                                                </apex:actionSupport>
+                                            </apex:image>
+
+                                        </apex:column>
+
+                                    </apex:pageBlockTable>
+                                    <apex:commandButton value="Add Row"
+                                        action="{!AddLogicFilterContact}" rerender="wtableContact">
+                                        <apex:param name="addCountContact" value="1"
+                                            assignTo="{!addCountContact}" />
+                                    </apex:commandButton>
+                                </apex:outputPanel>
+                            </apex:pageBlockSection>
+
+                            <apex:pageBlockSection columns="1" id="FieldShieldAccountPanel"
+                                title="Shield setting for Account fields">
+                                <apex:outputPanel >
+                                    <c:MultiselectPicklistCustom leftLabel="Shield On"
+                                        id="plAccountShield" leftOptions="{!lstShieldOnAccount}"
+                                        rightLabel="Shield Off" rightOptions="{!lstShieldOffAccount}"
+                                        size="14" width="150px" />
+                                </apex:outputPanel>
+
+                                <apex:outputPanel id="controlAccountComponents">
+                                    <apex:commandButton action="{!AddAccountShield}"
+                                        value="Add Account Field" reRender="FieldShieldAccountPanel,controlAccountComponents" />
+                                    <apex:selectList value="{!SelectedAccountField}"
+                                        multiselect="false" size="1">
+                                        <apex:selectOptions value="{!lstCustomAccountField}" />
+                                    </apex:selectList>
+                                       Data Type :     
+                                        <apex:selectList value="{!SelectedDataTypeAccount}" multiselect="false"
+                                        size="1">
+                                        <apex:selectOptions value="{!PersonTypes}" />
+                                    </apex:selectList>
+                                    <br />
+                                    <apex:pageMessages id="msgDelAccount" />
+                                    
+                                    <input type="button" class="btn"
+                                        onClick='deleteShieldField("Account");' value="Delete"
+                                        id="delOnAccountShield" />
+                                        
+                                </apex:outputPanel>
+                            </apex:pageBlockSection>
+
+                            Edit Shield Filter
+                            <apex:pageBlockSection columns="1"
+                                title="Shield filter for Accounts">
+                                <apex:outputPanel >
+                                    <apex:pageBlockTable value="{!AccountshieldWrapper}"
+                                        var="wrapper" id="wtableAccount" style="width:60%;">
+                                        <apex:column headerValue="Field Name" style="width:20%;">
+                                            <apex:SelectList value="{!wrapper.FilterField}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!AccountFilterFields}" />
+                                            </apex:SelectList>
+                                        </apex:column>
+                                        <apex:column headerValue="Operator" style="width:20%;">
+                                            <apex:SelectList value="{!wrapper.Operator}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!Operators}" />
+                                            </apex:SelectList>
+                                        </apex:column>
+                                        <apex:column headerValue="Value" style="width:40%;">
+                                            <apex:inputText value="{!wrapper.value}" style="width:100%;" />
+                                        </apex:column>
+
+                                        <apex:column >
+                                            <apex:image id="theImage"
+                                                value="{!URLFOR($Resource.ProfilerResources,'Images/deleteFilter.png')}"
+                                                width="20" height="20" style="cursor: pointer;">
+                                                <apex:actionSupport event="onclick"
+                                                    action="{!DeleteLogicFilterAccount}"
+                                                    rerender="wtableAccount">
+                                                    <apex:param name="toDelIdentAccount"
+                                                        value="{!wrapper.sOrder}" assignTo="{!toDelIdentAccount}" />
+                                                </apex:actionSupport>
+                                            </apex:image>
+                                        </apex:column>
+
+                                    </apex:pageBlockTable>
+                                    <apex:commandButton value="Add Row"
+                                        action="{!AddLogicFilterAccount}" rerender="wtableAccount">
+                                        <apex:param name="addCountAccount" value="1"
+                                            assignTo="{!addCountAccount}" />
+                                    </apex:commandButton>
+                                </apex:outputPanel>
+                            </apex:pageBlockSection>
+
+                        </apex:outputPanel>
+
+
+
+                        <apex:pageBlockButtons >
+                            <apex:commandButton action="{!saveDataShieldTab}" value="Save"
+                                rendered="{!isInputMode}"
+                                rerender="dataShieldBlock,RegistrationTabPanel"
+                                status="processStatusLoad" oncomplete=" tab_datashield_enter_event();"/>
+                            <apex:commandButton action="{!cancelDataShieldTab}"
+                                value="Cancel" rendered="{!isInputMode}"
+                                rerender="dataShieldBlock,RegistrationTabPanel"
+                                status="processStatusLoad" oncomplete=" tab_datashield_enter_event();"/>
+                            <apex:commandButton action="{!btnEdit}" value="Edit"
+                                rendered="{! !isInputMode}"
+                                rerender="dataShieldBlock,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                        </apex:pageBlockButtons>
+
+                    </apex:pageBlock>
+                    </apex:tab> -->
+                    <apex:tab label="Lead" id="LeadInnerSetting" styleClass="BL_tabStyle">
+	                    <script>
+	                    	function deleteLeadShieldFieldJS1(idValue, text){ 
+			
+								var idDelete = idValue;
+								var textDelete = text;
+								   
+								var result = confirm('Are you sure you want to delete : '  + textDelete);
+								if(result == true){
+								   // delete go here, call actionFunction
+								   handleDeleteLeadShieldFieldJS(idDelete);
+								}
+							
+							}
+							function deleteLeadLogicFilterJS1(idValue){ 
+			
+								var idDelete = idValue;
+								   
+								var result = confirm('Are you sure you want to delete this Logic Filter record? ');
+								if(result == true){
+								   // delete go here, call actionFunction
+								   handleDeleteLogicFilterLeadJS(idDelete);
+								}
+							
+							}
+	                    </script>
+	                    <apex:actionFunction name="handleDeleteLeadShieldFieldJS" action="{!handleDeleteLeadShieldField}"   
+	                                        reRender="FieldShieldLeadPanel,msgDelLead, leadFieldDataTypeMapping" status="processStatusLoad">
+	                        <apex:param name="idSelected" assignTo="{!selectedShieldField}" value="abc"/>                         
+	                    </apex:actionFunction>
+	                    <apex:actionFunction name="handleDeleteLogicFilterLeadJS" action="{!DeleteLogicFilterLead}"   
+	                                        reRender="leadShieldFilter" >
+	                        <apex:param name="toDelIdentLead" value="" assignTo="{!toDelIdentLead}" />                      
+	                    </apex:actionFunction>   
+                    	<apex:pageBlock mode="edit" >
+                    		<apex:pageBlockButtons location="top">
+				                <apex:commandButton action="{!saveLeadShieldTab}" value="Save"/>
+				            </apex:pageBlockButtons>
+                    		<apex:pageBlockSection columns="1" title="General">
+                                    <apex:pageBlockSectionItem >
+		                               <apex:outputLabel value="Enable Shield for Lead Changes" />
+		                               <apex:inputField value="{!objShieldSetting.BLDS__Shield_Trigger_for_Leads_On__c}" />
+	                               	</apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            <apex:pageBlockSection columns="1" title="Lead Field Data Type Mapping" id="leadFieldDataTypeMapping">
+                            		<apex:pageMessages />
+                                    <apex:pageBlockTable value="{!lstShieldOnLead}" var="item" style="width:60%;">
+                                    	<apex:column style="width:4%;">
+                                    		<apex:facet name="header">Action</apex:facet>
+                                    		<!-- <apex:outputlink value="#" rendered="{!item.Is_Custom_Field__c}" onClick="deleteShieldField('Lead', '{!item.id}', '{!item.name}');">Del</apex:outputlink> -->
+                                    		<apex:outputpanel >
+                                    			<a id="deleteLeadMapping" style="cursor: pointer; color: #015BA7;" onClick="deleteLeadShieldFieldJS1('{!item.id}', '{!item.name}');" > Delete </a>
+                                    		</apex:outputpanel>
+                                    	</apex:column>
+                                    	<apex:column style="width:26%;">
+                                    		<apex:facet name="header">Name</apex:facet>
+                                    			<apex:outputField value="{!item.Name}"/>
+                                    			<!-- <apex:outputField value="{!item.Lead_Field__c}"/>
+                                    			<apex:outputField value="{!item.BLDS__Shield_Field__c}"/> -->
+                                   			<apex:facet name="footer">
+												<apex:selectList value="{!SelectedLeadField}"
+			                                        multiselect="false" size="1" rendered="{!(AND(NOT(ISBLANK(lstCustomLeadField)),lstCustomLeadField.size>0))}">
+			                                        <apex:selectOptions value="{!lstCustomLeadField}" />
+			                                    </apex:selectList>
+											</apex:facet>
+                                    	</apex:column>
+                                    	<apex:column style="width:70%;" >
+                                    		<apex:facet name="header">Data Type</apex:facet>
+                                    			<apex:outputField value="{!item.BLDS__Shield_Field__c}"/>
+                                   			<apex:facet name="footer">
+												<apex:outputpanel >
+													<apex:selectList value="{!SelectedDataTypeLead}" multiselect="false" size="1" rendered="{!(AND(NOT(ISBLANK(lstCustomLeadField)),lstCustomLeadField.size>0))}">
+				                                        <apex:selectOptions value="{!PersonTypes}" />
+				                                    </apex:selectList>
+				                                    <apex:commandButton action="{!AddLeadShield}"
+				                                        value="Add" reRender="leadFieldDataTypeMapping"  rendered="{!(AND(NOT(ISBLANK(lstCustomLeadField)),lstCustomLeadField.size>0))}"/>
+												</apex:outputpanel>
+											</apex:facet>
+                                    	</apex:column>  
+                                    	<!-- <apex:column >
+                                    		<apex:facet name="header">Shield On</apex:facet>
+                                    		<apex:outputField value="{!item.Shield_On__c}">
+                                    			<apex:inlineEditSupport event="ondblClick"  />
+                                    		</apex:outputField>
+                                    	</apex:column>  --> 
+                                    </apex:pageBlockTable>
+                            </apex:pageBlockSection>
+                            
+                            <apex:pageBlockSection columns="1" title="Lead Shield Filter" id="leadShieldFilter">
+                                    <apex:outputPanel >
+                                    <apex:pageBlockTable value="{!LeadshieldWrapper}" var="wrapper"
+                                        id="wtablelead" style="width:60%;">
+                                        <apex:column style="width:10%;">
+											<a id="deleteLeadMapping" style="cursor: pointer; color: #015BA7;" onClick="deleteLeadLogicFilterJS1('{!wrapper.sOrder}');" > Delete </a>
+                                        </apex:column>
+                                        <apex:column headerValue="Field Name" style="width:20%;" >
+                                            <!-- <apex:SelectList value="{!wrapper.FilterField}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!LeadFilterFields}" />
+                                            </apex:SelectList> -->
+                                            <apex:outputText value="{!wrapper.FilterField}"></apex:outputText>
+                                            <apex:facet name="footer">
+								                <apex:SelectList value="{!tempLeadShieldFilterMapping.FilterField}"
+	                                            	multiselect="false" size="1">
+	                                         		<apex:selectOptions value="{!LeadFilterFields}" />
+	                                         	</apex:SelectList>
+								            </apex:facet>
+                                        </apex:column>
+                                        <apex:column headerValue="Operator" style="width:20%;" >
+                                            <!-- <apex:SelectList value="{!wrapper.Operator}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!Operators}" />
+                                            </apex:SelectList> -->
+                                            <apex:outputText value="{!wrapper.OperatorText}"></apex:outputText>
+                                            <apex:facet name="footer">
+								                <apex:SelectList value="{!tempLeadShieldFilterMapping.Operator}"
+		                                        	multiselect="false" size="1">
+		                                        <apex:selectOptions value="{!Operators}" />
+		                                        </apex:SelectList>
+								            </apex:facet>
+                                        </apex:column>
+                                        <apex:column headerValue="Value" style="width:40%;" >
+                                            <apex:outputText value="{!wrapper.value}"></apex:outputText>
+                                            <!-- <apex:outputfield value="{!wrapper.value}">
+                                    			<apex:inlineEditSupport event="ondblClick"  />
+                                    		</apex:outputfield> -->
+                                    		<apex:facet name="footer">
+                                    			<apex:outputpanel >
+									                <apex:inputText value="{!tempLeadShieldFilterMapping.value}"></apex:inputText>
+			                                    	<apex:commandButton value="Add"
+			                                        	action="{!AddLogicFilterLead}" rerender="wtablelead" >
+			                                        	<apex:param name="addCountLead" value="1" assignTo="{!addCountLead}" />
+			                                        </apex:commandButton>
+		                                        </apex:outputpanel>  
+								            </apex:facet>
+                                        </apex:column>
+                                    </apex:pageBlockTable>
+                                </apex:outputPanel>
+                            </apex:pageBlockSection>
+                    	</apex:pageBlock>
+                	</apex:tab>
+                	<apex:tab label="Contacts" id="ContactInnerSetting" styleClass="BL_tabStyle">
+	                    <script>
+	                    	function deleteContactShieldFieldJS1(idValue, text){ 
+			
+								var idDelete = idValue;
+								var textDelete = text;
+								   
+								var result = confirm('Are you sure you want to delete : '  + textDelete);
+								if(result == true){
+								   // delete go here, call actionFunction
+								   handleDeleteContactShieldFieldJS(idDelete);
+								}
+							
+							}
+							function deleteContactLogicFilterJS1(idValue){ 
+			
+								var idDelete = idValue;
+								   
+								var result = confirm('Are you sure you want to delete this Logic Filter record? ');
+								if(result == true){
+								   // delete go here, call actionFunction
+								   handleDeleteLogicFilterContactJS(idDelete);
+								}
+							
+							}
+	                    </script>
+	                    <apex:actionFunction name="handleDeleteContactShieldFieldJS" action="{!handleDeleteContactShieldField}"   
+	                                        reRender="FieldShieldContactPanel,msgDelContact, ContactFieldDataTypeMapping" status="processStatusLoad">
+	                        <apex:param name="idSelected" assignTo="{!selectedShieldField}" value="abc"/>                         
+	                    </apex:actionFunction>
+	                    <apex:actionFunction name="handleDeleteLogicFilterContactJS" action="{!DeleteLogicFilterContact}"   
+	                                        reRender="ContactShieldFilter" >
+	                        <apex:param name="toDelIdentContact" value="" assignTo="{!toDelIdentContact}" />                      
+	                    </apex:actionFunction>   
+                    	<apex:pageBlock mode="edit" >
+                    		<apex:pageBlockButtons location="top">
+				                <apex:commandButton action="{!saveContactShieldTab}" value="Save"/>
+				            </apex:pageBlockButtons>
+                    		<apex:pageBlockSection columns="1" title="General">
+                                    <apex:pageBlockSectionItem >
+		                               <apex:outputLabel value="Enable Shield for Contact Changes" />
+		                               <apex:inputField value="{!objShieldSetting.BLDS__Shield_Trigger_for_Contacts_On__c}" />
+	                               	</apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            <apex:pageBlockSection columns="1" title="Contact Field Data Type Mapping" id="ContactFieldDataTypeMapping">
+                            		<apex:pageMessages />
+                                    <apex:pageBlockTable value="{!lstShieldOnContact}" var="item" style="width:60%;">
+                                    	<apex:column style="width:4%;">
+                                    		<apex:facet name="header">Action</apex:facet>
+                                    		<!-- <apex:outputlink value="#" rendered="{!item.Is_Custom_Field__c}" onClick="deleteShieldField('Contact', '{!item.id}', '{!item.name}');">Del</apex:outputlink> -->
+                                    		<apex:outputpanel >
+                                    			<a id="deleteContactMapping" style="cursor: pointer; color: #015BA7;" onClick="deleteContactShieldFieldJS1('{!item.id}', '{!item.name}');" > Delete </a>
+                                    		</apex:outputpanel>
+                                    	</apex:column>
+                                    	<apex:column style="width:26%;">
+                                    		<apex:facet name="header">Name</apex:facet>
+                                    			<apex:outputField value="{!item.Name}"/>
+                                    			<!-- <apex:outputField value="{!item.Contact_Field__c}"/>
+                                    			<apex:outputField value="{!item.BLDS__Shield_Field__c}"/> -->
+                                   			<apex:facet name="footer">
+												<apex:selectList value="{!SelectedContactField}"
+			                                        multiselect="false" size="1" rendered="{!(AND(NOT(ISBLANK(lstCustomContactField)),lstCustomContactField.size>0))}">
+			                                        <apex:selectOptions value="{!lstCustomContactField}" />
+			                                    </apex:selectList>
+											</apex:facet>
+                                    	</apex:column>
+                                    	<apex:column style="width:70%;" >
+                                    		<apex:facet name="header">Data Type</apex:facet>
+                                    			<apex:outputField value="{!item.BLDS__Shield_Field__c}"/>
+                                   			<apex:facet name="footer">
+												<apex:outputpanel >
+													<apex:selectList value="{!SelectedDataTypeContact}" multiselect="false" size="1" rendered="{!(AND(NOT(ISBLANK(lstCustomContactField)),lstCustomContactField.size>0))}">
+				                                        <apex:selectOptions value="{!PersonTypes}" />
+				                                    </apex:selectList>
+				                                    <apex:commandButton action="{!AddContactShield}"
+				                                        value="Add" reRender="ContactFieldDataTypeMapping"  rendered="{!(AND(NOT(ISBLANK(lstCustomContactField)),lstCustomContactField.size>0))}"/>
+												</apex:outputpanel>
+											</apex:facet>
+                                    	</apex:column>  
+                                    	<!-- <apex:column >
+                                    		<apex:facet name="header">Shield On</apex:facet>
+                                    		<apex:outputField value="{!item.Shield_On__c}">
+                                    			<apex:inlineEditSupport event="ondblClick"  />
+                                    		</apex:outputField>
+                                    	</apex:column>  --> 
+                                    </apex:pageBlockTable>
+                            </apex:pageBlockSection>
+                            
+                            <apex:pageBlockSection columns="1" title="Contact Shield Filter" id="ContactShieldFilter">
+                                    <apex:outputPanel >
+                                    <apex:pageBlockTable value="{!ContactshieldWrapper}" var="wrapper"
+                                        id="wtableContact" style="width:60%;">
+                                        <apex:column style="width:10%;">
+											<a id="deleteContactMapping" style="cursor: pointer; color: #015BA7;" onClick="deleteContactLogicFilterJS1('{!wrapper.sOrder}');" > Delete </a>
+                                        </apex:column>
+                                        <apex:column headerValue="Field Name" style="width:20%;" >
+                                            <!-- <apex:SelectList value="{!wrapper.FilterField}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!ContactFilterFields}" />
+                                            </apex:SelectList> -->
+                                            <apex:outputText value="{!wrapper.FilterField}"></apex:outputText>
+                                            <apex:facet name="footer">
+								                <apex:SelectList value="{!tempContactShieldFilterMapping.FilterField}"
+	                                            	multiselect="false" size="1">
+	                                         		<apex:selectOptions value="{!ContactFilterFields}" />
+	                                         	</apex:SelectList>
+								            </apex:facet>
+                                        </apex:column>
+                                        <apex:column headerValue="Operator" style="width:20%;" >
+                                            <!-- <apex:SelectList value="{!wrapper.Operator}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!Operators}" />
+                                            </apex:SelectList> -->
+                                            <apex:outputText value="{!wrapper.OperatorText}"></apex:outputText>
+                                            <apex:facet name="footer">
+								                <apex:SelectList value="{!tempContactShieldFilterMapping.Operator}"
+		                                        	multiselect="false" size="1">
+		                                        <apex:selectOptions value="{!Operators}" />
+		                                        </apex:SelectList>
+								            </apex:facet>
+                                        </apex:column>
+                                        <apex:column headerValue="Value" style="width:40%;" >
+                                            <apex:outputText value="{!wrapper.value}"></apex:outputText>
+                                            <!-- <apex:outputfield value="{!wrapper.value}">
+                                    			<apex:inlineEditSupport event="ondblClick"  />
+                                    		</apex:outputfield> -->
+                                    		<apex:facet name="footer">
+                                    			<apex:outputpanel >
+									                <apex:inputText value="{!tempContactShieldFilterMapping.value}"></apex:inputText>
+			                                    	<apex:commandButton value="Add"
+			                                        	action="{!AddLogicFilterContact}" rerender="wtableContact" >
+			                                        	<apex:param name="addCountContact" value="1" assignTo="{!addCountContact}" />
+			                                        </apex:commandButton>
+		                                        </apex:outputpanel>  
+								            </apex:facet>
+                                        </apex:column>
+                                    </apex:pageBlockTable>
+                                </apex:outputPanel>
+                            </apex:pageBlockSection>
+                    	</apex:pageBlock>
+                	</apex:tab>
+                	<apex:tab label="Accounts" id="AccountInnerSetting" styleClass="BL_tabStyle">
+	                    <script>
+	                    	function deleteAccountShieldFieldJS1(idValue, text){ 
+			
+								var idDelete = idValue;
+								var textDelete = text;
+								   
+								var result = confirm('Are you sure you want to delete : '  + textDelete);
+								if(result == true){
+								   // delete go here, call actionFunction
+								   handleDeleteAccountShieldFieldJS(idDelete);
+								}
+							
+							}
+							function deleteAccountLogicFilterJS1(idValue){ 
+			
+								var idDelete = idValue;
+								   
+								var result = confirm('Are you sure you want to delete this Logic Filter record? ');
+								if(result == true){
+								   // delete go here, call actionFunction
+								   handleDeleteLogicFilterAccountJS(idDelete);
+								}
+							
+							}
+	                    </script>
+	                    <apex:actionFunction name="handleDeleteAccountShieldFieldJS" action="{!handleDeleteAccountShieldField}"   
+	                                        reRender="FieldShieldAccountPanel,msgDelAccount, AccountFieldDataTypeMapping" status="processStatusLoad">
+	                        <apex:param name="idSelected" assignTo="{!selectedShieldField}" value="abc"/>                         
+	                    </apex:actionFunction>
+	                    <apex:actionFunction name="handleDeleteLogicFilterAccountJS" action="{!DeleteLogicFilterAccount}"   
+	                                        reRender="AccountShieldFilter" >
+	                        <apex:param name="toDelIdentAccount" value="" assignTo="{!toDelIdentAccount}" />                      
+	                    </apex:actionFunction>   
+                    	<apex:pageBlock mode="edit" >
+                    		<apex:pageBlockButtons location="top">
+				                <apex:commandButton action="{!saveAccountShieldTab}" value="Save"/>
+				            </apex:pageBlockButtons>
+                    		<apex:pageBlockSection columns="1" title="General">
+                                    <apex:pageBlockSectionItem >
+		                               <apex:outputLabel value="Enable Shield for Account Changes" />
+		                               <apex:inputField value="{!objShieldSetting.BLDS__Shield_Trigger_for_Accounts_On__c}" />
+	                               	</apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            <apex:pageBlockSection columns="1" title="Account Field Data Type Mapping" id="AccountFieldDataTypeMapping">
+                            		<apex:pageMessages />
+                                    <apex:pageBlockTable value="{!lstShieldOnAccount}" var="item" style="width:60%;">
+                                    	<apex:column style="width:4%;">
+                                    		<apex:facet name="header">Action</apex:facet>
+                                    		<!-- <apex:outputlink value="#" rendered="{!item.Is_Custom_Field__c}" onClick="deleteShieldField('Account', '{!item.id}', '{!item.name}');">Del</apex:outputlink> -->
+                                    		<apex:outputpanel >
+                                    			<a id="deleteAccountMapping" style="cursor: pointer; color: #015BA7;" onClick="deleteAccountShieldFieldJS1('{!item.id}', '{!item.name}');" > Delete </a>
+                                    		</apex:outputpanel>
+                                    	</apex:column>
+                                    	<apex:column style="width:26%;">
+                                    		<apex:facet name="header">Name</apex:facet>
+                                    			<apex:outputField value="{!item.Name}"/>
+                                    			<!-- <apex:outputField value="{!item.Account_Field__c}"/>
+                                    			<apex:outputField value="{!item.BLDS__Shield_Field__c}"/> -->
+                                   			<apex:facet name="footer">
+												<apex:selectList value="{!SelectedAccountField}"
+			                                        multiselect="false" size="1" rendered="{!(AND(NOT(ISBLANK(lstCustomAccountField)),lstCustomAccountField.size>0))}">
+			                                        <apex:selectOptions value="{!lstCustomAccountField}" />
+			                                    </apex:selectList>
+											</apex:facet>
+                                    	</apex:column>
+                                    	<apex:column style="width:70%;" >
+                                    		<apex:facet name="header">Data Type</apex:facet>
+                                    			<apex:outputField value="{!item.BLDS__Shield_Field__c}"/>
+                                   			<apex:facet name="footer">
+												<apex:outputpanel >
+													<apex:selectList value="{!SelectedDataTypeAccount}" multiselect="false" size="1" rendered="{!(AND(NOT(ISBLANK(lstCustomAccountField)),lstCustomAccountField.size>0))}">
+				                                        <apex:selectOptions value="{!PersonTypes}" />
+				                                    </apex:selectList>
+				                                    <apex:commandButton action="{!AddAccountShield}"
+				                                        value="Add" reRender="AccountFieldDataTypeMapping"  rendered="{!(AND(NOT(ISBLANK(lstCustomAccountField)),lstCustomAccountField.size>0))}"/>
+												</apex:outputpanel>
+											</apex:facet>
+                                    	</apex:column>  
+                                    	<!-- <apex:column >
+                                    		<apex:facet name="header">Shield On</apex:facet>
+                                    		<apex:outputField value="{!item.Shield_On__c}">
+                                    			<apex:inlineEditSupport event="ondblClick"  />
+                                    		</apex:outputField>
+                                    	</apex:column>  --> 
+                                    </apex:pageBlockTable>
+                            </apex:pageBlockSection>
+                            
+                            <apex:pageBlockSection columns="1" title="Account Shield Filter" id="AccountShieldFilter">
+                                    <apex:outputPanel >
+                                    <apex:pageBlockTable value="{!AccountshieldWrapper}" var="wrapper"
+                                        id="wtableAccount" style="width:60%;">
+                                        <apex:column style="width:10%;">
+											<a id="deleteAccountMapping" style="cursor: pointer; color: #015BA7;" onClick="deleteAccountLogicFilterJS1('{!wrapper.sOrder}');" > Delete </a>
+                                        </apex:column>
+                                        <apex:column headerValue="Field Name" style="width:20%;" >
+                                            <!-- <apex:SelectList value="{!wrapper.FilterField}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!AccountFilterFields}" />
+                                            </apex:SelectList> -->
+                                            <apex:outputText value="{!wrapper.FilterField}"></apex:outputText>
+                                            <apex:facet name="footer">
+								                <apex:SelectList value="{!tempAccountShieldFilterMapping.FilterField}"
+	                                            	multiselect="false" size="1">
+	                                         		<apex:selectOptions value="{!AccountFilterFields}" />
+	                                         	</apex:SelectList>
+								            </apex:facet>
+                                        </apex:column> 
+                                        <apex:column headerValue="Operator" style="width:20%;" >
+                                            <!-- <apex:SelectList value="{!wrapper.Operator}"
+                                                multiselect="false" size="1">
+                                                <apex:selectOptions value="{!Operators}" />
+                                            </apex:SelectList> -->
+                                            <apex:outputText value="{!wrapper.OperatorText}"></apex:outputText>
+                                            <apex:facet name="footer">
+								                <apex:SelectList value="{!tempAccountShieldFilterMapping.Operator}"
+		                                        	multiselect="false" size="1">
+		                                        <apex:selectOptions value="{!Operators}" />
+		                                        </apex:SelectList>
+								            </apex:facet>
+                                        </apex:column>
+                                        <apex:column headerValue="Value" style="width:40%;" >
+                                            <apex:outputText value="{!wrapper.value}"></apex:outputText>
+                                            <!-- <apex:outputfield value="{!wrapper.value}">
+                                    			<apex:inlineEditSupport event="ondblClick"  />
+                                    		</apex:outputfield> -->
+                                    		<apex:facet name="footer">
+                                    			<apex:outputpanel >
+									                <apex:inputText value="{!tempAccountShieldFilterMapping.value}"></apex:inputText>
+			                                    	<apex:commandButton value="Add"
+			                                        	action="{!AddLogicFilterAccount}" rerender="wtableAccount" >
+			                                        	<apex:param name="addCountAccount" value="1" assignTo="{!addCountAccount}" />
+			                                        </apex:commandButton>
+		                                        </apex:outputpanel>  
+								            </apex:facet>
+                                        </apex:column>
+                                    </apex:pageBlockTable>
+                                </apex:outputPanel>
+                            </apex:pageBlockSection>
+                    	</apex:pageBlock>
+                	</apex:tab>
+                    <apex:tab label="Shield Setting" id="ShieldInnerSetting" styleClass="BL_tabStyle">
+                		<apex:iframe src="{!strManageLink}" scrolling="false" id="theIframe" height="770px" width="630px"/>
+                	</apex:tab>
+                    </apex:tabpanel>
+                </apex:tab>
+
+
+                <!-- 
+                <apex:actionFunction name="loadExportTabJS" action="{!loadExportTab}" status="processStatusLoad" rerender="exportBlock"></apex:actionFunction>
+                <apex:tab label="Export" name="ExportTab" id="ExportTab" ontabenter="loadExportTabJS();" styleClass="BL_tabStyle">
+                -->
+
+
+                <!-- -------------------------------------------------- Export Tab ------------------------------------------- -->
+
+                <apex:tab label="Export And Mapping" name="ExportTab1" id="ExportNMappingTab"
+                    styleClass="BL_tabStyle">
+                    <apex:tabpanel id="ExportInnerTab"  activeTabClass="tab-tab selected" inactiveTabClass="tab-tab" switchType="ajax" >
+                	
+                	<apex:tab label="Export" name="ExportTab" id="ExportTab"
+                    ontableave="return checkSaveData('{!isInputMode}','ExportTab');"
+                    styleClass="BL_tabStyle">
+                    <apex:pageBlock mode="edit" id="exportBlock">
+                        <!-- <apex:outputPanel rendered="{! !isInputMode}">
+                            <strong class="tooltip"
+                                style="position: relative; top: 19px; left: 119px;"> <apex:image styleClass="tooltip"
+                                    url="{!URLFOR($Resource.image,'info16.png')}"></apex:image> <span>Export
+                                    Setting: Choose which export targets will appear in the
+                                    DataSuite interface. </span>
+                            </strong>
+							
+							<div class="tooltip" style="position: relative; top: 20px; left: 110px;" > 
+                            	<apex:image styleClass="tooltip" url="{!URLFOR($Resource.image,'s.gif')}"
+                                    style="border:0px"></apex:image> 
+                                <span>Choose which export targets will appear in the
+                                    DataSuite interface.</span>
+                            </div>
+							
+                            <apex:pageBlockSection columns="1" id="exportOutputSection"
+                                title="Export Setting">
+                                <apex:pageBlockSectionitem >
+                                    <apex:selectList value="{!selectedExports}" multiselect="true"
+                                        readonly="true" style="width:300px; color:black !important"
+                                        size="6">
+                                        <apex:selectOptions value="{!selectedExports}" />
+                                    </apex:selectList>
+                                </apex:pageBlockSectionitem>
+                            </apex:pageBlockSection>
+                        </apex:outputPanel> -->
+
+                        <apex:outputPanel >
+                            <apex:pageBlockSection columns="1" id="exportInputSection" title="Export Setting">
+                                <apex:outputPanel id="picklistOutputPanel">
+                                    <c:MultiselectPicklistCustom leftLabel="Available Exports"
+                                        leftOptions="{!allExports}" rightLabel="Selected Exports"
+                                        rightOptions="{!selectedExports}" size="14" width="150px" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSection>
+                        </apex:outputPanel>
+
+
+                        <apex:pageBlockButtons >
+                            <apex:commandButton action="{!saveExportTab}" value="Save"
+                                rerender="exportBlock,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                           <!--  <apex:commandButton action="{!cancelExportTab}" value="Cancel"
+                                rendered="{!isInputMode}"
+                                rerender="exportBlock,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                            <apex:commandButton action="{!btnEdit}" value="Edit"
+                                rendered="{! !isInputMode}"
+                                rerender="exportBlock,RegistrationTabPanel"
+                                status="processStatusLoad" /> -->
+                        </apex:pageBlockButtons>
+                    </apex:pageBlock>
+                </apex:tab>
+
+                <!-----------------------------------------------------------  Field Mapping ----------------------------------------------------->
+
+
+                <apex:tab label="Lead" name="leadFieldMappingTab"
+                    id="leadFieldMapping"
+                    styleClass="BL_tabStyle">
+                    <apex:pageBlock mode="edit" id="leadFieldMappingBlock">
+                        <!-- <apex:outputPanel rendered="{!isInputMode}">
+
+                            <apex:pageBlockSection columns="1" title="Lead Mapping">
+                                <apex:dataTable value="{!LstLeadSocialMappingWrapper}"
+                                    var="leadSocial" id="theLeadTableIn" rowClasses="odd,even"
+                                    styleClass="BLSettingTable">
+                                    <apex:column width="180">
+                                        <apex:facet name="header">Name</apex:facet>
+                                        <apex:facet name="footer">
+                                            <br />
+                                            <br />
+                                            <br />
+                                            <apex:commandButton action="{!setDefaultLeadSocial}"
+                                                value="Reset to Defaults" reRender="fieldMappingBlock"
+                                                status="processStatusLoad" />
+                                        </apex:facet>
+                                        <apex:outputText value="{!leadSocial.leadMap.name}" />
+                                    </apex:column>
+                                    <apex:column width="200">
+                                        <apex:facet name="header">Custom</apex:facet>
+                                        <apex:selectList value="{!leadSocial.leadMap.BLDS__Custom__c}"
+                                            multiselect="false" size="1">
+                                            <apex:selectOptions value="{!leadFields}" />
+                                        </apex:selectList>
+                                    </apex:column>
+                                    <apex:column width="200">
+                                        <apex:facet name="header">Default</apex:facet>
+                                        <apex:outputText value="{!leadSocial.defaultLabelC}" />
+                                    </apex:column>
+                                </apex:dataTable>
+
+                            </apex:pageBlockSection>
+
+                            <apex:pageBlockSection columns="1" title="Contact Mapping">
+                                <apex:dataTable value="{!LstContactSocialMappingWrapper}"
+                                    var="contactSocial" id="theContactTableIn"
+                                    rowClasses="odd,even" styleClass="BLSettingTable">
+                                    <apex:column width="180">
+                                        <apex:facet name="header">Name</apex:facet>
+                                        <apex:facet name="footer">
+                                            <br />
+                                            <apex:commandButton action="{!setDefaultContactSocial}"
+                                                value="Reset to Defaults" reRender="fieldMappingBlock"
+                                                status="processStatusLoad" />
+                                        </apex:facet>
+                                        <apex:outputText value="{!contactSocial.contactMap.Name}" />
+                                    </apex:column>
+                                    <apex:column width="200">
+                                        <apex:facet name="header">Custom</apex:facet>
+                                        <apex:selectList value="{!contactSocial.contactMap.BLDS__Custom__c}"
+                                            multiselect="false" size="1">
+                                            <apex:selectOptions value="{!contactFields}" />
+                                        </apex:selectList>
+                                    </apex:column>
+                                    <apex:column width="200">
+                                        <apex:facet name="header">Default</apex:facet>
+                                        <apex:outputText value="{!contactSocial.defaultLabelC}" />
+                                    </apex:column>
+                                </apex:dataTable>
+                            </apex:pageBlockSection>
+                        </apex:outputPanel> -->
+
+                        <apex:outputPanel >
+							<apex:pageBlockSection columns="1" title="Lead Mapping">
+                                <apex:dataTable value="{!LstLeadSocialMappingWrapper}" 
+                                    var="leadSocial" id="theLeadTableIn" rowClasses="odd,even"
+                                    styleClass="BLSettingTable">
+                                    <apex:column width="180">
+                                        <apex:facet name="header">Name</apex:facet>
+                                        <apex:facet name="footer">
+                                            <br />
+                                            <br />
+                                            <br />
+                                            <apex:commandButton action="{!setDefaultLeadSocial}"
+                                                value="Reset to Defaults" reRender="leadFieldMappingBlock"
+                                                status="processStatusLoad" />
+                                        </apex:facet>
+                                        <apex:outputText value="{!leadSocial.leadMap.name}" />
+                                    </apex:column>
+                                    <apex:column width="200">
+                                        <apex:facet name="header">Custom</apex:facet>
+                                        <apex:selectList value="{!leadSocial.leadMap.BLDS__Custom__c}"
+                                            multiselect="false" size="1">
+                                            <apex:selectOptions value="{!leadFields}" />
+                                        </apex:selectList>
+                                    </apex:column>
+                                    <apex:column width="200">
+                                        <apex:facet name="header">Default</apex:facet>
+                                        <apex:outputText value="{!leadSocial.defaultLabelC}" />
+                                    </apex:column>
+                                </apex:dataTable>
+
+                            </apex:pageBlockSection>
+
+                        </apex:outputPanel>
+
+                        <apex:pageBlockButtons > 
+                            <apex:commandButton action="{!saveLeadFieldMappingTab}" value="Save"
+                                rerender="fieldMappingBlock,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                            <!-- <apex:commandButton action="{!cancelFieldMappingTab}"
+                                value="Cancel" rendered="{!isInputMode}"
+                                rerender="fieldMappingBlock,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                            <apex:commandButton action="{!btnEdit}" value="Edit"
+                                rendered="{! !isInputMode}"
+                                rerender="fieldMappingBlock,RegistrationTabPanel"
+                                status="processStatusLoad" /> -->
+                        </apex:pageBlockButtons>
+
+                    </apex:pageBlock>
+                </apex:tab>
+                
+                <apex:tab label="Contact" name="contactFieldMappingTab"
+                    id="contactFieldMapping"
+                    styleClass="BL_tabStyle">
+                    <apex:pageBlock mode="edit" id="contactFieldMappingBlock">
+                        
+
+                        <apex:outputPanel >                            
+                            
+                            
+                            <apex:pageBlockSection columns="1" title="Contact Mapping">
+                                <apex:dataTable value="{!LstContactSocialMappingWrapper}"
+                                    var="contactSocial" id="theContactTableIn"
+                                    rowClasses="odd,even" styleClass="BLSettingTable">
+                                    <apex:column width="180">
+                                        <apex:facet name="header">Name</apex:facet>
+                                        <apex:facet name="footer">
+                                            <br />
+                                            <apex:commandButton action="{!setDefaultContactSocial}"
+                                                value="Reset to Defaults" reRender="contactFieldMappingBlock"
+                                                status="processStatusLoad" />
+                                        </apex:facet>
+                                        <apex:outputText value="{!contactSocial.contactMap.Name}" />
+                                    </apex:column>
+                                    <apex:column width="200">
+                                        <apex:facet name="header">Custom</apex:facet>
+                                        <apex:selectList value="{!contactSocial.contactMap.BLDS__Custom__c}"
+                                            multiselect="false" size="1">
+                                            <apex:selectOptions value="{!contactFields}" />
+                                        </apex:selectList>
+                                    </apex:column>
+                                    <apex:column width="200">
+                                        <apex:facet name="header">Default</apex:facet>
+                                        <apex:outputText value="{!contactSocial.defaultLabelC}" />
+                                    </apex:column>
+                                </apex:dataTable> 
+                            </apex:pageBlockSection>
+
+                        </apex:outputPanel>
+
+                        <apex:pageBlockButtons >
+                            <apex:commandButton action="{!saveContactFieldMappingTab}" value="Save"
+                                rerender="fieldMappingBlock,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                            <!-- <apex:commandButton action="{!cancelFieldMappingTab}"
+                                value="Cancel" rendered="{!isInputMode}"
+                                rerender="fieldMappingBlock,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                            <apex:commandButton action="{!btnEdit}" value="Edit"
+                                rendered="{! !isInputMode}"
+                                rerender="fieldMappingBlock,RegistrationTabPanel"
+                                status="processStatusLoad" /> -->
+                        </apex:pageBlockButtons>
+
+                    </apex:pageBlock>
+                </apex:tab>
+               <!--  
+                <apex:tab label="Accounts" name="AccountFieldMappingTab"
+                    id="AccountFieldMapping"
+                    styleClass="BL_tabStyle">
+                    <apex:pageBlock mode="edit" id="AccountFieldMappingBlock">
+
+                        <apex:outputPanel >                          
+                            <apex:pageBlockSection columns="1" title="Account Mapping">
+                                <apex:dataTable value="{!LstAccountSocialMappingWrapper}"
+                                    var="AccountSocial" id="theAccountTableIn"
+                                    rowClasses="odd,even" styleClass="BLSettingTable">
+                                    <apex:column width="180">
+                                        <apex:facet name="header">Name</apex:facet>
+                                        <apex:facet name="footer">
+                                            <br />
+                                            <apex:commandButton action="{!setDefaultAccountSocial}"
+                                                value="Reset to Defaults" reRender="fieldMappingBlock"
+                                                status="processStatusLoad" />
+                                        </apex:facet>
+                                        <apex:outputText value="{!AccountSocial.AccountMap.Name}" />
+                                    </apex:column>
+                                    <apex:column width="200">
+                                        <apex:facet name="header">Custom</apex:facet>
+                                        <apex:selectList value="{!AccountSocial.AccountMap.Custom__c}"
+                                            multiselect="false" size="1">
+                                            <apex:selectOptions value="{!AccountFields}" />
+                                        </apex:selectList>
+                                    </apex:column>
+                                    <apex:column width="200">
+                                        <apex:facet name="header">Default</apex:facet>
+                                        <apex:outputText value="{!AccountSocial.defaultLabelC}" />
+                                    </apex:column>
+                                </apex:dataTable>
+                            </apex:pageBlockSection>
+
+                        </apex:outputPanel>
+
+                        <apex:pageBlockButtons >
+                            <apex:commandButton action="{!saveAccountFieldMappingTab}" value="Save"
+                                rerender="fieldMappingBlock,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                            <apex:commandButton action="{!cancelFieldMappingTab}"
+                                value="Cancel" rendered="{!isInputMode}"
+                                rerender="fieldMappingBlock,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                            <apex:commandButton action="{!btnEdit}" value="Edit"
+                                rendered="{! !isInputMode}"
+                                rerender="fieldMappingBlock,RegistrationTabPanel"
+                                status="processStatusLoad" />
+                        </apex:pageBlockButtons>
+
+                    </apex:pageBlock>
+                </apex:tab>
+                 -->
+                </apex:tabpanel>
+                </apex:tab>
+                
+                
+                    
+                
+            </apex:tabPanel>
+
+        </apex:outputPanel>
+
+
+
+
+        <div id="divButton" style="height: 5px;">
+            <apex:actionStatus startText="Loading..."
+                startStyle="color:#ff0000;font-size:16px;font-weight:bold"
+                id="processStatusLoad">
+                <apex:facet name="start">
+                    <center>
+                        <img src="/img/loading.gif" title="Loading..." />
+                    </center>
+                </apex:facet>
+            </apex:actionStatus>
+        </div>
+
+    </apex:form>
+    
+
+                    
+
+</apex:page>

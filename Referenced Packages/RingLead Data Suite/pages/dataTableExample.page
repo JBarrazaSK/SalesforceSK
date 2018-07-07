@@ -1,0 +1,69 @@
+<apex:page Controller="BLDS.DataTableExampleController" showHeader="true" standardStylesheets="false" docType="html-5.0">
+����<head>
+    ����<apex:includescript value="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"/>
+        <apex:stylesheet value="{!URLFOR($Resource.BLDS__DataTables, 'media/css/DataTablesAdvancedExample.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.BLDS__DataTables, 'media/css/styles-min.css')}"/>
+��������<style type="text/css" title="currentStyle">
+        ��������@import "{!URLFOR($Resource.DataTables, 'media/css/demo_page.css')}";
+������      ����@import "{!URLFOR($Resource.DataTables, 'media/css/demo_table.css')}";
+������      ����@import "{!URLFOR($Resource.DataTables, 'media/css/ColReorder.css')}";
+������      ����@import "{!URLFOR($Resource.DataTables, 'media/css/ColVis.css')}";
+������      ����@import "{!URLFOR($Resource.DataTables, 'media/css/TableTools.css')}";
+������      ����@import "{!URLFOR($Resource.DataTables, 'media/css/ColumnFilterWidgets.css')}";
+������      ����@import "{!URLFOR($Resource.DataTables, 'media/css/demo_table_jui.css')}";
+������      ����@import "{!URLFOR($Resource.DataTables, 'media/examples_support/themes/smoothness/jquery-ui-1.8.4.custom.css')}";��������       
+        </style>
+��������<script src="{!URLFOR($Resource.DataTables, 'media/js/jquery.dataTables.min.js')}"></script>
+��������<script src="{!URLFOR($Resource.DataTables, 'media/js/jquery.dataTables.js')}"></script>
+��������<script src="{!URLFOR($Resource.DataTables, 'media/js/ColVis.js')}"></script>
+��������<script src="{!URLFOR($Resource.DataTables, 'media/js/ZeroClipboard.js')}"></script>
+��������<script src="{!URLFOR($Resource.DataTables, 'media/js/TableTools.js')}"></script>
+��������<script src="{!URLFOR($Resource.DataTables, 'media/js/ColumnFilterWidgets.js')}"></script>
+��������<script type="text/javascript" charset="UTF-8">
+������������$(document).ready( function () {
+������        var oTable = $('#contacttable').dataTable( {
+������            "sDom": 'WRC<"clear">lftip',
+������            "bJQueryUI": true,
+������            "sPaginationType": "full_numbers",
+������            "aoColumnDefs": [ { "bVisible": false, "aTargets": [ ] }],
+������            "oColumnFilterWidgets": { "aiExclude": [ 0, 3, 4 ] }
+������    �� });
+����������});
+��������</script>
+����</head>
+����<body>
+��������<h2>Contact Search Demo with jQuery, DataTables, and Visualforce"</h2>
+��������<h3>keyword search, show/hide columns, sort, and pagination!</h3>
+��������<table cellpadding="0" cellspacing="0" border="0" class="display" id="contacttable" style="margin-top:20px;">
+������������<thead>
+����������   <tr>
+����������       <th>Name</th>
+����������       <th>Account</th>
+����������       <th>Title</th>
+����������       <th>Phone</th>
+����������       <th>Email</th>
+����������   </tr>
+������������</thead>
+������������<tfoot>
+����������   <tr>
+����������       <th>Name</th>
+����������       <th>Account</th>
+����������       <th>Title</th>
+����������       <th>Phone</th>
+����������       <th>Email</th>
+����������   </tr>
+������������</tfoot>
+������������<tbody>
+����������������<apex:repeat value="{!Contacts}" var="c">
+                ����<tr>
+��                    <td>{!c.Name}</td>
+��                    <td>{!c.Account.Name}</td>
+��                    <td>{!c.Title}</td>
+��                    <td>{!c.Phone}</td>
+��                    <td>{!c.Email}</td>
+��                </tr>
+                 </apex:repeat>
+������������</tbody>
+��������</table>
+����</body>
+</apex:page>

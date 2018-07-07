@@ -1,0 +1,60 @@
+<apex:page standardController="Case" extensions="ctrlManageCasesAC" sidebar="false" showHeader="false">
+    <apex:form >
+        <apex:pageBlock >
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandbutton value="Guardar" action="{!changeStts}"/>
+            </apex:pageBlockButtons>
+            <apex:messages />
+            <apex:pageBlockSection columns="1">
+                <apex:pageBlockSectionItem >
+                    <apex:outputField value="{!cs.Subject}"/>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection columns="2">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="¿Utilizó Solución Previa?" for="u" />
+                    <apex:selectlist value="{!ttIsUse}" size="1">
+                        <apex:selectOptions value="{!useSol}" />
+                    </apex:selectlist>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Solución" for="ns" />
+                    <apex:inputText id="ns" value="{!ttUsed}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <apex:pageBlock >
+            <table width="100%" border="0" cellpadding="2" cellspacing="2">
+                <tr align="center">
+                    <td align="center"><b>Caso solucionado ES DIFERENTE A hacer “algo” para gestionar la solución.</b></td>
+                </tr>
+                <tr>
+                    <td>Indicar que un caso fue solucionado significa que YA SE EJECUTO la respuesta al cliente, y que en ese momento Servicio a Clientes puede comunicársela e incluso anexarle algún documento si así se requiere, (factura-bonificación-estado de cuenta-nota de crédito). Si no colocas la solución correcta el caso te será reasignado como REABIERTO.</td>
+                </tr>
+                <tr><td>&nbsp;</td></tr>
+                <tr>
+                    <td>Ej. Si la solución fue aplicar una bonificación, en la solución requerimos coloques el folio de la misma.</td>
+                </tr>
+                <tr><td>&nbsp;</td></tr>
+                <tr>
+                    <td>De antemano gracias por el apoyo</td>
+                </tr>
+            </table>
+        </apex:pageBlock>
+        <apex:pageBlock >
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandbutton value="Guardar" action="{!changeStts}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection columns="1">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Titulo" for="t" />
+                    <apex:inputText id="t" value="{!ttSol}"  />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Detalle de Solución" for="ds" />
+                    <apex:inputTextarea id="ds" value="{!ttNote}" cols="20" rows="5" />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

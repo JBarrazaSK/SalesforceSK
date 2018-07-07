@@ -1,0 +1,33 @@
+<apex:page controller="BLDS.ShieldShowFieldsChangeController" >
+    <apex:sectionHeader title="Fields Changed" subtitle="The {!objName} you entered was modified by Data Shield" />
+    <apex:form >
+        <apex:pagemessages ></apex:pagemessages>    
+        <apex:pageBlock >
+            <apex:pageBlockButtons location="top">
+                  <apex:commandButton action="{!navigateToRecord}" value="Navigate to record" id="nextBtn" style="float:right"/>                
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockTable title="Fields Shield"  value="{!shieldFields}" var="sf">
+                    <apex:column >
+                            <apex:facet name="header"> Field Label</apex:facet>                      
+                            <apex:outputText value="{!sf.FieldLabel}"/>
+                    </apex:column>                
+    
+                    <apex:column >
+                            <apex:facet name="header"> Data you entered</apex:facet>
+                            <apex:outputText value="{!sf.OldValue }"/>
+                    </apex:column>
+                    
+                    <apex:column >
+    
+                            <apex:facet name="header">Standardized Data</apex:facet>
+    
+                            <apex:outputText value="{!sf.NewValue}"/>
+    
+                    </apex:column>
+                
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+   </apex:form>    
+        
+</apex:page>

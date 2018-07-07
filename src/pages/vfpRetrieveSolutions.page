@@ -1,0 +1,26 @@
+<apex:page controller="ctrlRetrieveSolutions" sidebar="false" showHeader="true" tabStyle="Solution">
+    <apex:form >
+    	<apex:pageBlock >
+        	<apex:pageBlockSection title="Soluciones">
+            	<apex:dataTable columns="4" columnsWidth="10%,5%,15%,70%" width="1020px" value="{!solutions}" var="s" border="1" cellpadding="4">
+                    <apex:column >
+                        <apex:facet name="header">Número de Solución</apex:facet>
+                        <apex:outputField value="{!s.SolutionNumber}"/>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Estatus</apex:facet>
+                        <apex:outputField value="{!s.Status}"/>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Nombre</apex:facet>
+                        <apex:outputField value="{!s.SolutionName}"/>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Detalles</apex:facet>
+                        <apex:outputField value="{!s.SolutionNote}"/>
+                    </apex:column>
+                </apex:dataTable>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

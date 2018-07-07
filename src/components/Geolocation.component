@@ -1,0 +1,19 @@
+<!--
+ - Description: Visualforce component for updating geolocation.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 09/09/2014
+ -->
+<apex:component allowDML="true">
+<apex:stylesheet value="{!URLFOR($Resource.Geolocation, 'css/Geolocation.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.Geolocation, 'js/jquery-1.11.1.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.Geolocation, 'js/Geolocation.js')}"/>
+<script type="text/javascript">
+recordId = "{!$CurrentPage.parameters.id}";
+</script>
+<apex:actionStatus onstop="popMessages()" id="status"/>
+<div class="hidden">
+    <apex:pageMessages id="messages"/>
+</div>
+</apex:component>

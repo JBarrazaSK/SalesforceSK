@@ -1,0 +1,841 @@
+<apex:page title="Profiler Campaign View"
+           controller="BLDS.ProfilerPlanViewController" showHeader="true"
+           sidebar="false" cache="false">
+    <apex:includeScript value="{!URLFOR($Resource.BLDS__JQueryDraggable, 'jquery-1.9.1.js')}" />
+    <apex:styleSheet value="{!URLFOR($Resource.BLDS__ProfilerResources,'Styles/Profiler_PM.css')}" />
+    
+    <script type="text/javascript">
+    function checkAll(cb) {
+        try {
+            var inputElem = document.getElementsByTagName("input");
+            for (var i = 0; i < inputElem.length; i++) {
+                if (inputElem[i].id.indexOf("selectLine") != -1)
+                    inputElem[i].checked = cb.checked;
+            }
+        } catch (e) {
+            showError(e);
+        }
+    }
+    
+    var planTdIdSelected;
+    function OpenPlanDetails(thisTdId, planid) {
+        try {
+            planTdIdSelected = thisTdId;
+            var bgCompare = "rgb(224, 240, 253)";
+            var bgValue = document.getElementById(thisTdId).parentNode.style.background;
+            if (navigator.appName == "Microsoft Internet Explorer") {
+                colorToCompare = "#e0f0fd";
+            }
+            
+            if (bgValue != bgCompare) {
+                handleRowClickJS(planid);
+                
+                highlightThisRow(thisTdId);
+            }
+        } catch (e) {
+        }
+    }
+    
+    // Function for highlighting the current selected row.
+    function highlightThisRow(thisTdId) {
+        try {
+            for (var i = 0; i < document.getElementById(thisTdId).parentNode.parentNode.childNodes.length; i++) {
+                document.getElementById(thisTdId).parentNode.parentNode.childNodes[i].style.background = "#FFFFFF";
+            }
+            
+            document.getElementById(thisTdId).parentNode.style.background = "#E0F0FD";
+        } catch (e) {
+            showError(e);
+        }
+    }
+    function confirmDeletePlan() {
+        
+        var isHaveSelectedCompany = false;
+        var inputElem = document.getElementsByTagName("input");
+        for (var i = 0; i < inputElem.length; i++) {
+            if (inputElem[i].id.indexOf("selectLine") != -1) {
+                if (inputElem[i].checked == true)
+                    isHaveSelectedCompany = true;
+            }
+        }
+        
+        if (isHaveSelectedCompany == false) {
+            alert('Please select at least a plan to delete !');
+            return false;
+            
+        }
+        
+        var isConfirm = confirm("Do you want to delete selected Plan(s)?");
+        if (isConfirm) {
+            deletePlanJS();
+            return false;
+        } else
+            return false;
+        
+    }
+    
+    function confirmStopPlan() {
+        
+        var isHaveSelectedCompany = false;
+        var inputElem = document.getElementsByTagName("input");
+        for (var i = 0; i < inputElem.length; i++) {
+            if (inputElem[i].id.indexOf("selectLine") != -1) {
+                if (inputElem[i].checked == true)
+                    isHaveSelectedCompany = true;
+            }
+        }
+        
+        if (isHaveSelectedCompany == false) {
+            alert('Please select at least a plan to stop !');
+            return false;
+            
+        }
+        
+        var isConfirm = confirm("Do you want to stop selected Plan(s)?");
+        if (isConfirm) {
+            stopPlanJS();
+            return false;
+        } else
+            return false;
+        
+    }
+    
+    function profileSelectedCompaniesJS() {
+        
+        var isHaveSelectedCompany = false;
+        var inputElem = document.getElementsByTagName("input");
+        for (var i = 0; i < inputElem.length; i++) {
+            if (inputElem[i].id.indexOf("selectLine") != -1) {
+                if (inputElem[i].checked == true)
+                    isHaveSelectedCompany = true;
+            }
+        }
+        
+        if (isHaveSelectedCompany == false) {
+            alert('Please select at least a plan to profile !');
+            return false;
+            
+        }
+        
+        var isConfirm = confirm("Please confirm to profile below plans ?");
+        if (isConfirm) {
+            SchedulePlanJS();
+            return false;
+        } else
+            return false;
+        return false;
+        
+    }
+    
+    function setStyleForPlanTable() {
+        var mainHolderHeight = document.getElementById('mainHolder').offsetHeight;
+        document.getElementById('footerPlan').style.minHeight = (250 - mainHolderHeight)
+        + 'px';
+    }
+    
+    function setStyleForPlanCompanyTable() {
+        var mainHolderHeight = document.getElementById('planCompany').offsetHeight;
+        document.getElementById('footerPlanCompany').style.minHeight = (370 - mainHolderHeight)
+        + 'px';
+    }
+    
+    window.onload = function() {
+        
+        //setStyleForPlanTable();
+        //setStyleForPlanCompanyTable();
+        
+    };
+    </script>
+    <apex:form >
+        <!-- <apex:sectionHeader subtitle="Profiler Campaigns - Searches remaining today:" title="Profiler Campaign View"/> -->
+        <apex:sectionHeader subtitle="Profiler Campaigns - Profiles remaining for today: {!ProfilerStateDailyLimit - ProfilerStateUsage} of {!ProfilerStateDailyLimit}"
+                            title="Profiler Campaign View [Cached {!cResponse.Searches.size}]" />
+        <!-- 			title="Profiler Campaign View" /> -->
+        
+        <apex:outputPanel rendered="{!ProfilerStateLastError!=''}">
+        	<apex:pageBlock > 
+           <span style="color: red; bold">Server error: {!ProfilerStateLastError}</span>
+            </apex:pageBlock> 
+        	<apex:pageBlock > 
+		        <apex:outputPanel rendered="{!ProfilerStateLastError=='Auth error: Unauthorized usage'}">
+                        <apex:outputLink value="/apex/Registration">License Configuration</apex:outputLink>
+        	   </apex:outputPanel>
+            </apex:pageBlock> 
+           </apex:outputPanel>
+           
+        
+        
+        <apex:outputPanel id="planViewPanel" rendered="{! !isChangeOwner}">
+            <apex:pageBlock id="planViewBlock">
+                
+                <!-- div for showing loading icon on top of grid -->
+                <div id="divButton"
+                     style="position: fixed; top: 50%; left: 50%; margin-top: -145px; margin-left: -180px;">
+                    <apex:actionStatus startText="Loading..."
+                                       startStyle="color:#ff0000;font-size:16px;font-weight:bold"
+                                       id="processStatusLoad" onstop="checkEnableEditButton();">
+                        <apex:facet name="start">
+                            <center>
+                                <!-- 
+<img src="/img/loading.gif" title="Loading..."/>
+-->
+                                
+                                <img
+                                     src="{!URLFOR($Resource.ProfilerResources, 'Images/profilerloading.gif')}"
+                                     width="50%" height="50%" title="Loading..." />
+                            </center>
+                        </apex:facet>
+                    </apex:actionStatus>
+                    
+                    <apex:actionStatus startText="Loading..."
+                                       startStyle="color:#ff0000;font-size:16px;font-weight:bold"
+                                       id="buttonNavigateStatus" onstop="checkEnableEditButton();">
+                        <apex:facet name="start">
+                            <center>
+                                
+                                <img src="/img/loading.gif" title="Loading..." />
+                                
+                                
+                                
+                            </center>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </div>
+                
+                <apex:actionFunction name="handleRowClickJS"
+                                     action="{!handleRowClick}" rerender="">
+                    <apex:param value="" name="planIdSelected"
+                                assignTo="{!planIdSelected}" />
+                </apex:actionFunction>
+                
+                <apex:actionFunction name="SchedulePlanJS" action="{!SchedulePlan}"
+                                     rerender="myPanel,tstpopup" status="processStatusLoad" />
+                
+                <apex:actionFunction name="deletePlanJS" action="{!deletePlan}"
+                                     rerender="planDetails,myButtonsCompany,myPanel"
+                                     status="buttonNavigateStatus" />
+                <apex:actionFunction name="editPlanJS" action="{!editPlan}"></apex:actionFunction>
+                <apex:actionFunction name="stopPlanJS" action="{!stopPlan}"></apex:actionFunction>
+                <apex:actionFunction name="changeOwnerJS" action="{!changeOwner}"></apex:actionFunction>
+                
+                <apex:outputPanel id="ControlButtons">
+                    <ul class="piped2">
+                        <li><input type="button" value="Profile Now"
+                                   onclick="return profileSelectedCompaniesJS();"
+                                   id="SchedulePlanBtn" disabled="true" class="btnDisabled" />&nbsp;
+                            <apex:commandButton action="{!redirectToNewPlan}"
+                                                value="Create New Campaign" />&nbsp; 
+                            <input type="button"
+                                   onclick="editPlanJS();" value="Edit" id="editBtn" disabled="true" style="display:none; visibility:hidden;"
+                                   class="btnDisabled" /> 
+                            <input type="button"
+                                   onclick="return confirmStopPlan();" value="Stop" id="stopBtn"
+                                   disabled="true" class="btnDisabled" />&nbsp; 
+                            <apex:commandButton value="Delete" onClick="return confirmDeletePlan();" />&nbsp;</li>
+                        
+                        <li class="lastItem">
+                            <apex:commandButton action="{!refreshPage}"
+                                                rerender="planDetails,myButtonsCompany,myPanel"
+                                                status="buttonNavigateStatus" title="Refresh"
+                                                styleClass="refreshListButton2" />&nbsp;
+                        </li>
+                        
+                    </ul>
+                    <!-- 
+<input type="button" value="Change Owner" onclick="changeOwnerJS();" id="changeOwnerBtn" disabled="true" class="btnDisabled"/>
+-->
+                </apex:outputPanel>
+                <br />
+                <br />
+                
+                <apex:outputPanel id="myPanel">
+                    <br />&nbsp; 
+                    
+                    <div id="mainHolder"
+                         style="min-height: 300px; background-color: white;">
+                        <apex:pageBlockTable value="{!lstprofilerPlans}" var="plan"
+                                             align="center" style="width:100%;margin-top:-28px;">
+                            <apex:column style="width:1%">
+                                <apex:facet name="header">
+                                    <apex:inputCheckbox id="checkAll"
+                                                        onclick="checkAll(this);checkEnableEditButton();" />
+                                </apex:facet>
+                                <apex:inputCheckbox value="{!plan.selected}" id="selectLine"
+                                                    onclick="checkEnableEditButton();" />
+                            </apex:column>
+                            <apex:column styleClass="">
+                                <a href="/apex/ProfilerPlanCompany?planid={!JSINHTMLENCODE(plan.Id)}" class="lnk">Edit</a>
+                            </apex:column>
+                            <apex:column headerValue="Name" width="14.7%"
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <div class="tooltip"
+                                     style="width: 300px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                    <apex:outputLink value="/apex/ProfilerPlanCompany?planid={!JSINHTMLENCODE(plan.Id)}">{!plan.Name}</apex:outputLink>
+                                    <apex:outputText rendered="{!AND(NOT(ISBLANK(plan.startingTime)), plan.StatusReason == 'In Progress')}">
+                                        <span>Campaign was started on <apex:outputText value=" {!plan.startingTime}"></apex:outputText><br />and
+                                            has been running for <apex:outputText rendered="{!FLOOR(NOW() - plan.startingTime) > 0}"> {!TEXT(FLOOR(NOW() - plan.startingTime))} days, </apex:outputText>
+                                            <apex:outputText rendered="{!FLOOR(MOD((NOW() - plan.startingTime)*24,24)) > 0}"> {!TEXT(FLOOR(MOD((NOW() - plan.startingTime)*24,24)))} hours,</apex:outputText>
+                                            {!IF(AND(AND(FLOOR(NOW()-plan.startingTime)==0,FLOOR(MOD((NOW()
+                                            - plan.startingTime)*24,24))==0),FLOOR(MOD((NOW() -
+                                            plan.startingTime)*1440,60))==0),'a few
+                                            seconds',TEXT(FLOOR(MOD((NOW() -
+                                            plan.startingTime)*1440,60))) & ' minutes')}.
+                                        </span>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{! plan.StatusReason == 'Completed'}">
+                                        <span>Campaign Completed<br/>
+                                        <apex:outputText value=" {!plan.StatusCompleted}"></apex:outputText> websites Profiled.
+                                        </span>
+                                    </apex:outputText>
+                                </div>
+                            </apex:column>
+                            <apex:column width="14.7%"
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <apex:facet name="header">Description</apex:facet>
+                                <div
+                                     style="width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                    <apex:outputText value="{!plan.description}"></apex:outputText>
+                                </div>
+                            </apex:column>
+                            <apex:column value="{!plan.StatusNew}"
+                                         style="width:4%; text-align:center; "
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <apex:facet name="header">New</apex:facet>
+                            </apex:column>
+                            <apex:column value="{!plan.StatusInProgress}"
+                                         style="width:6%;text-align:center;"
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <apex:facet name="header">In Progress</apex:facet>
+                            </apex:column>
+                            <apex:column value="{!plan.StatusCompleted}"
+                                         style="width:5.6%;text-align:center;"
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <apex:facet name="header">Done</apex:facet>
+                            </apex:column>
+                            <apex:column value="{!plan.Total}"
+                                         style="width:4%; text-align:center;padding-right:0.5%;"
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <apex:facet name="header">Total</apex:facet>
+                            </apex:column>
+                            <apex:column width="7%" style="padding-left:0.5%"
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <apex:facet name="header">Cycle</apex:facet>
+                                <div
+                                     style="width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                    <apex:outputText value="{!plan.Cycle}"></apex:outputText>
+                                </div>
+                            </apex:column>
+                            <apex:column value="{!plan.StatusReason}" style="width:5%"
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <apex:facet name="header">Status</apex:facet>
+                            </apex:column>
+                            <apex:column style="width:10.3%"
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <apex:facet name="header">Next Update</apex:facet>
+                                <div
+                                     style="width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                    <apex:outPutText value="{!plan.NextRun}">
+                                        
+                                    </apex:outPutText>
+                                </div>
+                                
+                            </apex:column>
+                            <apex:column width="10.3%"
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <apex:facet name="header">Last Updated</apex:facet>
+                                <div
+                                     style="width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                    <apex:outPutText value="{0,date,MM'/'dd'/'yyyy HH:mm a}">
+                                        <apex:param value="{!plan.StartedOn}" />
+                                    </apex:outPutText>
+                                </div>
+                            </apex:column>
+                            
+                            <!-- apex:column style="width:7.3%">                 
+<apex:facet name="header">Run Time</apex:facet>
+<apex:outPutText value="{0,date,mm'/'dd'/'yyyy HH:mm a }" >
+<apex:param value="{!plan.Runtime}"/>
+</apex:outPutText>
+</apex:column>
+
+<apex:column value="{!plan.LastRun}" style="width:10.3%">
+<apex:facet name="header">Last Run</apex:facet>
+</apex:column -->
+                            <apex:column value="{!plan.Mode}" style="width:6.3%"
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <apex:facet name="header">Mode</apex:facet>
+                            </apex:column>
+                            <apex:column style="width:8.3%"
+                                         onClick="OpenPlanDetails(this.id,'{!JSINHTMLENCODE(plan.Id)}');">
+                                <apex:facet name="header">Owner</apex:facet>
+                                <div
+                                     style="width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                    <apex:outputText value="{!plan.Owner}"></apex:outputText>
+                                </div>
+                            </apex:column>
+                            <apex:facet name="footer">
+                                <div id="footerPlan" style="overflow: auto; max-height: 250px;">
+                                    
+                                </div>
+                            </apex:facet>
+                        </apex:pageBlockTable>
+                    </div>
+                    
+                </apex:outputPanel>
+                
+                <apex:outputPanel id="myButtons">
+                    <!--  
+<div>
+<b>Showing Page # {!pageNumber} of {!totalPages}</b>
+</div>
+
+<apex:commandButton action="{!Beginning}" title="Beginning" value="<<" disabled="{!disablePrevious}" reRender="myPanel,myButtons" status="buttonNavigateStatus"/>
+<apex:commandButton action="{!Previous}" title="Previous" value="<" disabled="{!disablePrevious}" reRender="myPanel,myButtons" status="buttonNavigateStatus"/>        
+<apex:commandButton action="{!Next}" title="Next" value=">" disabled="{!disableNext}" reRender="myPanel,myButtons" status="buttonNavigateStatus"/>
+<apex:commandButton action="{!End}" title="End" value=">>" disabled="{!disableNext}" reRender="myPanel,myButtons" status="buttonNavigateStatus"/>
+-->
+                    
+                    <table width="100%">
+                        <tr>
+                            <td width="10%"><span> {!startRecord}-{!endRecord} <apex:commandLink action="{!delete50Search}">of</apex:commandLink> {!total_size}
+                                </span></td>
+                            <!-- 							<td width="10%"><span> {!startRecord}-{!endRecord} of -->
+                            <!-- 									{!total_size} </span></td> -->
+                            
+                            <td width="28%" style="text-align: left;"><apex:actionFunction name="updatePaginatorJS" action="{!updatePaginator}"
+                                                                                           rerender="planViewPanel, myButtons"
+                                                                                           status="buttonNavigateStatus" /> Page size &nbsp; <apex:selectList value="{!list_size}" size="1" onchange="updatePaginatorJS();">
+                                <apex:selectOptions value="{!LstPaginatorOptions}" />
+                                </apex:selectList></td>
+                            
+                            <td style="text-align: left;"><apex:commandLink action="{!Beginning}"
+                                                                            styleClass="{!If(DisablePrevious,'lDisabled','lEnabled')}"
+                                                                            title="First" reRender="myPanel,myButtons"
+                                                                            status="buttonNavigateStatus">
+                                <img src="/s.gif" title="Previous" alt="Previous"
+                                     class="{!If(DisablePrevious,'LDFirstPrevious','LFirstPrevious')}" />
+                                </apex:commandLink>&nbsp; <apex:commandLink action="{!Previous}"
+                                                                            styleClass="{!If(DisablePrevious,'lDisabled','lEnabled')}"
+                                                                            title="Previous" reRender="myPanel,myButtons"
+                                                                            status="buttonNavigateStatus">
+                                <img src="/s.gif" title="Previous" alt="Previous"
+                                     class="{!If(DisablePrevious,'LDPrevious','LPrevious')}" /> Previous</apex:commandLink>&nbsp;
+                                &nbsp; <apex:commandLink action="{!Next}"
+                                                         styleClass="{!If(disableNext,'lDisabled','lEnabled')}"
+                                                         title="Next" reRender="myPanel,myButtons"
+                                                         status="buttonNavigateStatus">Next <img
+                                                                                                 src="/s.gif" title="Next" alt="Next"
+                                                                                                 class="{!If(DisableNext,'LDNext','LNext')}" />
+                                </apex:commandLink>&nbsp; <apex:commandLink action="{!End}"
+                                                                            styleClass="{!If(disableNext,'lDisabled','lEnabled')}"
+                                                                            title="Last" reRender="myPanel,myButtons"
+                                                                            status="buttonNavigateStatus">
+                                <img src="/s.gif" title="Last" alt="Next"
+                                     class="{!If(DisableNext,'LDLastNext','LLastNext')}" />
+                                </apex:commandLink>&nbsp;</td>
+                        </tr>
+                    </table>
+                    <!-- <apex:outputText value="{!cResponse.listSearchID}"></apex:outputText> -->
+                </apex:outputPanel>
+                
+                <br />
+                <br />
+                
+                <script type="text/javascript">
+                var isEdit = false;
+                function addEditNewPanel(idPanel) {
+                    document.getElementById(idPanel).style.display = 'block';
+                    ///document.getElementById('btnAddNewCompany').style.display = 'none';
+                    
+                    isEdit = false;
+                    // set blank value
+                    document.getElementById('{!$Component.titleName}').value = '';
+                    document.getElementById('{!$Component.titleValue}').value = '';
+                    return false;
+                }
+                
+                function checkEnableEditButton() {
+                    /*
+							var inputElem = document.getElementsByTagName("input");
+							var countS = 0;
+						      for(var i=0;i<inputElem.length;i++)
+						      {
+						        if(inputElem[i].id.indexOf("selectLine")!=-1){
+						          if(inputElem[i].checked == true)
+						          	countS++;
+						        }
+						        
+						        
+						      }
+						     	
+						     var editBtn = document.getElementById("editBtn");
+						     var schedultBtn = document.getElementById("SchedulePlanBtn");
+						     var btn1Comp = document.getElementById("changeOwnerBtn");
+						     
+						      if(countS == 1){
+						          editBtn.disabled=false;
+						          editBtn.className="btn";
+						          	
+						          schedultBtn.disabled= false;
+						          schedultBtn.className="btn";							          
+						          
+						         
+						          						         
+						      } else {
+						      	  editBtn.disabled=true;
+						      	  editBtn.className="btnDisabled";
+						      	  schedultBtn.disabled=true;
+						      	  schedultBtn.className="btnDisabled";
+						      	  
+						      	 
+						      }  
+						      
+						      if(countS >= 1){
+						      	  btn1Comp.disabled=false;
+						          btn1Comp.className="btn";	
+						      
+						      } else {
+						      	  btn1Comp.disabled=true;
+						      	  btn1Comp.className="btnDisabled";
+						      
+						      } 
+						       							
+						 */
+                        
+                        var editBtn = $("#editBtn")[0];
+                        var stopBtn = $("#stopBtn")[0];
+                        var schedultBtn = $("#SchedulePlanBtn")[0];
+                        if (($('input[type=checkbox]:checked').length > 0)
+                            //adding condition so that Buttons only enable
+                            // when there ONLY ONE campaign is chosen
+                            && ($('input[type=checkbox]:checked').size() == 1)) {
+                            editBtn.disabled = false;
+                            editBtn.className = "btn";
+                            
+                            stopBtn.disabled = false;
+                            stopBtn.className = "btn";
+                            
+                            schedultBtn.disabled = false;
+                            schedultBtn.className = "btn";
+                        } else {
+                            editBtn.disabled = true;
+                            editBtn.className = "btnDisabled";
+                            
+                            stopBtn.disabled = true;
+                            stopBtn.className = "btnDisabled";
+                            
+                            schedultBtn.disabled = true;
+                            schedultBtn.className = "btnDisabled";
+                        }
+                    }
+                
+                function saveCustomTitleJS(name, value) {
+                    // fill data into                                
+                    //var optionList = document.getElementById('{!$Component.lstCustomTitle}');
+                    var titleName = document.getElementById(name).value
+                    + "";
+                    var titleValue = document.getElementById(value).value
+                    + "";
+                    
+                    /*
+						if(titleName == null || titleName.trim() == '' ){
+						    alert('Please enter "Name"');
+						    return false;
+						} 
+						 */
+                        if (titleValue == null || titleValue.trim() == '') {
+                            alert('Please enter "Url" ');
+                            return false;
+                        }
+                        /*
+						if(isEdit == true){
+						    handleEditCustomTitleJS(optionList.options[optionList.selectedIndex].value);
+						   
+						}                               
+						else {
+						 */
+                        
+                        // have passed validation rule, pass it to actionFunction.
+                        handleAddNewCompanyJS();
+                        
+                        // invisible inputs 
+                        document
+                        .getElementById('{!$Component.addEditNewPanel}').style.display = 'none';
+                        isEdit = false;
+                        
+                    }
+                
+                function updateCompanyNameJS() {
+                    var companyName = document.getElementById('titleName2').value;
+                    
+                    if (companyName == null || companyName.trim() == '') {
+                        alert('Please enter "Company Name"');
+                        return false;
+                    }
+                    
+                    handleUpdateCompanyNameJS(companyName);
+                    // invisible inputs 
+                    hideEditPanel();
+                    
+                }
+                
+                function hideInputPanel() {
+                    document
+                    .getElementById('{!$Component.addEditNewPanel}').style.display = 'none';
+                    //document.getElementById('{!$Component.btnAddNewCompany}').style.display = 'block';
+                    return false;
+                }
+                
+                window.onload = function() {
+                    
+                };
+                
+                function editCompanyName(event, addEditNewPanelId,
+                                         planTableId) {
+                    document.getElementById(addEditNewPanelId).style.display = 'block';
+                    
+                }
+                
+                function hideEditPanel() {
+                    document
+                    .getElementById('{!$Component.editCompanyPanel}').style.display = 'none';
+                    return false;
+                }
+                </script>
+            </apex:pageBlock>
+        </apex:outputPanel>
+        
+        <!-- Popup section -->
+        
+        <apex:outputPanel id="tstpopup">
+            <apex:outputPanel styleClass="popupBackground" layout="block"
+                              rendered="{!displayPopUp}" />
+            <apex:outputPanel styleClass="custPopup" layout="block"
+                              rendered="{!displayPopUp}">
+                Profiler has been started.  Depending on your settings, this may include a live scan of Internet resources.  As each search is different, each search will take a different path.  Sometimes the results are quick and sometimes the results take a few hours.  Our crawlers are looking through websites, SEC filings, social data, news and directories.   When done, Profiler will combine the data to deliver names, titles, emails, phone numbers and professional bios directly into Salesforce.   Profiler is NOT a database, but a Just-In-Time technology to automate your research and deliver fresh data.  If you don't like waiting for Profiler to run, we suggest you set it up to automatically update your Accounts. This way,  your data is always updated when you need it.<br />
+                <br />
+                <br />
+                <apex:commandButton value="Close" action="{!closePopup}"
+                                    rerender="tstpopup,myPanel" />
+            </apex:outputPanel>
+        </apex:outputPanel>
+        
+        
+        <!--  Change Owner section -->
+        
+        <apex:outputPanel id="changeOwnerPanel" rendered="{!isChangeOwner}">
+            <p>This screen allows you to transfer a profiler campaign from
+                one user to another.</p>
+            <apex:pageBlock id="changeOwnerBlock" title="Select New Owner">
+                <apex:actionFunction name="updateOption" action="{!updateOwnerName}"
+                                     rerender="ownerNameInput" status="processStatusLoad" />
+                
+                <div id="divButton" style="height: 5px">
+                    <apex:actionStatus startText="Loading..."
+                                       startStyle="color:#ff0000;font-size:16px;font-weight:bold"
+                                       id="processStatusLoad">
+                        <apex:facet name="start">
+                            <center>
+                                <img src="/img/loading.gif" title="Loading..." />
+                            </center>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </div>
+                
+                <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton action="{!saveOwnerBtn}" value="Save"
+                                        id="saveBtn" />
+                    <apex:commandButton action="{!cancelOwnerBtn}" value="Cancel"
+                                        id="cancelBtn" />
+                </apex:pageBlockButtons>
+                <apex:outputPanel >
+                    <span style="padding-left: 8px;">Owner</span> : &nbsp;
+                    <apex:inputText value="{!ownerName}" id="ownerNameInput" />
+                    <a href="" style="cursor: pointer"
+                       onclick="javascript:return openRelatedPopup('User', '', '{!$Component.hiddenId}', '{!$Component.hiddenName}')">
+                        <img src="/s.gif" alt="Security Lookup (New Window)"
+                             class="lookupIcon" onblur="this.className = 'lookupIcon';"
+                             onfocus="this.className = 'lookupIconOn';"
+                             onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';"
+                             onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';"
+                             title="Lookup (New Window)" />
+                    </a>
+                    <apex:inputHidden value="{!ownerId}" id="hiddenId" />
+                    <apex:inputHidden value="{!ownerName}" id="hiddenName" />
+                </apex:outputPanel>
+            </apex:pageBlock>
+        </apex:outputPanel>
+        
+        <apex:styleSheet value="{!URLFOR($Resource.BLDS__ProfilerResources,'Styles/MergeCSS.css')}" />
+        <apex:includeScript value="{!URLFOR($Resource.BLDS__ProfilerResources, 'Scripts/MergeJS.js')}" />
+        
+    </apex:form>
+    
+    <style type="text/css">
+        .custPopup {
+        background-color: white;
+        border-width: 2px;
+        border-style: solid;
+        z-index: 9999;
+        left: 50%;
+        padding: 10px;
+        position: absolute;
+        /* These are the 3 css properties you will need to change so the popup 
+        displays in the center of the screen. First set the width. Then set 
+        margin-left to negative half of what the width is. You can add 
+        the height property for a fixed size pop up if you want.*/
+        width: 500px;
+        margin-left: -250px;
+        top: 100px;
+        }
+        
+        .popupBackground {
+        background-color: black;
+        opacity: 0.2;
+        filter: alpha(opacity = 20);
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 9998;
+        }
+        
+        .refreshListButton2 {
+        background: url(/img/alohaSkin/sync.png) top left no-repeat !important;
+        width: 26px !important;
+        height: 24px !important;
+        background-position: 4px 3px !important;
+        vertical-align: bottom !important;
+        }
+        
+        .lDisabled {
+        cursor: default !important;
+        pointer-events: none;
+        color: #a8a8a8 !important;
+        text-decoration: none;
+        }
+        
+        .lEnabled {
+        text-decoration: none;
+        }
+        
+        .LFirstPrevious {
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: 0px 1px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        .LDFirstPrevious {
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: 0px -10px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        .LPrevious {
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: -10px 1px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        .LDPrevious {
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: -10px -10px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        .LLastNext {
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: -27px 1px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        .LDLastNext {
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: -27px -10px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        .LNext {
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: -17px 1px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        .LDNext {
+        background-image: url(/img/paginationArrows.gif);
+        background-repeat: no-repeat;
+        background-position: -17px -10px;
+        margin: 0;
+        padding: 0;
+        width: 9px;
+        height: 10px;
+        }
+        
+        ol,ul {
+        list-style: none;
+        }
+        
+        .piped2 .lastItem {
+        border-right: none;
+        }
+        
+        .piped2 li {
+        float: left;
+        border-right: 1px solid #cfcece;
+        padding-left: 5px;
+        padding-right: 3px;
+        margin-left: 0px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        }
+        
+        div.tooltip span {
+        display: none;
+        padding: 2px 3px;
+        margin-left: 10px;
+        margin-top: 10px;
+        width: 310px;
+        z-index: 1000;
+        }
+        
+        div.tooltip:hover span {
+        display: inline;
+        position: absolute;
+        background: #fefdb9;
+        border: 1px solid orange;
+        color: #000000;
+        }
+        
+        a.lnk{color: #015ba7; text-decoration: none;}
+        a.lnk:hover{text-decoration:underline;}
+    </style>
+</apex:page>

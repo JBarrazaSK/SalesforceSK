@@ -1,0 +1,10 @@
+<!--
+ - Description: Opens the PedidoWizard Visualforce using Account's standard controller.
+ - Author: Jorge Terán
+ - Company: LYNX9
+ - Email: sf@lynx9.com
+ - Created date: 09/03/2016
+ -->
+<apex:page standardController="Account" cache="false" deferLastCommandUntilReady="true" showHeader="false" sidebar="false" tabStyle="Opportunity" title="Salesforce - Edición de pedidos">
+<c:PedidoWizardGINSA />
+</apex:page>

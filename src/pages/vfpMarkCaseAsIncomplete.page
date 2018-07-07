@@ -1,0 +1,2 @@
+<apex:page standardController="Case" extensions="ctrlManageCasesAC" sidebar="false" action="{!markIncomplete}" showHeader="false">
+</apex:page>

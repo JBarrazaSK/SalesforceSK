@@ -1,0 +1,65 @@
+<!--
+ - Description: Page layout section to display the clients portfolio.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 11/08/2014
+ -->
+<apex:page standardController="Account" extensions="CarteraClienteController" tabStyle="Account" title="Cartera de cliente">
+<apex:stylesheet value="{!URLFOR($Resource.CarteraCliente, 'css/CarteraCliente.css')}"/>
+<apex:pageMessages />    
+<apex:pageBlock mode="maindetail">
+    <apex:pageBlockSection >
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Saldo cartera"/>
+            <apex:outputText value="{0, number, currency}">
+                <apex:param value="{!cartera.SaldoActual}"/>
+            </apex:outputText>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Saldo vencido"/>
+            <apex:outputText value="{0, number, currency}">
+                <apex:param value="{!cartera.SaldoVencido}"/>
+            </apex:outputText>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Documentos vencidos"/>
+            <apex:outputText value="{!cartera.DocumentosVencidos}"/>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Límite de crédito"/>
+            <apex:outputText value="{0, number, currency}">
+                <apex:param value="{!cartera.LimiteDeCredito}"/>
+            </apex:outputText>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Crédito disponible"/>
+            <apex:outputText value="{0, number, currency}">
+                <apex:param value="{!cartera.CreditoDisponible}"/>
+            </apex:outputText>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Pago cheque"/>
+            <apex:outputField value="{!account.Pagare__c}"/>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Suma asegurada"/>
+            <apex:outputText value="{0, number, currency}">
+                <apex:param value="{!cartera.SumaAsegurada}"/>
+            </apex:outputText>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Saldo tickets"/>
+            <apex:outputText value="{0, number, currency}">
+                <apex:param value="{!cartera.SaldoTickets}"/>
+            </apex:outputText>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Saldo pedidos"/>
+            <apex:outputText value="{0, number, currency}">
+                <apex:param value="{!cartera.SaldoPedidos}"/>
+            </apex:outputText>
+        </apex:pageBlockSectionItem>
+    </apex:pageBlockSection>
+</apex:pageBlock>
+</apex:page>

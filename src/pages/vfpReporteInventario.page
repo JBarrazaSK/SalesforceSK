@@ -1,0 +1,260 @@
+<apex:page sidebar="false"  controller="CtrlReporteInventario" docType="html-5.0">
+ <style>
+ #showStatusDiv { position: fixed; background: rgba(0, 0, 0, 0.43); width: 100%; height: 100%; top: 0; left: 0; z-index: 999999; }
+  
+#showStatusDiv img { position: absolute; top: 50%; left: 50%; margin-right: 25px; }
+.errorClass {
+    background-color: red;
+}
+.normalClass {
+    background-color: green;
+}
+::-webkit-inner-spin-button { display: none; }
+
+  </style>
+<apex:stylesheet value="{!URLFOR($Resource.popup, 'Css/EstilosPopUp.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.PedidoWizard, 'js/jquery-1.11.1.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.popup, 'js/popUp.js')}"/>
+<script type="text/javascript">ieStylesheetUrl = "{!URLFOR($Resource.PedidoWizard, 'css/PedidoWizardIE.css')}"</script>
+<script src="//cdn.jsdelivr.net/webshim/1.14.5/polyfiller.js"></script>
+<script>
+	webshims.setOptions('forms-ext', {types: 'date'});
+	webshims.polyfill('forms forms-ext');
+</script>
+<apex:form id="form" >
+ 
+   <apex:pageBlock id="generales" title="Reporte de Inventarios" >
+   <div id="divMsg">
+  		<apex:pageMessages id="showmsg" />
+  </div>
+
+      <apex:actionFunction name="showPageMessage" action="{!showPageMessage}" rerender="generales">
+      <apex:param name="level" assignTo="{!level}" value="" />
+      <apex:param name="message" assignTo="{!message}" value="" />
+    </apex:actionFunction>
+
+   <apex:pageBlockButtons location="top" >
+                
+   </apex:pageBlockButtons>
+   <table style="width: 90%;">
+   	<tr>
+   		<td align="right">Canal de ventas:</td>  
+   		<td> 
+       <div class="requiredInput">
+       <div class="requiredBlock"></div>
+          <apex:selectList size="1" value="{!Canal}" id="SelectCanal" >
+            <apex:selectOptions value="{!items}"/>
+        </apex:selectList> 
+        </div>
+      </td>
+   		<td align="right">Oficina de ventas:</td> 
+   		<td align="left"  style="width: 50px;">
+       <div class="requiredInput">
+           <div class="requiredBlock"></div>
+           <apex:inputText value="{!CodigoAlmacen}" id="inputSearchText" onblur="SearchOficinaVentaReporte()" size="3"/>
+           <!--<input type="text" id="inputSearchText" style="width: 50px;"/>-->
+           </div>
+            
+   		</td>
+      <td align="left" style="width: 100px;"> 
+            <apex:inputText value="{!NombreAlmacen}"  id="inputSearchText2" html-readOnly="true" style="width: 210px;" />
+     <!-- <input type="text" id="inputSearchText2" disabled="true" style="width: 100px;"/>--></td>
+      <td align="left"> <input type="button" value="Buscar" class="btn" onclick="openModal('modalOfiVentas')" />
+            <apex:inputHidden value="{!AlmacenId}" id="HiddenId"/>
+            <apex:inputHidden value="{!fechaInicial}" id="HiddenFecha"/>
+            <apex:inputHidden value="{!fechaFin}" id="HiddenFecha2"/>
+      </td>
+   		<td align="right">Fecha Inicio:</td>
+   		<td>
+          <div class="requiredInput">
+          <div class="requiredBlock"></div>
+          	<apex:input value="{!fechaInicial}"  style="width: 110px;" id="theTextInput" html-min="" type="date"/>
+          </div>
+      </td>
+   		<td align="right">Fecha Fin:</td>
+   		<td><div class="requiredInput">
+          <div class="requiredBlock"></div>
+          	<apex:input value="{!fechaFin}" style="width: 110px;" id="theTextInput2" type="date"/>
+          </div>
+        </td>
+   	</tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td><!----></td>
+        <td></td>
+          <td></td>
+      <td>
+
+			<apex:commandButton action="{!ConsultarDisponibilidad}" status="AddStatus" value="Consultar" id="theButton" style="width: 100px;"  />
+      </td>
+
+    </tr>
+   </table>
+   </apex:pageBlock>
+
+    <apex:pageBlock id="Pedidos" title="Disponibilidad de productos por inventario" rendered="{!IF(mapDispoResp != null, true, false)}" >
+
+       <div style="width: 1300px; height: auto; overflow-x: auto;">
+    	<apex:pageBlockSection columns="2" id="inventario2" >
+                                <apex:repeat value="{!mapDispoResp}" var="origen" >
+                                    <apex:pageBlockTable value="{!mapDispoResp[origen]}" var="prods" >
+                                        <apex:column style="align:center;" headerValue="Producto">
+                                            <apex:outputText value="{!prods}" />
+                                        </apex:column>
+                                        <apex:column headerValue="Inventarios">
+                                            <apex:repeat value="{!mapDispoResp[origen][prods]}" var="Inv">
+													<table border="1" ondblclick="$(this).css('background-color', '#eee9e9');"  onclick="$(this).css('background-color', '');">
+                                                        <tr>
+                                                        	<td width="200px">
+                                                                <apex:outputText value="{!Inv}" />
+                                                            </td>
+                                                            <td   align="right">
+                                                                <table border="1" colspan="2">
+                                                                        <tr>
+			                                                                <apex:repeat value="{!mapDispoResp[origen][prods][Inv]}" var="dispo" > 
+			                                                                    <apex:repeat value="{!dispo}" var="d" >
+			                                                                        <td style="align:center; {!IF(d.contenido > 0, 'background-color:#77DD77', '')}" width="35px">
+			                                                                            <apex:outputText value="{0, date, dd'/'MM'/'yy}">
+			                                                                                <apex:param value="{!d.fecha}" />
+			                                                                            </apex:outputText>
+			                                                                            <br/>
+			                                                                            <apex:outputText value="{!d.contenido}" style="align:center;" />
+			                                                                        </td>
+			                                                                    </apex:repeat>
+			                                                                </apex:repeat>
+                                                                         </tr>
+                                                                    </table>
+                                                            </td>
+                                                        </tr>
+                                                </table>
+                                            </apex:repeat>
+                                        </apex:column>
+                                        <br/><br/><br/>
+                                    </apex:pageBlockTable>
+                                    <br/><br/><br/><br/>
+                                </apex:repeat>
+
+            </apex:pageBlockSection>
+          </div>
+        </apex:pageBlock>
+    	 
+
+    
+    <div id="modalOfiVentas" style="display:none">
+            <apex:pageBlock title="Búsqueda de Almacen">
+                <apex:pageBlockButtons location="top">
+                    <label class="labelCol">Nombre del producto:</label>
+                    <input type="text" id="inputSearchText2" onkeyup="filterProducts()"/>
+                </apex:pageBlockButtons>
+                <table class="list pageBlockTablePortafolio" border="0" cellpadding="0" cellspacing="0">
+                    <tr class="headerRow">
+                        <td>Código del producto</td>
+                        <td>Descripción del producto</td>
+                        <td style="display:none"></td>
+                    </tr>
+                    <apex:repeat value="{!MapAlmacenes}" var="productCode">
+                        <tr class="dataRow" onclick="selectItem('{!MapAlmacenes[productCode].Codigo__c}','{!MapAlmacenes[productCode].name}','{!MapAlmacenes[productCode].Id}','modalOfiVentas')" onmouseover="rowOn(this)" onmouseout="rowOff(this)">
+                            <td>{!MapAlmacenes[productCode].Codigo__c}</td>
+                            <td>{!MapAlmacenes[productCode].name}</td>
+                            <td style="display:none">
+                                {!MapAlmacenes[productCode].id}
+                                <input type="hidden" id="IdProducto" value="'{!MapAlmacenes[productCode].Id}'"/>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+              
+                <apex:pageBlockButtons location="bottom">
+                    <input type="button" value="Cerrar" class="btn" onclick="closeModal('modalOfiVentas')"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+    </div>
+      <div id="overlay"/>
+       <div id="showStatusDiv" style="display: none;">
+          <apex:image value="{!$Resource.spinner}" width="100" height="100"/>
+        </div>
+
+
+  </apex:form>
+ <script type="text/javascript">
+ 		
+$( document ).ready(function() {
+	var today = new Date();
+	var dd = today.getDate();
+	var mm = today.getMonth()+1; //January is 0!
+	var yyyy = today.getFullYear();
+	 if(dd<10){
+	        dd='0'+dd
+	    } 
+	    if(mm<10){
+	        mm='0'+mm
+	    } 
+
+	today = yyyy+'-'+mm+'-'+dd;
+	$('{!$Component.theTextInput}').attr("min");
+$('[id$=theButton]').click(function( event ) {
+ 	$('[id$=HiddenFecha]').val( $('[id$=FechaFiltro]').val());
+ 	$('[id$=HiddenFecha2]').val( $('[id$=FechaFiltro]').val());
+ 	$('[id$=showStatusDiv]').show();
+});
+
+});
+
+function closeMsg()
+{
+   $('#divMsg').hide();
+} 
+
+ 
+  function SearchOficinaVentas() {
+	var MasterID =$('[id$=inputSearchText]').val();
+	var encontrado = false;
+    $(".pageBlockTablePortafolio tr.dataRow").each(function() {
+		if($(this).find("td:nth-child(1)").text().toLowerCase().trim() == MasterID){
+		
+					$('[id$=inputSearchText]').val($(this).find("td:nth-child(1)").text());
+					$('[id$=inputSearchText2]').val($(this).find("td:nth-child(2)").text());
+					$('[id$=HiddenId]').val($(this).find("td:nth-child(3)").text().trim());
+					encontrado = true;
+			  validarSubmit();
+			   
+		}
+		
+        
+    });
+	if(!encontrado)
+	{
+		$('[id$=inputSearchText2]').val('No se encontro el almacen');
+		validarSubmit();
+	}
+}   
+function PressEnter(evt) {
+       var evt = (evt) ? evt : ((event) ? event : null);
+       var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null);
+       if (evt.keyCode == 13 ){SearchOficinaVentas();}
+    }
+    function validarSubmit()
+    {
+    	var es_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+		 var es_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+		 var es_ie = navigator.userAgent.indexOf("MSIE") > -1 ;
+
+		 if(es_firefox)
+		 {
+		 	return false;
+		 }
+		 else
+		 {
+		 	event.preventDefault();
+		 	event.preventDefault();
+		 }
+    }
+    document.onkeypress = PressEnter;  
+ </script>
+</apex:page>

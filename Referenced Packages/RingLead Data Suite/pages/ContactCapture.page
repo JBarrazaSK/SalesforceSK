@@ -1,0 +1,283 @@
+<apex:page controller="BLDS.ContactCapture" action="{!CheckIds}">
+    <script type="text/javascript">
+    var ccUid = '{!JSENCODE(ccUid)}';
+    var ccShieldId = '{!JSENCODE(ccShieldId)}';
+    var ccShieldAuth = '{!JSENCODE(ccShieldAuth)}';
+    var ccIsRegistered = '{!JSENCODE(isRegistered)}';
+    var ccIsValidated = '{!JSENCODE(isValidated)}';
+    </script>
+    
+    <!-- Begin Default Content REMOVE THIS -->
+    <div align="center">
+        <a href="http://www.contactcapture.com" target="new"><img
+                                                                  src="https://crmshield.broadlook.com/images/contact_capture.png"
+                                                                  border="0" /></a>
+    </div>
+    
+    <div id="registrationSpan" align="center" class="GeneralFont"
+         style="padding: 5px; font-size: 12px; display: none;">
+        <div align="center">
+            You must register to use Contact Capture.<br /> Please <a
+                                                                      target="_blank"
+                                                                      href="{!SiteUrl}?action=registration.show&uid={!ccUid}&plat=SalesforceCRM&app=ContactCapture&ver=1.0&width=300&onDoneJs=window.close()">click
+            here to register!</a>
+        </div>
+    </div>
+    
+    <div id="validationSpan" align="center" class="GeneralFont"
+         style="padding: 5px; font-size: 12px; display: none;">
+        <div align="center">
+            Registration to use Contact Capture is pending.<br /> <br /> An email
+            was sent to confirm your email address. Click on the link in the
+            email to complete the process then <a href="javascript:void(0);"
+                                                  onClick="location.reload(true);">refresh this page</a><br /> <br />
+            To re-register, please <a target="_blank"
+                                      href="{!SiteUrl}?action=registration.show&uid={!ccUid}&plat=SalesforceCRM&app=ContactCapture&ver=1.0&width=300&onDoneJs=window.close()">click
+            here.</a><br />
+        </div>
+    </div>
+    
+    <div id="mainSpan" style="display: none;">
+        <span id="workingSpan" style="visibility: hidden; position: absolute;"><div
+                                                                                    align="center">
+            <img width="80" src="{$ccSiteUrl}images/animation_processing.gif" />
+            </div></span>
+        <script type="text/javascript">
+        var btnAction = "";
+        </script>
+        <div align="center" valign="bottom" style="padding: 5px;">
+            <input type="submit" name="capture" id="CaptureButton"
+                   style="width: 75px;" class="GeneralFont"
+                   onClick="ccCaptureContacts();" value="Capture!"
+                   title="Captures the text in the box below and organizes it into relevent contact information." />
+            <input type="submit" name="capture" id="SaveButton"
+                   style="width: 75px;" class="GeneralFont" onClick="ccSaveContacts();"
+                   value="Save" disabled="true"
+                   title="Save selected contacts to your CRM." /> as <select
+                                                                             style="position: relative; left: 0px; top: 1px;" name="saveAs"
+                                                                             id="saveAs"><option value="Lead" selected="true">Lead</option>
+            <option value="Contact">Contact</option></select> <input type="submit"
+                                                                     name="capture" id="ResetButton" style="width: 75px;"
+                                                                     class="GeneralFont" onClick="ccClear();" value="Clear"
+                                                                     title="Clear and start over." />
+        </div>
+        
+        <div id="captureForm" align="center">
+            <table cellspacing="0" cellpadding="0" border="0" width="80%">
+                <tr>
+                    <td align="left" valign="middle" width="99%"
+                        style="font-family: Arial, Helvetica, sans-serif; font-size: 12px;"><strong>Paste
+                        contact data in this box:</strong></td>
+                    <td align="right" valign="middle" width="1px"
+                        style="font-family: Arial, Helvetica, sans-serif; font-size: 12px;">
+                        <input type="checkbox" name="crmSheildEnabled"
+                               id="crmSheildEnabled" value="1" checked="checked" />
+                    </td>
+                    <td align="left" valign="middle"
+                        style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; white-space: nowrap;">&nbsp;Enable
+                        CRMShield</td>
+                </tr>
+                <tr>
+                    <td colspan="3" align="center">
+                        <div id="captureTextAdvancedView">
+                            <div id="captureTextAdvanced"
+                                 style="border: 1px solid rgb(0, 0, 0); height: 450px; overflow: hidden;"></div>
+                        </div> <textarea id="captureTextBasic"
+                                         style="width: 99%; height: 450px; display: none;"></textarea>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="responseForm" align="center"></div>
+        
+        
+        <div align="center" style="padding: 5px;">
+            <table cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                    <td width="33%" align="left">&nbsp;</td>
+                    <td width="33%" align="center" valign="top"><small>Mode:<span
+                                                                                  id="ccModeBtn"><a href="javascript:void(0);"
+                                                                                                    onClick="ccToggleMode();"
+                                                                                                    title="Having issues?  Switch Contact Capture back to basic mode by clicking here">Advanced</a></span></small>
+                    </td>
+                    <td width="33%" align="right" valign="top" class="GeneralFont"
+                        style="font-size: 10px;"><a
+                                                    href="http://www.contactcapture.com" target="_blank"
+                                                    title="Find out more about Contact Capture">About</a> | <a
+                                                                                                               href="{!SiteUrl}?action=feedback.show&uid={!ccUid}&plat=SalesforceCRM&app=ContactCapture&ver=1.0&return=window.close();"
+                                                                                                               target="_blank" title="Tell us what you think">Feedback</a> | <a
+                                                                                                                                                                                href="javascript:void(0);" onClick="ccShowCrmShield();"
+                                                                                                                                                                                title="Settings for the normalizer developed by Broadlook Technologies">CRMShield</a>
+                        | <a
+                             href="http://www.broadlook.com/contactcapture/contactcapture2.htm"
+                             target="_blank" title="Learn how Contact Capture works!">Samples</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    
+    
+    <script src="/soap/ajax/15.0/connection.js" type="text/javascript"></script>
+    <script src="/soap/ajax/15.0/apex.js" type="text/javascript"></script>
+    
+    <!--Footer-->
+    <div align="center"
+         style="font-family: Arial, Helvetica, sans-serif; font-size: 9px; padding: 5px;">
+        &copy;2010 <a href="http://www.broadlook.com" target="_blank">Broadlook
+        Technologies</a>. Patent Pending.
+    </div>
+    
+    <script type="text/javascript">
+    var ccMode = "a";
+    var ccSelectedContacts = "";
+    document.getElementById('captureTextAdvanced').contentEditable = true;
+    sforce.connection.sessionId = '{!$Api.Session_ID}';
+    
+    ccCheckRegistrationProgress();
+    function ccCheckRegistrationProgress(){
+        try{
+            if( !ccIsRegistered() ){
+                //  Show registration page
+                document.getElementById('registrationSpan').style.display = "inline";
+                setTimeout("ccCheckRegistrationProgress()",5000);
+                return;
+            }
+            if( !ccIsValidated() ){
+                //  Show validation page
+                document.getElementById('registrationSpan').style.display = "none";
+                document.getElementById('validationSpan').style.display = "inline";
+                setTimeout("ccCheckRegistrationProgress()",5000);
+                return;
+            }
+            //  Show main page
+            document.getElementById('registrationSpan').style.display = "none";
+            document.getElementById('validationSpan').style.display = "none";
+            document.getElementById('mainSpan').style.display = "inline";
+        }catch(e){}
+    }
+    function ccIsRegistered(){
+        try{
+            var responseHtml = sforce.apex.execute("ContactCapture.ContactCapture","Registered",
+                                                   {thisUid:"{!ccUid}"});
+            
+            return (( responseHtml=="1" ) ? true : false);
+        }catch(e){}
+    }
+    function ccIsValidated(){
+        try{
+            var responseHtml = sforce.apex.execute("ContactCapture.ContactCapture","Validated",
+                                                   {thisUid:"{!ccUid}"});
+            return (( responseHtml=="1" ) ? true : false);
+        }catch(e){}
+    }
+    
+    
+    function ccCaptureContacts(){
+        try{
+            var captureText = ccGetCaptureText();
+            if( captureText=="" ){
+                alert("You must first paste contact information into the box!");
+                return;
+            }
+            var crmShieldParam = "";
+            if( document.getElementById( 'crmSheildEnabled' ).checked )
+                crmShieldParam = "&crmSheildEnabled=1";
+            document.getElementById('captureForm').style.display = 'none';
+            document.getElementById('responseForm').style.display = 'inline';
+            var responseHtml = sforce.apex.execute("ContactCapture.ContactCapture","CaptureContacts",
+                                                   {captureText:captureText, params:"uid={!ccUid}&csuid={!ccShieldId}" + crmShieldParam});
+            document.getElementById('responseForm').innerHTML = responseHtml; 
+            document.getElementById('SaveButton').disabled = false;    
+            document.getElementById('CaptureButton').disabled = true;     
+        }catch(e){}           
+    }
+    function ccSaveContacts(){
+        try{
+            if( ccSelectedContacts=="" ){
+                alert("You must select which contacts you wish to save!");
+                return;
+            }
+            var saveAs = document.getElementById('saveAs').options[ document.getElementById('saveAs').selectedIndex].value;
+            var responseHtml = sforce.apex.execute("ContactCapture.ContactCapture","SaveContacts",
+                                                   {uid:"{!ccUid}",saveAs:saveAs,selectedIds:ccSelectedContacts});
+        }catch(e){}
+    }
+    function ccClear(){
+        try{
+            document.getElementById('captureTextAdvanced').innerHTML = "";
+            document.getElementById('captureTextBasic').value = "";
+            document.getElementById('captureForm').style.display = 'inline';
+            document.getElementById('responseForm').style.display = 'none';
+            document.getElementById('responseForm').innerHTML = '';
+            document.getElementById('SaveButton').disabled = true;    
+            document.getElementById('CaptureButton').disabled = false;
+        }catch(e){}
+    }
+    function ccShowCrmShield(){
+        try{
+            window.open( '{!JSENCODE(SiteUrl)}?action=crmshield.show&uid={!ccShieldId}&auth={!ccShieldAuth}&onDoneJs=window.close()','CRMShieldAdmin',''); 
+        }catch(e){}
+    }
+    function ccToggleMode(){
+        try{
+            //  Change modes
+            ccMode = ( (ccMode=="a") ? "b" : "a" );
+            
+            //  modify interface
+            if( ccMode=="b" ){
+                document.getElementById('ccModeBtn').innerHTML = '<a href="javascript:void(0);" onClick="ccToggleMode();" title="Want to capture raw html code?  Try advanced mobe by clicking here!">Basic</a>';
+                document.getElementById('captureTextBasic').style.display = "inline";
+                document.getElementById('captureTextAdvancedView').style.display = "none";
+            }else{
+                document.getElementById('ccModeBtn').innerHTML = '<a href="javascript:void(0);" onClick="ccToggleMode();" title="Having issues?  Switch Contact Capture back to basic mode by clicking here">Advanced</a>';
+                document.getElementById('captureTextBasic').style.display = "none";
+                document.getElementById('captureTextAdvancedView').style.display = "inline";
+            }
+        }catch(e){}
+    }
+    function ccGetCaptureText(){
+        try{
+            var captureText = "";
+            if( ccMode=="a" ){
+                //  Issues in IE
+                captureText = document.getElementById('captureTextAdvanced').innerHTML;
+                captureText = captureText.replace(/<o\:p>/gi, "");
+                captureText = captureText.replace(/<\/o\:p>/gi, "");
+                document.getElementById('captureTextBasic').value=captureText;
+                document.getElementById('captureTextAdvanced').innerHTML=document.getElementById('captureTextBasic').value;
+                captureText = document.getElementById('captureTextAdvanced').innerHTML;
+                //  End IE Workaround
+            }else{
+                captureText = document.getElementById('captureTextBasic').value;
+            }
+            return escape( captureText );
+        }catch(e){}
+    }
+    var tableIds= new Array();
+    function ToggleContactSelect( id ){
+        try{
+            //  Change selection color
+            if( tableIds[ id ]==null ) tableIds[ id ] = 0;
+            tableIds[ id ] = 1 - tableIds[ id ];
+            if( tableIds[ id ]==1 ){
+                document.getElementById("tblId_"+id).style.display='inline';
+            }else{
+                document.getElementById("tblId_"+id).style.display='none';
+            }
+            
+            //  Set hidden value of selected ids
+            var selectedTables = "";
+            for(var nameIndex in tableIds) {
+                if( tableIds[nameIndex]==1 ){
+                    if( selectedTables!="" ) selectedTables+=",";
+                    selectedTables+=nameIndex;
+                }
+            }
+            ccSelectedContacts = selectedTables;
+        }catch(e){}
+    }
+    </script>
+    <!-- End Default Content REMOVE THIS -->
+</apex:page>

@@ -1,0 +1,160 @@
+<apex:page standardController="Opportunity" showHeader="false"
+	extensions="ctrlrPedidoOtrosCanales" sidebar="false"
+	applyBodyTag="false" renderAs="pdf">
+	<head>
+<style type="text/css" media="print">
+@page { @top-center { content:element(header); 
+	
+}
+
+@
+bottom-left {
+	content: element(footer);
+}
+
+}
+* {
+	margin: 0px;
+	padding: 0px;
+}
+
+table tr, table td {
+	page-break-inside: avoid;
+}
+
+table {
+	-fs-table-paginate: paginate;
+	border-collapse: collapse;
+	border-spacing: 0;
+	width: 100%;
+}
+
+th {
+	background: #A9A9A9;
+	border: 1px solid black;
+	padding: 7px;
+	word-wrap: break-word;
+}
+
+td {
+	border: 1px solid black;
+	padding: 7px;
+	word-wrap: break-word;
+}
+
+#tablaCabecero {
+	padding: 7px;
+	word-wrap: break-word;
+}
+
+.tablatd {
+	padding: 7px;
+	word-wrap: break-word;
+}
+
+div.footer {
+	display: block;
+	padding: 5px;
+	position: running(footer);
+}
+
+.centered {
+	text-align: center;
+}
+</style>
+
+	</head>
+	<!-- INICIA DISEÑO DE REPORTE PEDIDO CONFIRMADO -->
+	<apex:outputText value="you can not print your blocked order"
+		rendered="{!pedido.OC__c == null}" />
+	<apex:outputText value="you can not print, your Order canceled"
+		rendered="{!pedido.Cancelado_en_SAP__c == true}" />	
+		
+	<apex:outputPanel rendered="{!pedido.OC__c != null &&  pedido.Cancelado_en_SAP__c == false}">
+		<div align="right">
+			<apex:outputText value="{0, date, MMMM d','  yyyy}">
+				<apex:param value="{!NOW()}" />
+			</apex:outputText>
+		</div>
+		<center>
+			<h1>Order Status Change</h1>
+		</center>
+		<br />
+		<br />
+		<apex:outputText value="Dear Customer" />
+		<br />
+		<br />
+		<br />
+		<apex:outputText value="Your Order # {!pedido.Folio_Pedido_SDL__c}, has a new status: Confirmed. " />
+		<br />
+		<br />
+		<br />
+		<apex:outputText value="For your reference, here's a summary of your order:	" />
+		<br />
+		<br />
+		<table Id="tablaCabecero">
+			<tr>
+				<td>Buyer:</td>
+				<td><apex:outputText value="{!pedido.Cliente__r.Name}" /></td>
+				<td>PO#</td>
+				<td><apex:outputText value="{!pedido.OC__c}" /></td>
+			</tr>
+			<tr>
+				<td>Seller:</td>
+				<td>SuKarne S.A. de C.V.<br /> {!pedido.Owner.Name}
+				</td>
+				<td>Delivery Date:</td>
+				<td><apex:outputText value="{0, date, MMMM d','  yyyy}">
+						<apex:param value="{!pedido.Fecha_de_Entrega__c}" />
+					</apex:outputText></td>
+			</tr>
+		</table>
+		<br />
+		<br />
+
+		<!--  Main table with quote items -->
+		<apex:dataTable value="{!productos}" var="p">
+			<apex:column >
+				<apex:facet name="header">
+					<apex:outputText value="Item #" />
+				</apex:facet>
+				<apex:outputText value="{!p.Codigo}" />
+			</apex:column>
+			<apex:column >
+				<apex:facet name="header">
+					<apex:outputText value="Description" />
+				</apex:facet>
+				<apex:outputText value="{!p.item.Product2.Name}" />
+			</apex:column>
+			<apex:column >
+				<apex:facet name="header">
+					<apex:outputText value="Quantity #" />
+				</apex:facet>
+				<apex:outputText value="{!p.item.Cantidad__c} cajas / {0, number,###,###,##0.00} lbs.">
+					<apex:param value="{!p.item.Volumen__c}" />
+				</apex:outputText>
+				
+			</apex:column>
+			<apex:column >
+				<apex:facet name="header">
+					<apex:outputText value="Price" />
+				</apex:facet>
+				<apex:outputText value="{0, number,$ ###,###,##0.00}">
+					<apex:param value="{!p.item.UnitPrice}" />
+				</apex:outputText>
+			</apex:column>
+
+		</apex:dataTable>
+		<br />
+		<br />
+		<apex:outputText value="Ship To:" />
+		<br />
+		<br />
+		<apex:outputText value="{!pedido.Account.Localidad_Ciudad__r.Name}, {!pedido.account.Estado__r.name}  {!pedido.Account.Codigo_Postal__c} {!pedido.Account.Calle__c} {!pedido.account.Numero_exterior__c} {!pedido.account.Colonia__r.Name}" />
+		<div class="footer">
+			<div class="centered">*** This is an automatic generated email,
+				please do not reply ***</div>
+
+		</div>
+	</apex:outputPanel>
+</apex:page>

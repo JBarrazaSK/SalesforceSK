@@ -1,0 +1,19 @@
+<!--
+ - Description: Visualforce component for viewing geolocation on Google Maps.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 09/09/2014
+ -->
+<apex:component >
+<apex:attribute name="latitude" type="Decimal" required="true" description="Geolocation latitude."/>
+<apex:attribute name="Longitude" type="Decimal" required="true" description="Geolocation longitude."/>
+<apex:stylesheet value="{!URLFOR($Resource.ViewGeolocationMap, 'css/ViewGeolocationMap.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.ViewGeolocationMap, 'js/google-maps-js-api-v3.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.ViewGeolocationMap, 'js/ViewGeolocationMap.js')}"/>
+<script type="text/javascript">
+latitude = {!latitude};
+longitude = {!longitude};
+</script>
+<div id="map-canvas"></div>
+</apex:component>

@@ -1,0 +1,3 @@
+<apex:page standardController="Contact" extensions="BLDS.ShieldOverrideExtension" action="{!redirectNewContact}" >
+    
+</apex:page>

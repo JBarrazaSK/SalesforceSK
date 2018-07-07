@@ -1,0 +1,13 @@
+<apex:page controller="BLDS.listOfViewPageController">
+             
+<script type="text/javascript">
+        function Reset() 
+        {    
+            var result;
+            result ={ "listOption": [<apex:repeat value="{!ListOptions}" var="string" id="theRepeat"> 
+                            {!string}
+                    </Apex:repeat>]};
+                        return JSON.stringify(result) ;
+        }
+    </script>
+</apex:page>

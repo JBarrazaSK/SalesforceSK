@@ -1,0 +1,95 @@
+<apex:page sidebar="false" showHeader="true">
+
+<apex:image id="theImage" value="{!$Resource.logoSK}" width="400" height="170"/>
+
+
+<apex:pageBlock title="Carga Masiva">
+<style>
+            .fontSize {
+                font-size: 91%;
+                color: #015ba7;
+                text-decoration: none;
+            }
+            
+            .links {
+                color: #015ba7;
+                text-decoration: none;
+                font-size: 91%;
+            }
+           .custPopup{
+               background-color: white;
+               border-width: 2px;
+               border-style: solid;
+               z-index: 9999;
+               left: 50%;
+               padding:10px;
+               position: absolute;
+               overflow: auto;
+               max-height: 300px;
+               width: 800px;
+               margin-left: -400px;
+               top:100px;
+           }
+           .popupBackground{
+               background-color:black;
+               opacity: 0.20;
+               filter: alpha(opacity = 20);
+               position: absolute;
+               width: 100%;
+               height: 100%;
+               top: 0;
+               left: 0;
+               z-index: 9998;
+           }
+           .disablingDiv
+            {
+                /* Do not display it on entry */
+                display: none;
+             
+                /* Display it on the layer with index 1001.
+                   Make sure this is the highest z-index value
+                   used by layers on that page */
+                z-index:3001;
+                 
+                /* make it cover the whole screen */
+                position: absolute;
+                top: 0%;
+                left: 0%;        
+                width: 112%;
+                height: 102%;
+                     
+                /* make it white but fully transparent */
+                background-color: #6D7B8D;
+                opacity:.30;
+                filter: alpha(opacity=20);
+            }
+            
+        #lookout-div
+        {
+        height:99.3%;
+        width:82.7%;
+        position:absolute;
+        z-index:5;
+        background-color: black;
+        opacity: 0.7;
+        }
+        #inner-div
+        {
+            opacity: 1;
+            background:black;
+            position:absolute;
+            width: 700px;
+            height: 120px;
+            z-index: 15;
+            top: 30%;
+            left: 27%;
+            font-size: 137%;
+        }
+        </style>
+<apex:pageBlockSection title="Carga Masiva">
+
+
+</apex:pageBlockSection>
+
+</apex:pageBlock>
+</apex:page>

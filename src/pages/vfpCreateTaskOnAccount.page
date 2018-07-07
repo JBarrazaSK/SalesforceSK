@@ -1,0 +1,40 @@
+<apex:page standardController="Account" extensions="createTaskOnAccount" sidebar="false" showHeader="false" tabStyle="Account" >
+    <apex:form >
+        <apex:messages />
+        <apex:pageBlock >
+        	<apex:pageBlockButtons >
+                <apex:commandButton value="Guardar" action="{!createTask}" oncomplete="location.reload()" />
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection title="Información de tareas">
+                <apex:outputField value="{!cobranza.ownerId}" />
+                <apex:outputField value="{!cobranza.whatId}" />
+                
+                <apex:inputField value="{!cobranza.subject}" />
+                <apex:inputField value="{!cobranza.whoId}" />
+                
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Gestión Llamada">
+                <apex:inputField value="{!cobranza.Conexion__c}" />
+                <apex:inputField value="{!cobranza.Monto_Compromiso_de_Pago__c}" />
+                
+                <apex:inputField value="{!cobranza.Contacto__c}" />
+                <apex:inputField value="{!cobranza.ActivityDate}" />
+            </apex:pageBlockSection>
+            <apex:pageBlockSection columns="1">
+                <apex:inputTextarea cols="150" rows="5" value="{!cobranza.Description}" />
+            </apex:pageBlockSection>
+            <!--
+            <apex:pageBlockSection title="Información Adicional" >
+                <apex:outputField value="{!cobranza.Status}" />
+                <apex:outputField value="{!cobranza.Priority}" />
+            </apex:pageBlockSection>
+            -->
+            <apex:pageBlockSection title="Recordatorio" >
+                <apex:inputField value="{!cobranza.IsReminderSet}" /><apex:inputField value="{!cobranza.ReminderDateTime}" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        
+    </apex:form>
+</apex:page>

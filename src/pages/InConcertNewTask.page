@@ -1,0 +1,39 @@
+<!--
+ - Description: New task page for inConcert inbound & outbound calls.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 13/10/2014
+ -->
+<apex:page standardController="Task" extensions="InConcertNewTaskController" title="Salesforce - Registrar una llamada">
+<apex:stylesheet value="{!URLFOR($Resource.InConcertNewTask, 'css/InConcertNewTask.css')}"/>
+<apex:sectionHeader title="Registrar una llamada"/>
+<apex:form >
+    <apex:pageBlock title="Modificar Tarea" mode="edit">
+        <apex:pageBlockButtons >
+            <apex:commandButton action="{!save}" value="Guardar"/>
+        </apex:pageBlockButtons>
+        <apex:pageMessages />
+        <apex:pageBlockSection title="Información de tareas">
+            <apex:inputField value="{!task.OwnerId}"/>
+            <apex:inputField value="{!task.WhatId}" required="true"/>
+            <apex:outputField value="{!task.Subject}"/>
+            <apex:inputField value="{!task.WhoId}"/>
+            <apex:outputField value="{!task.ActivityDate}"/>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Gestión de la llamada">
+            <apex:inputField value="{!task.Conexion__c}" required="true"/>
+            <apex:inputField value="{!task.Description}"/>
+            <apex:inputField value="{!task.Contacto__c}" required="true"/>&nbsp;
+            <apex:inputField value="{!task.Gestion__c}" required="true"/>&nbsp;
+            <apex:inputField value="{!task.Sub_Gestion__c}"/>&nbsp;
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Información adicional">
+            <apex:outputField value="{!task.Status}"/>
+            <apex:outputField value="{!task.TelefonoLlamadaInConcert__c}"/>
+            <apex:inputField value="{!task.Priority}"/>
+            <apex:outputField value="{!task.IdLlamadaInConcert__c}"/>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:form>
+</apex:page>

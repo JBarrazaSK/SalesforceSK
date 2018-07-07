@@ -1,0 +1,198 @@
+<apex:page controller="BLDS.DevWebprofilerAPIController">
+  
+<script type="text/javascript">        
+		function confirmProfileNow()
+        {
+            s = document.getElementById('{!$Component.formUrl.blockUrl.sectionUrl.url}').value;
+            try{
+	            if (s == '') {
+	            	alert('Please enter a valid website.');    	return false;
+	            }
+	            else //if(confirm("Please confirm to profile with website - " + s))
+	            {
+	                profileNowButtonJS();
+	            }
+	            return false;
+            }catch(e){
+                showError(e);
+            } 
+        }
+        function showMessage(s){
+                    document.getElementById("jsMessages").innerHTML = document.getElementById("jsMessages").innerHTML+s+'<br>'; 
+        
+        }
+        function systemStatusResult(result, event) { 
+        	alert('systemStatus:'+result);
+        }
+        function getCountPlansResult(result, event) { 
+        	if (event.status) {
+        		   showMessage('Plans '+result);
+                    
+                } else if (event.type === 'exception') {
+                    showMessage('Error '+event.message + "<br/>\n<pre>" + event.where + "</pre>");
+                    //document.getElementById("messages").innerHTML =event.message + "<br/>\n<pre>" + event.where + "</pre>";
+                } else {
+                    showMessage('Error '+event.message);
+                    //document.getElementById("responseErrors").innerHTML = event.message;
+                }
+        }
+        
+		function systemStatus()
+        {
+            try{
+            	document.getElementById("jsMessages").innerHTML = '';
+            	//blds.controller.systemStatus();
+            	//DevWebprofilerAPIController.getCountPlans(systemStatusResult);
+            	Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountPlans}','', function(result){showMessage('Plans total: '+result);});
+            	Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountPlans}','Completed', function(result){showMessage('Plans completed: '+result);});
+            	Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountPlanAccounts}','', function(result){showMessage('Plan accounts total: '+result);});
+            	Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountPlanAccounts}','Queued', function(result){showMessage('Plan accounts queued: '+result);});
+            	Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountPlanAccounts}','In Progress', function(result){showMessage('Plan accounts in progress: '+result);});
+            	Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountPlanAccounts}','Completed', function(result){showMessage('Plan accounts completed: '+result);});
+            	Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountPlanAccounts}','Error', function(result){showMessage('Plan accounts errored out: '+result);});
+            	
+				Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountProfilerResults}','', function(result){showMessage('Plan results total: '+result);});
+            	Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountProfilerResults}','Queued', function(result){showMessage('Plan results queued: '+result);});
+            	Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountProfilerResults}','In Progress', function(result){showMessage('Plan results in progress: '+result);});
+            	Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountProfilerResults}','Completed', function(result){showMessage('Plan results completed: '+result);});
+            	Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DevWebprofilerAPIController.getCountProfilerResults}','Error', function(result){showMessage('Plan results errored out: '+result);});
+            	systemStatusJS();            	
+            }catch(e){
+                showError(e);
+            } 
+        }
+        
+		function confirmQueue()
+        {
+            s = document.getElementById('{!$Component.formUrl.blockUrl.sectionUrl.url}').value;
+            try{
+	            if (s == '') {
+	            	alert('Please enter a valid website.');    	return false;
+	            }
+	            else //if(confirm("Please confirm to profile with website - " + s))
+	            {
+	                queueButtonJS();
+	            }
+	            return false;
+            }catch(e){
+                showError(e);
+            } 
+        }
+        
+		function confirmAPIServerReset()
+        {
+            try{
+	            if(confirm("Are you sure you want to reset API Server data?"))
+	            {
+	                clearAPIServerQueue();
+	            } 
+	            return false;
+            }catch(e){
+                showError(e);
+            } 
+        }
+
+		function reloadPage1(isRedirect)
+        {
+        	//nope
+         }
+		
+            
+</script>
+
+	<div id="divButton" style="position: fixed;top: 50%;left: 50%;margin-top: -180px;margin-left: -260px;">            
+	    <apex:actionStatus startText="Loading..." startStyle="color:#ff0000;font-size:16px;font-weight:bold" id="processStatusLoad_profileNow" > 
+	         <apex:facet name="start">
+	             <center>
+	             <!-- 
+	                 <img src="/img/loading.gif" title="Loading..."/>
+	             -->
+	             
+	             <img src="{!URLFOR($Resource.ProfilerResources, 'Images/profilerloading.gif')}" width="50%"  height="50%" title="Loading..."/>	                 
+	             </center>
+	         </apex:facet> 
+	    </apex:actionStatus>
+	</div>    
+
+<apex:sectionHeader title="Webprofiler API Test"/>
+
+<apex:form id="formUrl"> 
+<apex:pageBlock title="System" id="blockSystem">
+<apex:pageBlockButtons location="top">
+<apex:commandButton id="btnSystemStatus" value="System Status" onclick="return systemStatus()" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnStatus" value="Check Status" action="{!checkStatus}" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnpostQueued" value="Post Queued" action="{!postQueued}" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnDownload" value="Download Completed" action="{!downloadCompleted}" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnSchedule" value="Schedule Processing" action="{!scheduleProcessing}" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnDeleteAllJobs" value="Delete All Jobs" action="{!deleteAllJobs}" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnBatchProcessing" value="Batch Processing" action="{!batchProcessing}" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnPlaneGenerateTest" value="Test Plan - add 100" action="{!planGenerateTest}" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnPlaneDegenerateTest" value="Test Plan - remove 100" action="{!planDegenerateTest}" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btncleanupOrphanResults" value="Cleanup Orphan Results" action="{!cleanupOrphanResults}" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btncleanupOrphanAttachments" value="Cleanup Orphan Attachments" action="{!cleanupOrphanAttachments}" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnclearCache" value="Clear Cache" action="{!clearCache}" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnResetAPIServer" value="Reset API Server" onclick="return confirmAPIServerReset()" rerender="msg,msgInPopUpPgMsg"/>
+   
+</apex:pageBlockButtons>
+
+</apex:pageBlock>
+
+<apex:pageBlock id="blockUrl" title="URL" >
+<apex:pageBlockButtons location="top">
+<apex:commandButton id="btnUrlInfo" value="URL Info" action="{!getUrlInfo}" rerender="msg,msgInPopUpPgMsg,opResults,opAttachments"/>
+<apex:commandButton id="btnQueue" value="Queue" onclick="return confirmQueue()" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnProfile" value="Profile Now" onclick="return confirmProfileNow()" rerender="msg,msgInPopUpPgMsg"/>
+<apex:commandButton id="btnGetUrlAttachment" value="Get URL Attachment" action="{!getUrlAttachment}" rerender="msg,msgInPopUpPgMsg"/>
+</apex:pageBlockButtons>
+<apex:pageBlockSection collapsible="false" id="sectionUrl" columns="10">
+<apex:inputText value="{!url}" id="url" label="URL"/> 
+
+<!--  apex:inputText value="{!search_id}" id="search_id"/-->
+</apex:pageBlockSection>
+</apex:pageBlock>
+
+<apex:outputPanel id="opResults"> <apex:pageBlock id="pbResults" title="Profiler_Result"  rendered="{!(results!=null)}">              
+        <div id="mainHolder" style="overflow: auto; max-height: 260px;min-height: 0px; background-color:white;">    
+        <apex:pageBlockTable id="pbtResults" value="{!results}" var="item" width="98%">
+            <apex:column headervalue="ID" width="3%" ><apex:outputLink target="_blank" value="/{!item.Id}" >{!item.Id}</apex:outputLink></apex:column>
+            <apex:column headervalue="Name" width="13%" ><apex:outputText value="{!item.Name}" > </apex:outputText></apex:column>
+            <apex:column headervalue="Pages" width="3%" ><apex:outputText value="{!item.BLDS__PagesAll__c}" > </apex:outputText></apex:column>
+            <apex:column headervalue="URL" width="3%" ><apex:outputText value="{!item.BLDS__Company_URL__c}" > </apex:outputText></apex:column>
+            <apex:column headervalue="Search ID" width="3%" ><apex:outputText value="{!item.BLDS__Search_ID__c}" > </apex:outputText></apex:column>
+            <apex:column headervalue="State" width="3%" ><apex:outputText value="{!item.BLDS__Status_State__c}" > </apex:outputText></apex:column>
+            <apex:column headervalue="Status" width="3%" ><apex:outputText value="{!item.BLDS__Status__c}" > </apex:outputText></apex:column>
+            <apex:column headervalue="WWWInfo" width="3%" ><apex:outputText value="{!item.BLDS__URL_Status__c}" > </apex:outputText></apex:column>
+            <apex:column headervalue="Skipped" width="3%" ><apex:outputText value="{!item.BLDS__SkippedContacts__c}" > </apex:outputText></apex:column>
+            <apex:column headervalue="Modified" width="13%" ><apex:outputText value="{!item.LastModifiedDate}" > </apex:outputText></apex:column>
+            <apex:column headervalue="Pattern" width="3%" ><apex:outputText value="{!item.BLDS__EmailPattern__c}" > </apex:outputText></apex:column>
+            <apex:column headervalue="Account" width="3%" ><apex:outputLink target="_blank" value="/{!item.BLDS__Account__c}" >{!item.BLDS__Account__c}</apex:outputLink></apex:column>
+            <apex:column headervalue="Lead" width="3%" ><apex:outputLink target="_blank" value="/{!item.BLDS__Lead__c}" >{!item.BLDS__Lead__c}</apex:outputLink></apex:column>
+            <apex:column headervalue="Unknown" width="3%" ><apex:outputLink target="_blank" value="/{!item.BLDS__UnknownId__c}" >{!item.BLDS__UnknownId__c}</apex:outputLink></apex:column>
+        </apex:pageBlockTable> 
+        </div>        
+</apex:pageBlock></apex:outputPanel>
+
+<apex:outputPanel id="opAttachments"> <apex:pageBlock id="pbAttachments" title="Attachments"  rendered="{!(attachments!=null)}">              
+        <div id="mainHolder" style="overflow: auto; max-height: 260px;min-height: 0px; background-color:white;">    
+        <apex:pageBlockTable id="pbtAttachments" value="{!attachments}" var="item" width="98%">
+            <apex:column headervalue="ID" width="3%" ><apex:outputLink value="/{!item.Id}" target="_blank">{!item.Id} </apex:outputLink></apex:column>
+            <apex:column headervalue="Result ID" width="3%" ><apex:outputLink value="/{!item.ParentID}" target="_blank" >{!item.ParentID} </apex:outputLink></apex:column>
+            <apex:column headervalue="Name" width="13%" ><apex:outputText value="{!item.Name}" > </apex:outputText></apex:column>
+            <apex:column headervalue="Body" width="3%" ><apex:outputText value="{!item.Body}" > </apex:outputText></apex:column>
+        </apex:pageBlockTable> 
+        </div>        
+</apex:pageBlock></apex:outputPanel>
+
+
+<apex:actionFunction name="profileNowButtonJS" action="{!profileNowButton}" status="processStatusLoad_profileNow" rerender="msg,errorMessage,search_id" oncomplete="reloadPage1(false)"> </apex:actionFunction>
+<apex:actionFunction name="queueButtonJS" action="{!queueButton}" status="processStatusLoad_profileNow" rerender="msg,errorMessage,search_id" oncomplete="reloadPage1(false)"> </apex:actionFunction>
+<apex:actionFunction name="clearAPIServerQueue" action="{!clearAPIServerQueue}" status="processStatusLoad_profileNow" rerender="msg,errorMessage,search_id" oncomplete="reloadPage1(false)"> </apex:actionFunction>
+<apex:actionFunction name="systemStatusJS" action="{!systemStatus}" status="processStatusLoad_profileNow" rerender="msg,errorMessage,search_id" oncomplete="reloadPage1(false)"> </apex:actionFunction>
+ 
+   
+<apex:outputText value="{!HTMLENCODE(MyMessage)}" escape="false" rendered="{!DisplayResult}" style="text-align: center;"/>
+</apex:form>
+<div id="jsMessages"></div>
+<apex:pageMessages id="msg" escape="false"/>
+
+</apex:page>

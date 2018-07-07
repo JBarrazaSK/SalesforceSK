@@ -1,0 +1,266 @@
+<apex:page standardController="BLDS__Auto_Profiling_Schedule__c" Extensions="BLDS.AutoProlfilingController" >
+  <style>
+      .cpbHeader{
+            font-size:1.3em;
+            font-weight:bold;
+            float:left;
+            line-height:23px;
+            vertical-align:bottom;
+        }
+        
+        
+  </style>
+  
+  <apex:sectionHeader title="Auto Profiler Schedule"/>
+  <apex:pageMessages id="pageMessage"></apex:pageMessages>
+  <apex:form id="pageForm">
+  <apex:actionFunction action="{!createPicklist}" name="createPickListJS" rerender="filterMenu3,pnlMessages, simpleScheduleName">
+        <apex:param name="firstParam" assignTo="{!jsonString}" value="" />
+  </apex:actionFunction>  
+  <apex:pageblock id="scheduleBlock">
+    
+    <apex:pageBlockButtons location="Top">
+        <apex:commandButton action="{!saveSchedule}" value="Save" />
+        <apex:commandButton action="{!deleteSchedule}" value="Delete"/>
+        <apex:commandButton action="{!cancelSchedule}" value="Cancel"/>
+        <apex:commandLink action="{!toAdvanceMode}" value="Advanced"  rendered="{! isSimpleMode}"/>
+
+    </apex:pageBlockButtons>
+  <table width="100%">
+            <tr>
+                <td width="10%"  >
+                    <apex:outputLabel value="Schedule Name: "  rendered="{! !isSimpleMode}" style="font-weight: bold;"/>
+                    <apex:outputLabel value="Select View: "  rendered="{! isSimpleMode}" style="font-weight: bold;"/><b class="labelCol"><span style="color:red">*</span></b>
+                </td>
+                <td width="90%" colspan="2">
+                    <apex:inputText value="{!newSchedule.name }" id="name"  rendered="{! !isSimpleMode}" style="width:100%;line-height:20px;border:1px solid #ccc;"/>
+                    <apex:selectList value="{!filterId}" size="1" id="simpleScheduleName"  rendered="{! isSimpleMode}">
+                          <apex:selectOptions value="{!listOfAvailbleView }"></apex:selectOptions>
+                      </apex:selectList>
+                </td>
+            </tr>
+            <tr>
+                <td width="10%"  >
+                    <apex:outputLabel value="Max Profile Age: " style="font-weight: bold;"/><b class="labelCol"><span style="color:red">*</span></b>
+                </td>
+                <td width="30%">
+                    <apex:inputText value="{!newSchedule.BLDS__Max_Profile_Age__c}" id="MaxAge" style="width:50px;line-height:20px;border:1px solid #ccc;"/> &nbsp;
+                    <apex:inputField value="{!newSchedule.Profiles_Age_Unit__c }" id="unit" style="width:50px;line-height:20px;border:1px solid #ccc;"/>
+                </td>
+                <td width="60%" align="center">
+                    <apex:inputField value="{!newSchedule.BLDS__Is_Limited_Consumption__c}" id="isMaxLimit" />
+                    <apex:outputLabel value="Max Daily Consumption "/>
+                    <apex:inputField value="{!newSchedule.BLDS__Max_Daily_Consumption__c}" id="MaxLimit" style="width:50px;line-height:20px;border:1px solid #ccc;"/>
+                </td>
+            </tr>
+            <tr>
+                <td width="10%"  >
+                    
+                </td>
+                <td width="30%">
+                    
+                </td>
+                <td width="60%">
+                    <apex:outputLabel value="Estimated Records: "/><apex:outputLabel value="{!newSchedule.BLDS__Estimated_Records__c}" rendered="{!newSchedule.BLDS__Estimated_Records__c >= 0}"/>  <apex:outputLabel value="records"  rendered="{!newSchedule.BLDS__Estimated_Records__c >= 0}"/>
+                    &nbsp;&nbsp;&nbsp; <apex:outputLabel value="Average Profile Age: "/> <apex:outputLabel value="{!newSchedule.BLDS__Average_Profile_Age__c}" rendered="{!newSchedule.BLDS__Average_Profile_Age__c>= 0}"/> <apex:outputLabel value="days" rendered="{!newSchedule.BLDS__Average_Profile_Age__c>= 0}"/>
+                    &nbsp;&nbsp;&nbsp;&nbsp; <apex:outputLabel value="Oldest Profile: "/> <apex:outputLabel value="{!newSchedule.Oldest_Profile_Age__c }" rendered="{!newSchedule.BLDS__Oldest_Profile_Age__c >= 0}"/> <apex:outputLabel value="days" rendered="{!newSchedule.BLDS__Oldest_Profile_Age__c >= 0}"/>
+                </td>
+            </tr>
+   </table>
+  </apex:pageblock>  
+  <script type="text/javascript">
+          function PickListRender(){
+            if (document.all.resultFrame && typeof (document.getElementById('resultFrame').contentWindow.Reset) == "function"){                
+                //alert(document.getElementById('resultFrame').contentWindow.Reset());
+                createPickListJS(document.getElementById('resultFrame').contentWindow.Reset());
+                //alert(document.getElementById('resultFrame').contentWindow.Reset());
+                }
+            else
+                alert("View PickList can not be leaded");
+        }
+    </script>
+  <apex:pageBlock id="salesforceView"  rendered="{!!isSimpleMode}">
+      <style>
+          body .bPageBlock .bluePanel .pbSubheader{
+            background-color:#75AADB;
+        }
+      </style>
+      <table width="100%">
+          <tr valign="top">
+              <td width="20%">
+                  <div class="cpbHeader">Salesforce View</div>
+              </td>
+              <td width="30%"  align="right">
+                  <div style="margin:0 0 10px 20px;">
+                      
+                  <apex:outputpanel id="filterMenu3">
+                  
+                      <apex:selectList value="{!filterId}" size="1" >
+                          <apex:selectOptions value="{!listOfAvailbleView }"></apex:selectOptions>
+                      </apex:selectList>
+                      </apex:outputpanel>
+                      <apex:commandButton action="{!addView}" value="Add View" id="theButton" rerender="ViewDetails,filterMenu3"  rendered="{!!isSimpleMode}"/>
+                  </div>
+              </td>
+           </tr>
+       </table>
+       <apex:outputPanel styleClass="bluePanel" layout="block" rendered="{!!isSimpleMode}">
+            
+
+       <apex:pageBlockSection title="View List" columns="1" collapsible="false">  
+        <apex:outputPanel id="ViewDetails" styleClass="bluePanel" layout="block">
+            <apex:pageBlockTable value="{!ListOfView}" var="item" rendered="{!!(ListOfView.size == 0)}" >
+                
+                <apex:column > 
+                    <apex:facet name="header">View Name</apex:facet>
+                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                        <apex:outputText value="{!HTMLENCODE(item.Name )}"  escape="false" ></apex:outputText>
+                    </div>
+                </apex:column>
+                
+                <apex:column > 
+                    <apex:facet name="header">Est. Records</apex:facet>
+                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                        <apex:outputText value="{!(item.BLDS__Estimated_Records__c )}"  escape="false"  rendered="{!item.BLDS__Estimated_Records__c >= 0}"></apex:outputText>
+                    </div>
+                </apex:column>
+                
+                <apex:column > 
+                    <apex:facet name="header">Avg. Profile Age</apex:facet>
+                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                        <apex:outputText value="{!(item.BLDS__Average_Profile_Age__c )}"  escape="false" rendered="{!item.BLDS__Average_Profile_Age__c >= 0}"></apex:outputText>
+                    </div>
+                </apex:column>
+                
+                <apex:column > 
+                    <apex:facet name="header">Oldest Profile Age</apex:facet>
+                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                        <apex:outputText value="{!(item.BLDS__Oldest_Profile_Age__c )}"  escape="false" rendered="{!item.BLDS__Oldest_Profile_Age__c >= 0}"></apex:outputText>
+                    </div>
+                </apex:column>
+                
+                <apex:column > 
+                    <apex:commandLink action="{!removeView}" value="Remove" id="removeViewLink" reRender="salesforceView">
+                        <apex:param name="removeFilterId" value="{!item.BLDS__View_Id__c}" assignTo="{!removeFilterId}" />
+                    </apex:commandLink>
+                </apex:column>
+
+            </apex:pageBlockTable>
+            <apex:outputText value="There is no Records" escape="false"  rendered="{!ListOfView.size == 0}" style="text-align: center;" />
+        </apex:outputpanel>
+        </apex:pageBlockSection>
+      </apex:outputPanel>
+  </apex:pageBlock>
+  
+  <apex:pageBlock id="customQuery"  rendered="{!!isSimpleMode}">
+      <style>
+          body .bPageBlock .red .pbSubheader{
+            background-color:#75AADB;
+        }
+      </style>
+
+          <table width="100%">
+              <tr valign="top">
+                  <td width="20%">
+                      <div class="cpbHeader">Custom Queries</div>
+                  </td>
+               </tr>
+           </table>
+       <apex:outputPanel styleClass="bluePanel" layout="block">
+       <apex:pageBlockSection title="Query List" columns="1" collapsible="false">  
+                <apex:outputPanel id="ViewDetails">
+            <apex:pageBlockTable value="{!ListOfQuery}" var="item" rendered="{!!(ListOfQuery.size == 0)}" >
+                
+                <apex:column > 
+                    <apex:facet name="header">View Name</apex:facet>
+                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                        <apex:outputText value="{!HTMLENCODE(item.Name )}"  escape="false" ></apex:outputText>
+                    </div>
+                </apex:column>
+                
+                <apex:column > 
+                    <apex:facet name="header">Query</apex:facet>
+                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                        <apex:outputText value="{!HTMLENCODE(item.BLDS__Query_String__c)}"  escape="false" ></apex:outputText>
+                    </div>
+                </apex:column>
+                
+                <apex:column > 
+                    <apex:facet name="header">Est. Records</apex:facet>
+                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                        <apex:outputText value="{!(item.BLDS__Estimated_Records__c )}"  escape="false"  rendered="{!item.BLDS__Estimated_Records__c >= 0}"></apex:outputText>
+                    </div>
+                </apex:column>
+                
+                <apex:column > 
+                    <apex:facet name="header">Avg. Profile Age</apex:facet>
+                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                        <apex:outputText value="{!(item.BLDS__Average_Profile_Age__c )}"  escape="false"  rendered="{!item.BLDS__Average_Profile_Age__c >= 0}"></apex:outputText>
+                    </div>
+                </apex:column>
+                
+                <apex:column > 
+                    <apex:facet name="header">Oldest Profile Age</apex:facet>
+                    <div style="width:180px;text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                        <apex:outputText value="{!(item.BLDS__Oldest_Profile_Age__c )}"  escape="false"  rendered="{!item.BLDS__Oldest_Profile_Age__c >= 0}"></apex:outputText>
+                    </div>
+                </apex:column>
+                
+                <apex:column > 
+                    <apex:commandLink action="{!editQuery}" value="Edit" id="editQueryLink" reRender="customQuery">
+                        <apex:param name="removeQueryString " value="{!item.BLDS__Query_String__c}" assignTo="{!removeQueryString }" />
+                    </apex:commandLink>
+                </apex:column>
+                <apex:column > 
+                    <apex:commandLink action="{!removeQuery}" value="Remove" id="removeQueryLink" reRender="customQuery">
+                        <apex:param name="removeQueryString " value="{!item.BLDS__Query_String__c}" assignTo="{!removeQueryString }" />
+                    </apex:commandLink>
+                </apex:column>
+
+            </apex:pageBlockTable>
+            <apex:outputText value="There is no Records" escape="false"  rendered="{!ListOfQuery.size == 0}" style="text-align: center;" />
+        </apex:outputpanel>
+        </apex:pageBlockSection>
+       
+       <apex:pageBlockSection title="Quiery Builder" columns="1" collapsible="false">
+       <apex:outputPanel >
+        <table width="100%">
+            <tr width="100%">
+                <td width="9%" align="top">
+                    <b class="labelCol">Query Name<span style="color:red">*</span></b> 
+                 </td>
+                <td width="80%" colspan="2">
+                    <apex:inputField value="{!newQuery.name}"/>
+                </td>
+            </tr>
+            <tr width="100%">
+                <td width="9%" align="top">
+                    <b class="labelCol">SOQL Query<span style="color:red">*</span></b> 
+                 </td>
+                <td width="80%" align="top" colspan="2">
+                    <apex:inputField value="{!newQuery.BLDS__Query_String__c}" style="width:100%;"/>
+                </td>
+            </tr>
+            <tr width="100%">
+                <td width="9%" align="top">
+                 </td>
+                <td width="80%" align="top">
+                    <a href="https://workbench.developerforce.com/query.php" target="_blank" style="float: center;">Query Builder</a>
+                </td>
+                <td width="10%" align="top">
+                    <apex:commandButton action="{!saveQuery}" value="Save Query" reRender="customQuery, pageMessage"/>
+                    <apex:commandButton action="{!clearQuery}" value="Cancel" reRender="customQuery, pageMessage"/>
+                </td>
+            </tr>
+        </table>
+        </apex:outputPanel>       
+                   
+                
+       </apex:pageBlockSection>
+       </apex:outputPanel>
+       </apex:pageBlock>
+       
+   </apex:form>
+   
+   <iframe src="/apex/ListOfViewPage?isdtp=vw" scrolling="false" height="0" width="0" id="resultFrame" onLoad="PickListRender()" style="display:none"/>
+</apex:page>

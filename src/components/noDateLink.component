@@ -1,0 +1,8 @@
+<apex:component >
+<style>
+    div.hideCurrDate span.dateInput span.dateFormat{      display:none;    }
+</style>
+	<div class="hideCurrDate"  style="z-index:999;">
+	<apex:componentBody />
+	</div>
+</apex:component>

@@ -1,0 +1,255 @@
+<apex:page sidebar="false"  controller="CtrlDiasInhabiles" docType="html-5.0" standardStylesheets="true">
+ <style>
+ #showStatusDiv { position: fixed; background: rgba(0, 0, 0, 0.43); width: 100%; height: 100%; top: 0; left: 0; z-index: 999999; }
+  
+#showStatusDiv img { position: absolute; top: 50%; left: 50%; margin-right: 25px; }
+.errorClass {
+    background-color: red;
+}
+.normalClass {
+    background-color: green;   
+}  
+textarea {
+    resize: none;
+}
+.datePicker{
+        position: fixed;
+        z-index:10001;
+        width: auto;
+        height:auto;}
+        ::-webkit-inner-spin-button { display: none; }
+  </style>
+<apex:stylesheet value="{!URLFOR($Resource.popup, 'Css/EstilosPopUp.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.PedidoWizard, 'js/jquery-1.11.1.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.popup, 'js/popUp.js')}"/>
+<script type="text/javascript">ieStylesheetUrl = "{!URLFOR($Resource.PedidoWizard, 'css/PedidoWizardIE.css')}"</script>
+<apex:form id="form" >
+  <apex:pageMessages />
+   <apex:pageBlock id="generales" title="Busqueda Dias Inhabiles Configurados" >
+   <table style="width: 75%;">
+    <tr>
+        
+        <td align="right">Oficina de Venta:</td> 
+        <td align="left"  style="width: 50px;">
+       <div class="requiredInput">
+           <div class="requiredBlock"></div>
+           <apex:inputText value="{!CodigoAlmacen}" id="inputSearchText" size="3" onblur="SearchProductEmbarque()"/>
+           </div>
+            
+        </td>
+      <td align="left" style="width: 100px;"> 
+            <apex:inputText value="{!NombreAlmacen}"  id="inputSearchText2" html-readOnly="true" style="width: 210px;"  />
+     <!-- <input type="text" id="inputSearchText2" disabled="true" style="width: 100px;"/>--></td>
+      <td align="left"> <input type="button" value="Buscar" class="btn" onclick="openModal('modalOfiVentas')" id="btnModal"/>
+            <apex:inputHidden value="{!AlmacenId}" id="HiddenId"/>
+             <apex:inputHidden value="{!CodigoAlmacen}" id="HiddenNumeroAlmacen"/>
+            
+           
+      </td>
+       <td align="right">Año:</td>  
+        <td> 
+       <div class="requiredInput">
+       <div class="requiredBlock"></div>
+          <apex:selectList size="1" value="{!Anio}"  >
+            <apex:selectOptions value="{!items}"/>
+        </apex:selectList> 
+        </div>
+      </td>
+       <td align="right">Mes:</td>  
+        <td> 
+       <div class="requiredInput">
+       <div class="requiredBlock"></div>
+          <apex:selectList size="1" value="{!Mes}"  >
+            <apex:selectOptions value="{!ItemsMoths}"/>
+        </apex:selectList> 
+        </div>
+      </td>
+      
+        <td></td>
+    </tr>
+    <tr>
+      <td></td> 
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td><apex:commandButton action="{!getDiasInhabiles}" onclick="Consultar()" value="Consultar"  style="width: 90px;color: #fff;background-color: #0275d8;border-color: #0275d8;background-image:none;" id="theButton"  /></td>
+      <td><apex:commandButton action="{!Limpiar}" onclick="Consultar()" value="Limpiar"  style="width: 90px;color: #292b2c;background-color: #fff;border-color: #ccc;background-image:none;" id="btnLimpiar"  /></td>
+    </tr>
+   </table>
+   </apex:pageBlock>
+    <br/><br/>
+    <apex:pageBlock id="Datos" rendered="{!listaConfiguracion != null}">
+     <br/>
+        <apex:commandButton action="{!GuardarNuevo}"  value="Guardar" id="theButton2"  style="width: 100px;color: #fff;background-color: #5cb85c;border-color: #5cb85c;background-image:none; " rerender="form"/>
+        <apex:commandButton action="{!CrearNuevo}"  value="Agregar" id="theButton3"  style="width: 100px;color: #fff;background-color: #0275d8;border-color: #0275d8;background-image:none;" rerender="form"/>
+        <br/><br/>
+ 	<apex:pageBlockTable value="{!listaConfiguracion}" var="Dia" >
+ 	<apex:column headerValue="Configuró" > 
+	       <apex:outputText value="{!Dia.Configuracion.LastModifiedBy.Alias}"/>
+	    </apex:column>
+ 		<apex:column headerValue="Dia" >
+	       <apex:outputText value="{!Dia.Configuracion.DayOfWeek__c}"/>
+	    </apex:column>
+	 	<apex:column headerValue="Fecha Inhabil" >
+	     <apex:outputText value="{0,date,dd-MM-yyyy}" rendered="{!If(Dia.Nuevo == true,false,true)}">
+                    <apex:param value="{!Dia.Configuracion.Fecha__c}" />
+         </apex:outputText>
+	       <c:noDateLink > 
+                  <apex:inputField value="{!Dia.Configuracion.Fecha__c}" rendered="{!If(Dia.Nuevo == true,true,false)}"/>
+           </c:noDateLink>        
+	    </apex:column>
+	    <apex:column headerValue="Motivo" >
+	   			<div style="display:{!if(Dia.Nuevo == true, 'none', IF(Dia.Modificar == false, 'inline', 'none'))}">
+	               <apex:outputText value="{!Dia.Configuracion.Name}"  />
+	               </div>
+	               <apex:inputField value="{!Dia.Configuracion.Name}" rendered="{!Dia.Nuevo}"/> 
+	               <apex:inputField value="{!Dia.Configuracion.Name}" rendered="{!Dia.Modificar}"/>
+	               
+	    </apex:column>
+	   	   
+	    <apex:column headerValue="Acciones" >
+	    	<div style="display:{!if(Dia.Nuevo = false,'Inline','none')}">
+	    		<apex:commandButton value="Editar" action="{!Modificar}"  style="color: #fff;background-color: #5bc0de;border-color: #5bc0de;background-image:none;" rerender="form" rendered="{!Dia.Modificar = false}" >
+   					<apex:param name="contIdParam" value="{!Dia.Configuracion.Id}" assignTo="{!IdModificado}"/>
+				</apex:commandButton>
+				<apex:commandButton value="Cancelar" action="{!Cancelar}"  style="color: #fff;background-color: #f0ad4e;border-color: #f0ad4e;background-image:none;" rerender="Datos" rendered="{!Dia.Modificar}" >
+   					<apex:param name="contIdParam" value="{!Dia.Configuracion.Id}" assignTo="{!IdModificado}"/>
+				</apex:commandButton>
+				<apex:commandButton value="Guardar Editado" action="{!GuardarEditado}"   style="width: 100px;color: #fff;background-color: #5cb85c;border-color: #5cb85c;background-image:none; " rerender="form" rendered="{!Dia.Modificar}" >
+   					<apex:param name="contIdParam" value="{!Dia.Configuracion.Id}" assignTo="{!IdModificado}"/>
+				</apex:commandButton>
+               </div>
+               <div style="display:{!if(Dia.Modificar = false,'Inline','none')}">
+                 <apex:commandButton value="Eliminar"   action="{!Eliminar}" style="color: #fff;background-color: #d9534f;border-color: #d9534f;background-image:none;" rerender="form" >
+                 <apex:param name="contIdParam" value="{!Dia.index}" assignTo="{!Index}"/>
+				</apex:commandButton>
+				 </div>
+               </apex:column>
+     </apex:pageBlockTable>
+
+ </apex:pageBlock>
+    <div id="modalOfiVentas" style="display:none">
+            <apex:pageBlock title="Búsqueda de Oficina De Ventas">
+                <apex:pageBlockButtons location="top">
+                    <label class="labelCol">Nombre:</label>
+                    <input type="text" id="inputSearchText2" onkeyup="filterProductsEmbarque()"/>
+                </apex:pageBlockButtons>
+                <table class="list pageBlockTablePortafolio" border="0" cellpadding="0" cellspacing="0">
+                    <tr class="headerRow">
+                        <td>Código</td>
+                        <td>Descripción</td>
+                        <td style="display:none"></td>
+                    </tr>
+                    <apex:repeat value="{!MapAlmacenes}" var="productCode">
+                        <tr class="dataRow" onclick="selectItem('{!MapAlmacenes[productCode].Codigo__c}','{!MapAlmacenes[productCode].name}','{!MapAlmacenes[productCode].Id}','modalOfiVentas')" onmouseover="rowOn(this)" onmouseout="rowOff(this)">
+                            <td>{!MapAlmacenes[productCode].Codigo__c}</td>
+                            <td>{!MapAlmacenes[productCode].name}</td>
+                            <td style="display:none">
+                                {!MapAlmacenes[productCode].id}
+                                <input type="hidden" id="IdProducto" value="'{!MapAlmacenes[productCode].Id}'"/>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+              
+                <apex:pageBlockButtons location="bottom">
+                    <input type="button" value="Cerrar" class="btn" onclick="closeModal('modalOfiVentas')"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+    </div>
+    <!-- style="display: {!Display}"-->
+      
+       <div id="showStatusDiv" style="display: none;">
+          <apex:image value="{!$Resource.spinner}" width="100" height="100"/>
+        </div>
+        <script type="text/javascript">
+       function SearchProductEmbarque() {
+              var encontrado = false;
+              var MasterID =$('[id$=inputSearchText]').val()
+              if(MasterID != '')
+              {
+                  $(".pageBlockTablePortafolio tr.dataRow").each(function() {
+                      if($(this).find("td:nth-child(1)").text().toLowerCase().trim() == MasterID){
+                         
+                            $('[id$=inputSearchText]').val($(this).find("td:nth-child(1)").text());
+                            $('[id$=inputSearchText2]').val($(this).find("td:nth-child(2)").text());
+                            var id = $(this).find("td:nth-child(3)").text().trim();
+                            $('[id$=HiddenId]').val(id);
+                             encontrado = true;
+                           
+                           
+                      }
+                
+                    
+                  });
+                   if(!encontrado)
+                    {
+                      $('[id$=inputSearchText2]').val('No se encontro el Producto'); 
+                     
+                    }
+              }
+                
+             
+      }     
+    function changeValue(checkButton) {
+        var chk = document.getElementsByClassName('myChk');
+        console.log(checkButton.value);
+
+       for (var i=0; i<chk.length; i++) {
+
+              if(chk[i].name != checkButton.name)
+              {
+                chk[i].checked = false;
+              }
+             
+           
+        }
+    }
+   function openModalConfig(elementId, row) {
+
+  $('[id$=showStatusDiv]').show();
+  $('[id$=HiddenFecha]').val( $('[id$=FechaFiltro]').val());
+  $('[id$=HiddenNumeroAlmacen]').val( $('[id$=inputSearchText]').val());
+  $(".pageBlockTablePortafolio2 tr.dataRow").each(function() {
+      var inputCheckbox = $(this).find("td:nth-child(1)");
+      var seleccionado = inputCheckbox[0].childNodes;
+      
+      if($(this).find("td:nth-child(2)").text() == row )
+      {
+        
+        seleccionado[0].checked = true;
+            
+      }
+      else{ seleccionado[0].checked = false;}
+      
+    
+      
+    });
+}
+function validarSeleccionado(IsValido)
+{
+    $(".pageBlockTablePortafolio2 tr.dataRow").each(function() {
+      var inputCheckbox = $(this).find("td:nth-child(1)");
+      var seleccionado = inputCheckbox[0].childNodes;
+      
+      if($(this).find("td:nth-child(2)").text() == IsValido )
+      {
+        
+        seleccionado[0].checked = true;
+            
+      }
+      else{ seleccionado[0].checked = false;}
+      
+    
+      
+    });
+    Consultar();
+}
+
+</script>
+  </apex:form>
+
+</apex:page>

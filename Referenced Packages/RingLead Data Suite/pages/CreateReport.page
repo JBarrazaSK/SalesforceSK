@@ -1,0 +1,290 @@
+<apex:page controller="BLDS.CreateReportController" id="createReportPage" tabStyle="Profiler_Plan_View__tab">
+	<apex:form id="topForm">				
+        <apex:sectionHeader title="Plan Report Edit" subtitle="New Plan Report" />
+        <apex:pageMessages id="topPageMsg"/>
+        <style>
+        	.seperatorDiv {
+        		/*border-top: 3px solid #005b99; */
+        	}
+        	.seperatorDiv2 {
+        		margin-top: 5px;
+				margin-bottom: 40px;
+				border-top: 2px solid #005b99;
+				border-radius: 50px;
+        	}
+        	
+        </style> 
+        <script>
+        	window.onload = function(){
+        	
+        	};
+        	function toggleInput(cb, createLeadDivId){
+        		//toggleInput(this.value, 'createLeadDiv');
+        		var elem = document.getElementById(createLeadDivId);
+        		
+        		if(cb.checked == true){
+        			//elem.disabled = false;
+        			elem.style.display = 'block';
+        			
+        		} else {
+        			//elem.disabled = true;
+        			elem.style.display = 'none';
+        			
+        		}
+        		
+        	}
+        	
+        </script>       
+        
+        <table style="padding-left:10px; padding-top:10px; padding-bottom:10px;" id="InputReportName">
+        	
+        	<tr>
+            	<td><b class="labelCol">Target Campaign <span style="color:red">*</span></b></td>
+            	<td>
+            		<apex:selectList value="{!newPlanReport.BLDS__Profiler_Plan__c}" required="true"  multiselect="false" size="1">
+            			<apex:selectOptions value="{!lstPlanOption}"/>
+            		</apex:selectList>
+            		<br/>
+            	</td>
+            </tr>
+            <tr>
+            	<td colspan="2">
+					<div class="seperatorDiv2"></div>
+				</td>
+			</tr>  
+        	
+            <tr>
+                <td><b class="labelCol">Name  <span style="color:red">*</span></b>  </td>
+                <td>                
+                	<apex:inputField value="{!newPlanReport.Name}" id="name" style="width:610px;"/>
+                </td>
+            </tr>
+            <tr>
+                <td><b class="labelCol">Description  </b></td>
+                <td> <apex:inputField value="{!newPlanReport.BLDS__Description__c}" id="description" style="width:610px;height:50px;"/> </td>
+            </tr>
+            <tr>
+                <td><b class="labelCol">Report Owner &nbsp; &nbsp; &nbsp; </b></td>
+                <td> 
+                	<apex:outputPanel rendered="{!LEN(reportId) >= 15}">
+                		<apex:inputField value="{!newPlanReport.OwnerId}"  style="width:122px;"/>
+                	</apex:outputPanel>
+                	 <apex:outputPanel rendered="{!reportId == NULL}">
+                		<apex:outputText value="{!$User.FirstName + ' ' + $User.LastName}"  style="width:122px;"/>
+                	</apex:outputPanel>                	
+                </td>
+            </tr>
+            
+            <tr>
+				<td colspan="2">
+					<div class="seperatorDiv2"></div>
+				</td>
+			</tr>
+                 
+            <tr>
+            	<td>  
+            		<b class="labelCol">Filters  </b>                        
+            	</td>
+            	
+            	<td> 
+            		<table style="width:622px;">
+            			<tr>
+            				<td width="20%">
+            					<b class="labelCol">Title </b> 
+            				</td>
+            				            				
+            				<td width="80%">
+            					<script>
+            						function fillData(compId,thisCom){
+            							var comp = document.getElementById(compId);
+            							comp.value= thisCom[thisCom.selectedIndex].value;
+            						
+            						}
+            						
+            					</script>
+            					 <apex:selectList value="{!selectedLevel}" size="1" id="filterTitleSelect" style="width:100px"
+            					 	onchange="fillData('{!$Component.inputTitle}',this)">                                
+				                    <apex:selectOptions value="{!levelOptions}"/>
+				                 </apex:selectList>
+				                				                
+				                <apex:inputField id="inputTitle" value="{!newPlanReport.BLDS__Filter_Category__c}" style="width:381px"/>
+				                
+            				</td>
+            				            				
+            			</tr>
+            		</table>            		                          
+	                
+                </td>
+            </tr>
+            <tr>
+            	<td>  
+            		                       
+            	</td>
+            	
+            	<td> 
+            		<table style="width:622px;">
+            			<tr>
+            				<td width="20%">
+            					<b class="labelCol">Minimum Score </b> 
+            				</td>
+            				            				
+            				<td width="30%">
+            					<apex:inputField value="{!newPlanReport.BLDS__Filter_Minimum_Score__c}"/>
+            				</td>
+            				
+            				<td width="20%" style="text-align:right;">
+            					<b class="labelCol">Status </b> 
+            				</td>            				
+            				<td width="30%" style="text-align:right;">
+            					 <apex:selectList value="{!newPlanReport.BLDS__Filter_Status__c}" size="1" id="filterStatusSelect">                                
+				                    <apex:selectOptions value="{!filterStatusOptions}"/>
+				                 </apex:selectList>
+            				</td>
+            				            				
+            			</tr>
+            		</table>            		                          
+	                
+                </td>
+            </tr>
+            
+            <tr>
+            	<td>  
+            		                       
+            	</td>
+            	
+            	<td> 
+            		<table style="width:622px;">
+            			<tr>
+            				            				
+            				<td width="20%">
+            					<b class="labelCol">Email </b> 
+            				</td>            				
+            				<td width="30%">
+            					 <apex:inputField value="{!newPlanReport.BLDS__Filter_Email__c}"/>
+            				</td>
+            				
+            				<td width="20%" style="text-align:right;">
+            					<b class="labelCol">Include auto fill Email </b> 
+            				</td>     
+            				       				
+            				<td width="30%" style="text-align:right;">
+            					 <apex:inputCheckbox value="{!newPlanReport.BLDS__Filter_Autofill_email__c}"/>
+            				</td>             				
+            				            				            				
+            			</tr>
+            		</table>            		                          
+	                
+                </td>
+            </tr>
+                     
+            <tr>
+				<td colspan="2">
+					<div class="seperatorDiv2"></div>
+				</td>
+			</tr>
+            
+            <tr>
+            	<td>   
+            		 <b class="labelCol">Setting </b>                       
+            	</td>
+            	
+            	<td> 
+            		<table style="width:622px;">
+            			<tr>
+            				
+            				<td width="20%">
+            					<b class="labelCol">Run report when plan updates </b>
+            				</td>
+			            	<td width="30%">          		
+			            		<apex:inputCheckbox value="{!newPlanReport.BLDS__Run_when_plan_update__c}"/>
+			            	</td>
+            				            				
+            				
+            				<td width="35%" style="text-align:right;"><b class="labelCol">Show report status in Chatter </b></td>
+			            	<td width="20%" style="text-align:right;">          		
+			            		<apex:inputCheckbox value="{!newPlanReport.BLDS__Show_status_in_chatter__c}"/>
+			            	</td>
+            				            				             				
+            				            				            				
+            			</tr>
+            		</table>            		                          
+	                
+                </td>
+            </tr>
+            
+            
+            <tr>
+            	<td>  
+            		                       
+            	</td>
+            	
+            	<td> 
+            			<apex:actionFunction name="toggleInputJS"  rerender="createLeadDiv"/>
+	            		<table style="width:622px;">	            			
+	            			<tr>
+	            				<td width="20%">
+	            					<b class="labelCol">Auto export Leads when report updated </b> 
+	            				</td>
+	            				            				
+	            				<td width="100%" >
+	            					<apex:InputCheckbox value="{!newPlanReport.BLDS__exportWhenPlanUpdated__c}" onclick="toggleInputJS();"/>
+	            				</td>	
+	            				
+	            				            				            				
+	            			</tr>            			
+	            			
+	            		</table>
+	            		<table style="width:622px;">	
+	            		     <tr>
+	            				<td colspan="2">
+	            					
+	            					            				
+		            				<apex:outputPanel id="createLeadDiv">
+		            				<apex:outputPanel rendered="{!newPlanReport.BLDS__exportWhenPlanUpdated__c}">
+		            					<table style="width:622px;">
+					            			<tr>				            				
+					            				<td width="20%">
+					            					<b class="labelCol">Merge duplicate Lead </b>
+					            				</td>
+								            	<td width="30%">          		
+								            		<apex:inputCheckbox value="{!newPlanReport.BLDS__isMergeDupLead__c}"/>
+								            	</td>
+					            				            				
+					            				
+					            				<td width="20%" style="text-align:right;"><b class="labelCol">Add to Campaign</b></td>
+								            	<td width="30%" style="text-align:right;">          		
+								            		<apex:inputField value="{!newPlanReport.BLDS__CampaignId__c}"/>
+								            	</td>       				            				
+					            			</tr>
+					            		</table>       
+		            				</apex:outputPanel>
+		            				</apex:outputPanel>
+	            				
+	            				</td>
+	            					            				
+	            			</tr>
+	            	</table>
+            		          		                          
+	                
+                </td>
+            </tr>
+            
+            
+            <tr>
+            	<td colspan="2">
+					<div class="seperatorDiv2"></div>
+				</td>
+			</tr> 
+            
+             
+            <tr>
+            	<td>
+            		<apex:commandButton id="saveButton" value="Save" action="{!saveReport}"/> &nbsp; &nbsp;
+            		<apex:commandButton id="saveRunButton" value="Save & Run Report" action="{!saveAndRunReport}"/>            		
+            	</td>            	
+            </tr>
+        </table>
+        <br/> 
+        
+	</apex:form>
+</apex:page>

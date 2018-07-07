@@ -1,0 +1,10 @@
+<!--
+ - Description: Page layout component for viewing accounts geolocation on Google Maps.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 09/09/2014
+ -->
+<apex:page standardController="Account">
+<c:ViewGeolocationMap latitude="{!Account.Geolocalizacion__Latitude__s}" longitude="{!Account.Geolocalizacion__Longitude__s}"/>
+</apex:page>

@@ -1,0 +1,537 @@
+<apex:page controller="BalanceoController" cache="false" deferLastCommandUntilReady="true" showHeader="false" sidebar="false" tabStyle="Pedido__c" title="Salesforce - Balanceo de pedidos" docType="html-5.0"> 
+        
+        <apex:stylesheet value="{!URLFOR($Resource.Balanceo, 'css/Balanceo.css')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.Balanceo, 'js/jquery-1.11.1.min.js')}"/>
+        <script type="text/javascript">
+    		j$ = jQuery.noConflict();
+    	</script>
+    	<!-- div loading START -->
+	    <style>
+	        .overlay {
+	            display: none;
+	            height: 100%;
+	            left: 0;
+	            position: fixed;
+	            top: 0;
+	            opacity: 0.3;
+	            -moz-opacity: 0.3;
+	            width: 100%;
+	            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+	            filter: alpha(opacity=30);
+	            background: #000;
+	            -khtml-opacity: 0.3;
+	            z-index: 1000;
+	        }
+	        .loader {
+	            background: url('/img/loading32.gif') scroll no-repeat 0 0;
+	            width: 32px;
+	            height: 32px;
+	            position: absolute;
+	            left: 50%;
+	        }
+	        .ovAbierta{
+	        	display: inline;
+	        }
+	        .ovCerrada{
+	        	display: none;
+	        }
+	    </style>
+
+	    <div id="load_scrl" class="loadingBox loader" style="display:none"> </div>
+	    <div class="loadingBox overlay"> </div>
+	    <script type="text/javascript">
+	        function showLoadingDiv(){
+	            j$('#load_scrl').css('top', j$(document).scrollTop() + 200);
+	            j$('.loadingBox').show();
+	        }
+	        function hideLoadingDiv(){
+	             j$('.loadingBox').hide();
+	        }
+	    </script>
+	    <!-- div loading END -->
+
+        <apex:pageMessages />
+        <apex:form id="formBalanceo">
+            <apex:pageBlock title="Balanceo de Productos">
+                <apex:pageMessages id="pageMessages"/>
+                <apex:pageBlockSection title="Parámetros de búsqueda" id="pb1" collapsible="false">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Pedido__c.fields.FechaSurtidoProgramada__c.Label}" />
+                        <apex:inputField value="{!pedidoForm.Fecha_Registro__c}" required="true" id="fechaSurtidoProgramada"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField value="{!pedidoForm.OficinaVentas__c}" required="true" id="filtroOficinaVentas"/>
+                    
+                    <apex:selectList title="Seleccionar por" label="Aplicar a:" size="1" onchange="validaSelecionaProducto(this.value);" disabled="true" id="selecionaPor">
+                        <apex:selectOptions value="{!productSelectionList}"/>
+                    </apex:selectList> 
+                    <apex:selectList title="Seleccionar por" label="Producto:" size="1" id="selectProducto" onchange="getEstatusPlaza(this.value);" disabled="true" />
+                </apex:pageBlockSection>
+                <apex:pageBlockSection showHeader="false" columns="1">
+                	<div align="center" draggable="false" >
+                    	<span class="btn center" onclick="getRemotePedidos();" style="float:center">Buscar</span>
+                    </div>
+                </apex:pageBlockSection>
+                
+                <apex:outputPanel id="productosTable" style="display: none;">
+                    <apex:pageBlockSection title="Productos" columns="1">
+                        <apex:outputPanel >
+                            <table class="list tabla" border="0" cellpadding="0" cellspacing="0">
+                                <thead>
+                                    <tr class="headerRow">
+                                        <th>&nbsp;</th>
+                                        <th>Código</th>
+                                        <th>Descripción</th>
+                                        <th>SubFamilia</th>
+                                        <th>Disponible</th>
+                                        <th>Solicitado</th>
+                                        <th>Confirmado</th>
+                                        <th>Balanceado</th>
+                                        <th>Diferencia</th>
+                                        <th>Anterior</th>
+                                        <th>Posterior</th>
+                                        <th>Pedidos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productosBusqueda">
+
+                                </tbody>
+                            </table>
+                        </apex:outputPanel>
+                    </apex:pageBlockSection>
+                </apex:outputPanel>
+
+
+            </apex:pageBlock> 
+        </apex:form>
+
+    <div style="display: none;">
+    	<table id="templateProductosBusqueda">
+    	<tbody>
+    		<tr class="dataRow productoBusqueda p-{producto.Codigo_Id_Externo__c} {sinDisponible}" id="p-{producto.Codigo_Id_Externo__c}" data-canal-padre="{canalPadre}" data-canales="{canales}">
+			    <td>
+			    	<span class="btn productoBusqueda" onclick="getEstatusPlaza('{producto.Codigo_Id_Externo__c}');">Balancear</span>
+			    	<span class="btn tdDetalle pbguardar" onclick="validaGuardarBalanceo('{producto.Codigo_Id_Externo__c}','{tipoManejoInventario}');" style="display: none;">Guardar</span>
+			    	<span class="btn tdDetalle pbguardar" onclick="cancelarBalanceo('{producto.Codigo_Id_Externo__c}');" style="display: none;">Cancelar</span>
+			    </td>
+			    <td title="Código"><span>{producto.Codigo_Id_Externo__c}</span></td>
+			    <td title="Descripción"><span>{producto.Description}</span></td>
+			    <td title="SubFamilia"><span>{producto.Sub_Familia__c}</span></td>
+			    <td title="Disponible"><span class="disp-{producto.Codigo_Id_Externo__c}">{disponible}</span></td>
+			    <td title="Solicitado"><span>{solicitado}</span></td>
+			    <td title="Confirmado"><span>{balanceado}</span></td>
+			    <td title="Balanceado"><span>{confirmado}</span></td>
+			    <td title="Diferencia"><span>{diferencia}</span></td>
+			    <td title="Anterior"><span>{anterior}</span></td>
+			    <td title="Posterior"><span>{posterior}</span></td>
+			    <td title="Pedidos"><span>{pedidos.size}</span></td>
+			</tr>
+			<tr class="tdDetalle" id="pb-{producto.Codigo_Id_Externo__c}" style="display: none;">
+			    <td colspan="12">
+					<table class="list tabla tablaDetalle" border="0" cellpadding="0" cellspacing="0" style="width: 100%;">
+					    <thead>
+					        <tr class="headerRow">
+					            <th>Oficina de Ventas</th>
+					            <th>Pedido</th>
+					            <th style="width: 50%;">Cliente</th>
+					            <th>Razón Social</th>
+					            <th>Solicitado</th>
+					            <th>Confirmado</th>
+					            <th>Balanceado</th>
+					            <th>Canal de Distribución</th>
+					            <th>Estatus</th>
+					            <th>Televenta</th>
+					            <th>Requiere Autorización</th>
+					        </tr>
+					    </thead>
+					    <tbody><tr><td>{trsContent}</td></tr></tbody>
+					</table>
+			    </td>
+			</tr>
+		</tbody>
+    	</table>
+
+		<table id="templateProductosBalanceo">
+		<tbody>
+			<tr class="dataRow">
+			    <td title="Oficina de Ventas"><span>{Pedido__r.OficinaVentas__r.Name}</span></td>
+			    <td title="Pedido"><span>{Pedido__r.Numero_de_Pedido_NSC__c} {Pedido__r.Numero_Pedido_SAP__c}</span></td>
+			    <td title="Cliente"><span>{Pedido__r.ClienteSap__c}</span></td>
+			    <td title="Razón Social" style="width: 50%;"><span>{Pedido__r.Cuenta__r.Name}</span></td>
+			    <td title="Solicitado"><span>{Cajas__c}</span></td>
+			    <td title="Confirmado"><span>{Cajas_Balanceadas__c}</span></td>
+			    <td title="Balanceado">
+			    	<span class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-text">{Cajas_Conf__c}</span>
+			    	<input class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-input ovCerrada" type="text" data-id="{Id}" data-pedido="{Pedido__c}" data-producto="{Producto__r.Codigo_Id_Externo__c}" data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas_Conf__c}" onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas_Conf__c}" />
+			    </td>
+			    <td title="Canal de Distribución"><span>{Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name}</span></td>
+			    <td title="Estatus"><span>{Pedido__r.EstatusPedido__c}</span></td>
+			    <td title="Televenta"><span>{CreatedBy.Name}</span></td>
+			    <td title="Requiere Autorización"><span>{Pedido__r.RequiereAutorizacion__c}</span></td>
+			</tr>
+		</tbody>
+		</table>
+    </div>
+
+    <script type="text/javascript">
+
+    j$(document).ready(function(){
+
+    });
+
+	function validaCantidad(item){
+		var max = parseInt(j$(item).data('max'));
+		var min = parseInt(j$(item).data('min'));
+		var previo = parseInt(j$(item).data('previo'));
+		//console.log(max,min,previo,j$(item).val());
+		if(isNaN(j$(item).val())){
+			j$(item).val(previo);
+		}
+		if(j$(item).val() > max){
+			j$(item).val(previo);
+			alert('La cantidad balanceada no puede ser mayor a la confimada');
+		}else if (j$(item).val() < min){
+			j$(item).val(previo);
+			alert('La cantidad balanceada no puede ser negativa');
+		}
+	}
+
+    function disableBtnBalancear(){
+        j$(".btnBalancear").hide();
+    }
+
+	function integerInputOnly(event) {
+	    if(event.which < 48 || event.which > 57) {
+	        event.preventDefault();
+	    }
+	    onInputEnterKeydown(event);
+	}
+
+    function getRemotePedidos() {
+        var fechaSurtidoProgramada = j$('[id$="fechaSurtidoProgramada"]').val();
+        var fechaSurtidoProgramadaArr = [];
+        var fechaSurtidoProgramadaVal = '';
+        var filtroOV = j$('[id$=":filtroOficinaVentas_lkid"]').val();
+
+        try{
+        	fechaSurtidoProgramadaArr = fechaSurtidoProgramada.split("/");
+        	if(fechaSurtidoProgramadaArr.length!=3){
+        		throw "Fecha Invalida";
+        	}
+        	fechaSurtidoProgramadaVal = fechaSurtidoProgramadaArr[2] + '-' + fechaSurtidoProgramadaArr[1] + '-' + fechaSurtidoProgramadaArr[0];
+        }catch(e){
+        	console.log(e);
+        	alert("Selecciona una {!$ObjectType.Pedido__c.fields.FechaSurtidoProgramada__c.Label} valida");
+        	return;
+        }
+
+        console.log(fechaSurtidoProgramada,fechaSurtidoProgramadaArr,fechaSurtidoProgramadaVal,filtroOV);
+        if(filtroOV=='' || filtroOV=='000000000000000'){
+        	alert("Selecciona una {!$ObjectType.Pedido__c.fields.OficinaVentas__c.Label}");
+        	return;
+        }
+        showLoadingDiv();
+        muestraBusquedaProductos();
+        BalanceoController.buscarRemoto(fechaSurtidoProgramadaVal,filtroOV,
+            function(result, event){
+                if (event.status) {
+                    console.log(result);
+                    j$("#productosBusqueda").html("");
+                    j$("[id$='selectProducto']").html('<option value="Todos">Todos</option>');
+                    if(result.length>0){
+                    	var tablaBusqueda ='';
+	                    j$.each( result, function( key, value ){
+	                    	j$("[id$='selectProducto']").append(creaOptionProductos(value));
+	                    	tablaBusqueda += generaResumenProducto(value);
+	                    });
+	                    j$("#productosBusqueda").append(tablaBusqueda);
+	                    j$("[id$='selecionaPor']").prop('disabled', false);
+	                }else{
+	                	j$("#productosBusqueda").append(sinDatos());
+	                }
+                } else if (event.type === 'exception') {
+                	console.log(event);
+                	j$("#productosBusqueda").append(sinDatos());
+                	alert(event.message);
+                } else {
+                    console.log(event.message);
+                    j$("#productosBusqueda").append(sinDatos());
+                    alert(event.message);
+                }
+	            j$("[id$='selecionaPor']").val("T").change();
+                j$("[id$='productosTable']").show();
+                hideLoadingDiv();
+            }, 
+            {escape: true}
+        );
+    }
+
+    function getEstatusPlaza(item){
+    	showLoadingDiv();
+    	var canalPadre = j$('#p-'+item).data('canal-padre');
+    	var canales = [];
+    	var canalesText = ''+j$('#p-'+item).data('canales')+'';
+    	console.log(canalesText);
+        if(canalPadre===undefined || canalesText===undefined){
+            console.log('Sin parametros');
+            hideLoadingDiv();
+            return;
+        }
+    	if(canalesText.indexOf(",") > -1){
+    		canales = canalesText.split(',');
+    	}else{
+    		canales.push(canalesText);
+    	}
+    	if(item=='Todos'){
+    		muestraBusquedaProductos();
+    		hideLoadingDiv();
+    		return;
+    	}
+    	BalanceoController.validaCierrePlaza(canales, canalPadre, 
+    		function(result, event){
+                if (event.status) {
+                	console.log(result);
+                    if(result==null){
+                    	alert("Error al consultar el cierre de plazas");
+                    	//result = {2:true, 5:false}; // Para pruebas
+                    }else{
+                    	var ovAbierta = false;
+                    	j$.each(canales, function(key, canal){
+                    		j$(".ov-" + canal + "-input").removeClass("ovAbierta").addClass("ovCerrada");
+                    		j$(".ov-" + canal + "-text").removeClass("ovCerrada").addClass("ovAbierta");
+                    		if(result[canal]===undefined){
+                    			console.log("No regresa canal solicitado");
+                    		}else if(result[canal]==true){
+                    			console.log("Canal "+ canal + " cerrado");
+                    		}else if(result[canal]==false){
+                    			j$(".ov-" + canal + "-text").removeClass("ovAbierta").addClass("ovCerrada");
+                    			j$(".ov-" + canal + "-input").removeClass("ovCerrada").addClass("ovAbierta");
+                    			ovAbierta = true;
+                    		}
+                    	});
+
+                		if(ovAbierta==false){
+                			alert("Las plazas estan cerradas");
+                		}
+                    	muestraDetalle(item);
+                    }
+                    muestraDetalle(item);//FIXME
+                } else if (event.type === 'exception') {
+                	console.log(event);
+                	alert(event.message);
+                } else {
+                    console.log(event.message);
+                    alert(event.message);
+                }
+                hideLoadingDiv();
+    		},
+    		{escape: true}
+    	);
+    }
+
+    function validaGuardarBalanceo(item, tipoManejoInventario){
+    	var enviarBalanceo = false;
+    	var disponible = parseInt(j$(".disp-"+item).html());
+		var totalNuevo = 0;
+        var totalAnterior = 0;
+
+		var idsPedidos = [];
+		var prodItems = [];
+		j$.each(j$("input.prod-"+item),function(){
+			totalNuevo += parseInt(j$(this).val());
+            totalAnterior += parseInt(j$(this).data("previo"));
+		});
+    	j$.each(j$("#pb-"+item).find("input.ovAbierta"),function(){
+    		var valorNuevo = parseInt(j$(this).val());
+    		var valorAnterior = j$(this).data("previo");
+    		
+    		console.log(disponible,valorNuevo,valorAnterior,valorNuevo==valorAnterior);
+    		if(valorNuevo!=valorAnterior){
+    			enviarBalanceo = true;
+
+    			var idPedido = j$(this).data("pedido");
+    			var llavePedItem = j$(this).data("id") + '@' + valorNuevo;
+    			idsPedidos.push(idPedido);
+    			prodItems.push(llavePedItem);
+    		}
+    	});
+    	
+    
+    	console.log('valores: '+totalNuevo,disponible,totalNuevo > disponible);
+
+        if(totalNuevo > disponible && totalNuevo < totalAnterior){
+            guardarBalanceo(item, tipoManejoInventario,idsPedidos,prodItems);
+        }else if(totalNuevo > disponible ){
+    		alert("La cantidad balanceada no puede ser mayor a lo Disponible");
+    		//muestraBusquedaProductos();
+    	}else if(enviarBalanceo){
+    		guardarBalanceo(item, tipoManejoInventario,idsPedidos,prodItems);
+    	}else{
+    		alert("No hay modificaciones en los pedidos");
+    	}
+    }
+
+    function guardarBalanceo(item, tipoManejoInventario,idsPedidos,prodItems){
+        showLoadingDiv();
+        console.log('guardaBalanceRemoto',idsPedidos,prodItems);
+       
+        BalanceoController.guardaBalanceRemoto(idsPedidos,prodItems, 
+            function(result, event){
+                if (event.status) {
+                    console.log(result);
+                    if(result=="ok"){
+                        alert('Se guardo correctamente');
+                        getRemotePedidos();
+                    }else{
+                        muestraDetalle(item);
+                        alert(result);
+                    }
+                } else if (event.type === 'exception') {
+                    console.log(event);
+                    alert(event.message);
+                } else {
+                    console.log(event.message);
+                    alert(event.message);
+                }
+                if(result!="ok"){
+                    hideLoadingDiv();
+                }
+            },
+            {escape: true}
+        );
+    }
+
+    function cancelarBalanceo(item){
+    	j$.each(j$("#pb-"+item).find("input.ovAbierta"),function(){
+    		var valorAnterior = j$(this).data("previo");
+    		j$(this).val(valorAnterior);
+    	});
+    	muestraBusquedaProductos();
+    }
+    function ocultaDetalle(){
+    	j$(".tdDetalle").hide();
+    }
+
+    function ocultaBusquedaProductos(){
+    	j$(".productoBusqueda").hide();
+    }
+
+    function muestraBusquedaProductos(){
+    	ocultaDetalle();
+    	j$(".productoBusqueda").show();
+    }
+
+    function muestraDetalle(item){
+    	ocultaDetalle();
+    	ocultaBusquedaProductos();
+    	j$(".p-"+item).show();
+    	j$(".p-"+item + " .pbguardar").show();
+    	j$("#pb-"+item).show();	
+    }
+
+    function creaOptionProductos(item){
+    	var sel = '<option value="' + rmUndefinen(item.producto.Codigo_Id_Externo__c) + '">' + rmUndefinen(item.producto.Codigo_Id_Externo__c) + ' - ' + rmUndefinen(item.producto.Description) + '</option>';
+    	return sel;
+    }
+
+    function seleccionaProducto(item){
+    	if(item=='Todos'){
+    		muestraBusquedaProductos();
+    	}else{
+    		ocultaBusquedaProductos();
+    		j$(".productoBusqueda.p-"+item).show();
+    	}
+    }
+
+    function validaSelecionaProducto(item){
+    	if(item=='T'){
+    		j$("[id$='selectProducto']").val("Todos").change();
+    		j$("[id$='selectProducto']").prop('disabled', 'disabled');
+    	}else if(item=='S'){
+    		j$("[id$='selectProducto']").val("Todos").change();
+    		ocultaBusquedaProductos();
+    		j$(".sinDisponible").show();
+            j$(".sinDisponible").find('.productoBusqueda').show();
+    	}else if(item=='P'){
+    		j$("[id$='selectProducto']").prop('disabled', false);
+    	}
+    }
+
+    function sinDatos(){
+    	return '<tr><td colspan="12">No se encontraron Pedidos</td></tr>';
+    }
+
+    function generaResumenProducto(item){
+    	var itemTR = j$('#templateProductosBusqueda tbody').html();
+
+    	itemTR = itemTR.replace(/{producto.Codigo_Id_Externo__c}/g,rmUndefinen(item.producto.Codigo_Id_Externo__c));
+    	itemTR = itemTR.replace('{producto.Description}',rmUndefinen(item.producto.Description));
+    	itemTR = itemTR.replace('{producto.Sub_Familia__c}',rmUndefinen(item.producto.Sub_Familia__c));
+    	itemTR = itemTR.replace('{disponible}',rmUndefinen(item.disponible));
+    	itemTR = itemTR.replace('{sinDisponible}',rmUndefinen(item.diferencia<=0?'sinDisponible':''));
+    	itemTR = itemTR.replace('{solicitado}',rmUndefinen(item.solicitado));
+    	itemTR = itemTR.replace('{balanceado}',rmUndefinen(item.balanceado));
+    	itemTR = itemTR.replace('{confirmado}',rmUndefinen(item.confirmado));
+    	itemTR = itemTR.replace('{diferencia}',rmUndefinen(item.diferencia));
+    	itemTR = itemTR.replace('{anterior}',rmUndefinen(item.anterior));
+    	itemTR = itemTR.replace('{posterior}',rmUndefinen(item.posterior));
+    	itemTR = itemTR.replace('{pedidos.size}',rmUndefinen(item.pedidos.length));
+    	itemTR = itemTR.replace('<tr><td>{trsContent}</td></tr>',generaDetalleProducto(item.pedidos,item.itemXPedido));
+    	itemTR = itemTR.replace('{tipoManejoInventario}',rmUndefinen(item.tipoManejoInventario));
+
+    	var objCanales = obtieneCanales(item.pedidos);
+    	itemTR = itemTR.replace('{canales}',rmUndefinen(objCanales.canales));
+    	itemTR = itemTR.replace('{canalPadre}',rmUndefinen(objCanales.canalPadre));
+
+    	//console.log(itemTR);
+    	return itemTR;
+    }
+
+    function generaDetalleProducto(pedidos, items){
+    	console.log(items);
+    	var trsContent = '';
+    	j$.each(pedidos, function(key, pedido){
+    		var itemTR = j$('#templateProductosBalanceo tbody').html();
+    		var item = items[pedido.Id];
+	    	itemTR = itemTR.replace('{Pedido__r.OficinaVentas__r.Name}',rmUndefinen(item.Pedido__r.OficinaVentas__r.Name));
+	    	itemTR = itemTR.replace('{Pedido__r.Numero_de_Pedido_NSC__c}',rmUndefinen(item.Pedido__r.Numero_de_Pedido_NSC__c));
+	    	itemTR = itemTR.replace('{Pedido__r.Numero_Pedido_SAP__c}',rmUndefinen(item.Pedido__r.Numero_Pedido_SAP__c));
+	    	itemTR = itemTR.replace('{Pedido__r.ClienteSap__c}',rmUndefinen(item.Pedido__r.ClienteSap__c));
+	    	itemTR = itemTR.replace('{Pedido__r.Cuenta__r.Name}',rmUndefinen(item.Pedido__r.Cuenta__r.Name));
+	    	itemTR = itemTR.replace('{Cajas__c}',rmUndefinen(item.Cajas__c));
+	    	itemTR = itemTR.replace(/{Cajas_Balanceadas__c}/g,rmUndefinen(item.Cajas_Balanceadas__c));
+
+	    	itemTR = itemTR.replace('{Cajas_Conf_Balanceadas}',rmUndefinen(item.Cajas_Balanceadas__c==0?item.Cajas_Conf__c:item.Cajas_Balanceadas__c));
+
+	    	itemTR = itemTR.replace(/{Cajas_Conf__c}/g,rmUndefinen(item.Cajas_Conf__c));
+	    	itemTR = itemTR.replace('{Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name}',rmUndefinen(item.Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name));
+	    	itemTR = itemTR.replace('{Pedido__r.EstatusPedido__c}',rmUndefinen(item.Pedido__r.EstatusPedido__c));
+	    	itemTR = itemTR.replace('{CreatedBy.Name}',rmUndefinen(item.CreatedBy.Name));
+	    	itemTR = itemTR.replace('{Pedido__r.RequiereAutorizacion__c}',rmUndefinen(item.Pedido__r.RequiereAutorizacion__c?'Si':'No'));
+	    	itemTR = itemTR.replace(/{Pedido__r.OficinaVentas__r.Codigo__c}/g,rmUndefinen(item.Pedido__r.OficinaVentas__r.Codigo__c));
+	    	itemTR = itemTR.replace(/{Id}/g,rmUndefinen(item.Id));
+	    	itemTR = itemTR.replace(/{Pedido__c}/g,rmUndefinen(item.Pedido__c));
+	    	itemTR = itemTR.replace(/{Producto__r.Codigo_Id_Externo__c}/g,rmUndefinen(item.Producto__r.Codigo_Id_Externo__c));
+	    	trsContent += itemTR;
+	    });
+    	return trsContent;
+    }
+
+    function obtieneCanales(pedidos){
+    	var objCanales = {canalPadre:0, canales:[]};
+    	j$.each(pedidos, function(key, pedido){
+    		objCanales.canalPadre = parseInt(pedido.Canal__c);
+    		objCanales.canales.push(parseInt(pedido.OficinaVentas__r.Codigo__c));
+    	});
+    	return objCanales;
+    }
+
+    function rmUndefinen(item){
+    	if(item===undefined){
+    		return '';
+    	}else{
+    		return item;
+    	}
+    }
+
+    </script>
+</apex:page>

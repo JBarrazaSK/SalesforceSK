@@ -1,0 +1,22 @@
+<apex:page standardController="ReglaNew__c" extensions="NewReglaController" tabStyle="ReglaNew__c" title="Salesforce - Nueva regla">
+<apex:sectionHeader title="{!IF(ISNULL(regla.Id), 'Creación', 'Modificación')} de regla" subtitle="{!IF(ISNULL(regla.Id), 'Regla nueva', regla.Name)}"/>
+<apex:form >
+    <apex:pageBlock title="{!IF(ISNULL(regla.Id), 'Crear', 'Modificar')} regla">
+        <apex:pageMessages />
+        <apex:pageBlockButtons >
+            <apex:commandButton action="{!guarda}" value="Guardar"/>
+            <apex:commandButton action="{!cancela}" immediate="true" value="Cancelar"/>
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection title="Información de la regla">
+            <apex:inputField value="{!regla.Descripcion__c}"/>
+            <apex:inputField value="{!regla.Programa_de_Lealtad__c}"/>
+            <apex:inputField value="{!regla.Puntos_a_Otorgar__c}"/>
+            <apex:inputField value="{!regla.Importe__c}"/>
+            <apex:inputField value="{!regla.Producto__c}"/>
+            <apex:selectList value="{!regla.Familia_de_Producto__c}" size="1" label="Familia de Producto" title="Familia de Producto" >
+                <apex:selectOptions value="{!familiaList}" />
+            </apex:selectList>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:form>
+</apex:page>

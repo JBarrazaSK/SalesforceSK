@@ -1,0 +1,212 @@
+<!--
+ - Description: Searches for duplicate lead records and similar existences in accounts, based on filter criteria.
+ - Author: Oscar Becerra
+ - Company: gA
+ - Email: obecerra@grupoassa.com
+ - Created date: 05/02/2015
+ -->
+<apex:page controller="DuplicateLeadFinderController" cache="false" deferLastCommandUntilReady="true" tabStyle="Lead">
+<apex:sectionHeader title="Gestión de prospectos" subtitle="Prospectos duplicados"/>
+<apex:stylesheet value="{!URLFOR($Resource.DuplicateLeadFinder, 'css/DuplicateLeadFinder.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.DuplicateLeadFinder, 'js/jquery-1.11.1.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.DuplicateLeadFinder, 'js/DuplicateLeadFinder.js')}"/>
+<apex:form id="form">
+    <apex:pageBlock mode="edit" title="Búsqueda de coincidencias">
+        <apex:pageBlockButtons location="top">
+            <apex:actionFunction action="{!descartarProspectos}" name="doDescartar" rerender="form" >
+                <apex:param name="prospectosIds" value="" /> 
+            </apex:actionFunction>
+            <apex:actionFunction action="{!eliminarProspectos}" name="doEliminar" rerender="form" >
+                <apex:param name="prospectosIds" value="" /> 
+            </apex:actionFunction>
+            <apex:actionFunction action="{!execute}" name="doExecute" rerender="form" >
+                <apex:param name="leadSortField" assignTo="{!leadSortField}" value=""/> 
+                <apex:param name="leadSortOrder" assignTo="{!leadSortOrder}" value=""/>
+                <apex:param name="accountSortField" assignTo="{!accountSortField}" value=""/> 
+                <apex:param name="accountSortOrder" assignTo="{!accountSortOrder}" value=""/> 
+            </apex:actionFunction>
+            <apex:actionStatus id="actionStatus" onstart="showLoadingIcon()">
+                <apex:facet name="stop">
+                    <apex:commandButton action="{!execute}" status="actionStatus" value="Buscar" id="buscar" rerender="form"/>
+                </apex:facet>
+                <apex:facet name="start">
+                    <input type="button" value="Buscando..." disabled="disabled" class="btnDisabled"/>
+                    <img src="/img/loading.gif" class="imgLoading"/>
+                </apex:facet>
+            </apex:actionStatus>
+            <apex:commandButton action="{!URLFOR('/'+$CurrentPage.parameters.retURL)}" value="Volver" rendered="{!$CurrentPage.parameters.retURL != null}"/>
+        </apex:pageBlockButtons>
+        <apex:pageMessages />
+        <apex:pageBlockSection title="Parámetros">
+            <apex:inputField value="{!account.FechaUltimaLlamada__c}" label="Fecha de inicio:"/>
+            <apex:inputField value="{!account.Fecha_de_Registro__c}" label="Fecha de fin:"/>
+            <apex:inputField value="{!lead.Organizacion_de_Ventas_Finder__c}"/>&nbsp;
+            <apex:inputField value="{!lead.Zona_de_Ventas_Finder__c}"/>&nbsp;
+            <apex:inputField value="{!lead.Grupo_de_Clientes_Finder__c}"/>
+            &nbsp;
+            <apex:selectList value="{!lead.LastName}" label="Criterio:" size="1">
+                <apex:selectOption itemValue="null" itemLabel="--Ninguno--"/>
+                <apex:selectOption itemValue="queryDuplicateNames" itemLabel="Prospectos duplicados"/>
+                <apex:selectOption itemValue="queryDuplicateLastNames" itemLabel="Apellidos iguales"/>
+                <apex:selectOption itemValue="queryDuplicateRFCs" itemLabel="RFC iguales"/>
+                <apex:selectOption itemValue="queryDuplicatePhones" itemLabel="Teléfonos iguales"/>
+            </apex:selectList>
+        </apex:pageBlockSection>
+        <div class="pbSubheader brandTertiaryBgr tertiaryPalette">
+            <h3>Reporte de prospectos</h3>
+        </div>
+        <apex:outputPanel layout="block" styleClass="divNoDataLegend" rendered="{!leadListSize == null || leadListSize == 0}">No hay registros que mostrar.</apex:outputPanel>
+        <apex:outputPanel rendered="{!leadListSize != null && leadListSize > 0}">
+            <span class="spanListSize">Mostrando {!leadListSize} registros{!IF(leadListSize == maxSize, ' (máximo permitido)', '')}.</span>
+            <input type="button" value="Excel" class="btn floatRight" onclick="exportTableToExcel(this)"/>
+            <!--<input type="button" value="Deseleccionar todo" class="btn floatRight" onclick="checkAll(this, false, false)"/>
+            <input type="button" value="Seleccionar todo" class="btn floatRight" onclick="checkAll(this, false, true)"/>-->
+            <input type="button" value="Descartar" class="btn floatRight" onclick="descartar(this);showLoadingIcon()" status="actionStatus"/>
+            <!--<input type="button" value="Eliminar" class="btn floatRight" onclick="eliminar(this)"/>-->
+            <apex:inputHidden value="{!leadSortField}" id="leadSortField"/>
+            <apex:inputHidden value="{!leadSortOrder}" id="leadSortOrder"/>
+            <div class="divResults">
+                <table class="list" border="0" cellpadding="0" cellspacing="0" id="tableLead">
+                    <thead>
+                        <tr class="headerRow">
+                            <th class="columnCheckbox"><input type="checkbox" onchange="checkAll(this, true, $(this).is(':checked'))"/></th>
+                            <th class="{!IF(leadSortField == 'Name', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Name')">{!$ObjectType.Lead.Fields.Name.Label}</th>
+                            <th class="{!IF(leadSortField == 'Id_Prospecto__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Id_Prospecto__c')">{!$ObjectType.Lead.Fields.Id_Prospecto__c.Label}</th>
+                            <th class="{!IF(leadSortField == 'Status', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Status')">{!$ObjectType.Lead.Fields.Status.Label}</th>
+                            <th class="{!IF(leadSortField == 'CreatedDate', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'CreatedDate')">{!$ObjectType.Lead.Fields.CreatedDate.Label}</th>
+                            <th class="{!IF(leadSortField == 'FirstName', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'FirstName')">{!$ObjectType.Lead.Fields.FirstName.Label}</th>
+                            <th class="{!IF(leadSortField == 'LastName', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'LastName')">{!$ObjectType.Lead.Fields.LastName.Label}</th>
+                            <th class="{!IF(leadSortField == 'Apellido_Materno__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Apellido_Materno__c')">{!$ObjectType.Lead.Fields.Apellido_Materno__c.Label}</th>
+                            <th class="{!IF(leadSortField == 'Apellidos__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Apellidos__c')">{!$ObjectType.Lead.Fields.Apellidos__c.Label}</th>
+                            <!--<th class="{!IF(leadSortField == 'Nombre_completo__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Nombre_completo__c')">{!$ObjectType.Lead.Fields.Nombre_completo__c.Label}</th>-->
+                            <th class="{!IF(leadSortField == 'RFC__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'RFC__c')">{!$ObjectType.Lead.Fields.RFC__c.Label}</th>
+                            <th class="{!IF(leadSortField == 'Telefono__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Telefono__c')">{!$ObjectType.Lead.Fields.Telefono__c.Label}</th>
+                            <th class="{!IF(leadSortField == 'Celular__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Celular__c')">{!$ObjectType.Lead.Fields.Celular__c.Label}</th>
+                            <th class="{!IF(leadSortField == 'Telefono_Adicional__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Telefono_Adicional__c')">{!$ObjectType.Lead.Fields.Telefono_Adicional__c.Label}</th>
+                            <th class="{!IF(leadSortField == 'Telefono_Contacto__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Telefono_Contacto__c')">{!$ObjectType.Lead.Fields.Telefono_Contacto__c.Label}</th>
+                            <th class="{!IF(leadSortField == 'Calle__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Calle__c')">{!$ObjectType.Lead.Fields.Calle__c.Label}</th>
+                            <th class="{!IF(leadSortField == 'No_Exterior__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'No_Exterior__c')">{!$ObjectType.Lead.Fields.No_Exterior__c.Label}</th>
+                            <th class="{!IF(leadSortField == 'Colonia__r.Descripcion_Colonia__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Colonia__r.Descripcion_Colonia__c')">{!$ObjectType.Colonia__c.Fields.Descripcion_Colonia__c.Label}</th>
+                            <th class="{!IF(leadSortField == 'Colonia__r.Codigo_Postal__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Colonia__r.Codigo_Postal__c')">{!$ObjectType.Colonia__c.Fields.Codigo_Postal__c.Label}</th>
+                            <th class="{!IF(leadSortField == 'Colonia__r.Localidad_Ciudad__r.Name', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Colonia__r.Localidad_Ciudad__r.Name')">{!$ObjectType.Localidad_Ciudad_Colonia__c.Fields.Name.Label}</th>
+                            <th class="{!IF(leadSortField == 'Colonia__r.Municipio_Delegacion__r.Name', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Colonia__r.Municipio_Delegacion__r.Name')">{!$ObjectType.Municipio_Delegacion_Colonia__c.Fields.Name.Label}</th>
+                            <th class="{!IF(leadSortField == 'Colonia__r.Estado__r.Name', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Colonia__r.Estado__r.Name')">{!$ObjectType.Estado_Colonia__c.Fields.Name.Label}</th>
+                            <th class="{!IF(leadSortField == 'Colonia__r.Pais__r.Name', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Colonia__r.Pais__r.Name')">{!$ObjectType.Pais_Colonia__c.Fields.Name.Label}</th>
+                            <th class="{!IF(leadSortField == 'Grupo_de_clientes__c', IF(leadSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('lead', 'Grupo_de_clientes_f__c')">{!$ObjectType.Lead.Fields.Grupo_de_clientes__c.Label}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!leadList}" var="list">
+                            <apex:repeat value="{!list}" var="item">
+                                <tr class="dataRow">
+                                    <td><input type="checkbox" onchange="setAllChecked(this)"/>
+                                    <input type="hidden" value="{!item['Id']}"/></td>
+                                    <td><div><a href="/{!item['Id']}" target="_blank">{!item['Name']}</a></div></td>
+                                    <td><div>{!item['Id_Prospecto__c']}</div></td>
+                                    <td><div>{!item['Status']}</div></td>
+                                    <td><div><apex:outputText value="{0, date, dd/MM/yyyy HH:mm:ss}"><apex:param value="{!item['CreatedDate']}"/></apex:outputText></div></td>
+                                    <td><div>{!item['FirstName']}</div></td>
+                                    <td><div>{!item['LastName']}</div></td>
+                                    <td><div>{!item['Apellido_Materno__c']}</div></td>
+                                    <td><div>{!item['Apellidos__c']}</div></td>
+                                    <!--<td><div>{!item['Nombre_completo__c']}</div></td>-->
+                                    <td><div>{!item['RFC__c']}</div></td>
+                                    <td><div>{!item['Telefono__c']}</div></td>
+                                    <td><div>{!item['Celular__c']}</div></td>
+                                    <td><div>{!item['Telefono_Adicional__c']}</div></td>
+                                    <td><div>{!item['Telefono_Contacto__c']}</div></td>
+                                    <td><div>{!item['Calle__c']}</div></td>
+                                    <td><div>{!item['No_Exterior__c']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Descripcion_Colonia__c']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Codigo_Postal__c']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Localidad_Ciudad__r']['Name']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Municipio_Delegacion__r']['Name']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Estado__r']['Name']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Pais__r']['Name']}</div></td>
+                                    <td><div>{!item['Grupo_de_Clientes__c']}</div></td>
+                                 </tr>
+                            </apex:repeat>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+        </apex:outputPanel>
+        <div class="pbSubheader brandTertiaryBgr tertiaryPalette">
+            <h3>Reporte de clientes</h3>
+        </div>
+        <apex:outputPanel layout="block" styleClass="divNoDataLegend" rendered="{!accountListSize == null || accountListSize == 0}">No hay registros que mostrar.</apex:outputPanel>
+        <apex:outputPanel rendered="{!accountListSize != null && accountListSize > 0}">
+            <span class="spanListSize">Mostrando {!accountListSize} registros{!IF(accountListSize == maxSize, ' (máximo permitido)', '')}.</span>
+            <input type="button" value="Excel" class="btn floatRight" onclick="exportTableToExcel(this)"/>
+            <!--<input type="button" value="Deseleccionar todo" class="btn floatRight" onclick="checkAll(this, false, false)"/>
+            <input type="button" value="Seleccionar todo" class="btn floatRight" onclick="checkAll(this, false, true)"/>-->
+            <apex:inputHidden value="{!accountSortField}" id="accountSortField"/>
+            <apex:inputHidden value="{!accountSortOrder}" id="accountSortOrder"/>
+            <div class="divResults">
+                <table class="list" border="0" cellpadding="0" cellspacing="0" id="tableAccount">
+                    <thead>
+                        <tr class="headerRow">
+                            <th class="columnCheckbox"><input type="checkbox" onchange="checkAll(this, true, $(this).is(':checked'))"/></th>
+                            <th class="{!IF(accountSortField == 'Name', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Name')">{!$ObjectType.Account.Fields.Name.Label}</th>
+                            <th class="{!IF(accountSortField == 'Numero_Cliente_SAP__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Numero_Cliente_SAP__c')">{!$ObjectType.Account.Fields.Numero_Cliente_SAP__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Estatus_Cliente__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Estatus_Cliente__c')">{!$ObjectType.Account.Fields.Estatus_Cliente__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'CreatedDate', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'CreatedDate')">{!$ObjectType.Account.Fields.CreatedDate.Label}</th>
+                            <th class="{!IF(accountSortField == 'Nombres__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Nombres__c')">{!$ObjectType.Account.Fields.Nombres__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Apellido_Paterno__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Apellido_Paterno__c')">{!$ObjectType.Account.Fields.Apellido_Paterno__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Apellido_Materno__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Apellido_Materno__c')">{!$ObjectType.Account.Fields.Apellido_Materno__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Apellidos__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Apellidos__c')">{!$ObjectType.Account.Fields.Apellidos__c.Label}</th>
+                            <!--<th class="{!IF(accountSortField == 'Nombre_completo__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Nombre_completo__c')">{!$ObjectType.Account.Fields.Nombre_completo__c.Label}</th>-->
+                            <th class="{!IF(accountSortField == 'RFC__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'RFC__c')">{!$ObjectType.Account.Fields.RFC__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Telefono__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Telefono__c')">{!$ObjectType.Account.Fields.Telefono__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Celular__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Celular__c')">{!$ObjectType.Account.Fields.Celular__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Fax__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Fax__c')">{!$ObjectType.Account.Fields.Fax__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Telefono_Adicional__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Telefono_Adicional__c')">{!$ObjectType.Account.Fields.Telefono_Adicional__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Calle__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Calle__c')">{!$ObjectType.Account.Fields.Calle__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Numero_exterior__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Numero_exterior__c')">{!$ObjectType.Account.Fields.Numero_exterior__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Colonia__r.Descripcion_Colonia__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Colonia__r.Descripcion_Colonia__c')">{!$ObjectType.Colonia__c.Fields.Descripcion_Colonia__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Colonia__r.Codigo_Postal__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Colonia__r.Codigo_Postal__c')">{!$ObjectType.Colonia__c.Fields.Codigo_Postal__c.Label}</th>
+                            <th class="{!IF(accountSortField == 'Colonia__r.Localidad_Ciudad__r.Name', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Colonia__r.Localidad_Ciudad__r.Name')">{!$ObjectType.Localidad_Ciudad_Colonia__c.Fields.Name.Label}</th>
+                            <th class="{!IF(accountSortField == 'Colonia__r.Municipio_Delegacion__r.Name', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Colonia__r.Municipio_Delegacion__r.Name')">{!$ObjectType.Municipio_Delegacion_Colonia__c.Fields.Name.Label}</th>
+                            <th class="{!IF(accountSortField == 'Colonia__r.Estado__r.Name', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Colonia__r.Estado__r.Name')">{!$ObjectType.Estado_Colonia__c.Fields.Name.Label}</th>
+                            <th class="{!IF(accountSortField == 'Colonia__r.Pais__r.Name', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Colonia__r.Pais__r.Name')">{!$ObjectType.Pais_Colonia__c.Fields.Name.Label}</th>
+                            <th class="{!IF(accountSortField == 'Plaza__c', IF(accountSortOrder == 'ASC', 'sortAsc', 'sortDesc'), '')}" onclick="setSortOrder('account', 'Plaza__c')">{!$ObjectType.Account.Fields.Plaza__c.Label}</th>
+                          </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!accountList}" var="list">
+                            <apex:repeat value="{!list}" var="item">
+                                <tr class="dataRow">
+                                    <td><input type="checkbox" onchange="setAllChecked(this)"/></td>
+                                    <td><div><a href="/{!item['Id']}" target="_blank">{!item['Name']}</a></div></td>
+                                    <td><div>{!item['Numero_Cliente_SAP__c']}</div></td>
+                                    <td><div>{!item['Estatus_Cliente__c']}</div></td>
+                                    <td><div><apex:outputText value="{0, date, dd/MM/yyyy HH:mm:ss}"><apex:param value="{!item['CreatedDate']}"/></apex:outputText></div></td>
+                                    <td><div>{!item['Nombres__c']}</div></td>
+                                    <td><div>{!item['Apellido_Paterno__c']}</div></td>
+                                    <td><div>{!item['Apellido_Materno__c']}</div></td>
+                                    <td><div>{!item['Apellidos__c']}</div></td>
+                                    <!--<td><div>{!item['Nombre_completo__c']}</div></td>-->
+                                    <td><div>{!item['RFC__c']}</div></td>
+                                    <td><div>{!item['Telefono__c']}</div></td>
+                                    <td><div>{!item['Celular__c']}</div></td>
+                                    <td><div>{!item['Fax__c']}</div></td>
+                                    <td><div>{!item['Telefono_Adicional__c']}</div></td>
+                                    <td><div>{!item['Calle__c']}</div></td>
+                                    <td><div>{!item['Numero_exterior__c']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Descripcion_Colonia__c']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Codigo_Postal__c']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Localidad_Ciudad__r']['Name']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Municipio_Delegacion__r']['Name']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Estado__r']['Name']}</div></td>
+                                    <td><div>{!item['Colonia__r']['Pais__r']['Name']}</div></td>
+                                    <td><div>{!item['Plaza__c']}</div></td>                         
+                                </tr>
+                            </apex:repeat>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+        </apex:outputPanel>
+    </apex:pageBlock>
+</apex:form>
+</apex:page>
