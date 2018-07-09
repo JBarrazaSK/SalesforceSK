@@ -986,13 +986,15 @@ public class PedidosOtrosCanalesUtils {
                     if(p.item.Cantidad__c != cajas )
                     {
                         MensajeAprobacion += 'Se Agrego la cantidad de: '+ p.item.Cantidad__c +' para el producto : '+p.Codigo +'  \n';
+                         p.item.Estatus__c = 1;
                         //EnvioAprobacion = true;
                         
                     }
-                    if(p.item.Estatus__c != 3)
+                    else{ p.item.Estatus__c = 1;}
+                    /*if(p.item.Estatus__c != 3)
                     {
                         p.item.Estatus__c = 1;
-                    }
+                    }*/
                 }
                 else
                 {
@@ -1051,44 +1053,11 @@ public class PedidosOtrosCanalesUtils {
             ActualizarCamposPedido(pedidoSinMod);
             ActualizarCamposOpportunityLineItem(productosSinModificacion);
         }
-        
-  /*       if((String.isNotBlank(pedido.Numero_de_Pedido_NSC__c) && pedido.Numero_de_Pedido_NSC__c != '0') || (string.isNotBlank(pedido.Numero_Pedido_SAP__c ) && pedido.Numero_Pedido_SAP__c != '0')) {
-            WsActualizaDatosGenerales_NSC_SDL.RespuestaModificacionPedidos ResponseNSC = null;
-            System.debug('EnvioAprobacion :: '+EnvioAprobacion);
-            System.debug('validarGuardarNSC ::'+validarGuardarNSC(pedido));
-            System.debug('IdPlanta__c::'+pedido.Canal_Factura__r.IdPlanta__c);
-            
-            
-           if((EnvioAprobacion == false && validarGuardarNSC(pedido)) &&  !ContainsDelete) 
-            {
-                map<string,list<ProductosEliminado__c>> MapProductosEliminado = TraerProductosEliminados(Pedido.id);
-                if(MapProductosEliminado != null && MapProductosEliminado.size() > 0)
-                {
-                    ResponseNSC = EnviarModificacionPedido(pedido,areaResp,productos, MapProductosEliminado.get(Pedido.Id));
-                    if(ResponseNSC  != null && ResponseNSC.EstatusPedido == 1 )
-                    {
-                        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));
-                        for(ProductosEliminado__c p : MapProductosEliminado.get(Pedido.Id))
-                        {
-                            p.Enviado__c = true;
-                        }
-                        update MapProductosEliminado.get(Pedido.Id);
-                    }
-                    else
-                    {
-                        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, ResponseNSC.Mensaje));
-                        for(ProductosEliminado__c p : MapProductosEliminado.get(Pedido.Id))
-                        {
-                            p.Enviado__c = false;
-                        }
-                        update MapProductosEliminado.get(Pedido.Id);
-                        return pedido;
-                    }
-                }
-                else
-                {
-                    
-                    ResponseNSC = WsActualizarDatosGenerales(pedido,areaResp, productos,1,'1');
+        if((String.isNotBlank(pedido.Numero_de_Pedido_NSC__c) && pedido.Numero_de_Pedido_NSC__c != '0') || (string.isNotBlank(pedido.Numero_Pedido_SAP__c ) && pedido.Numero_Pedido_SAP__c != '0')) {
+	         WsActualizaDatosGenerales_NSC_SDL.RespuestaModificacionPedidos ResponseNSC = null;
+	         if(string.isNotBlank(pedido.Id))
+	         {
+	         	  	ResponseNSC = WsActualizarDatosGenerales(pedido,areaResp, productos,2,'1');
                     system.debug('RESPONSE NSC: '+ ResponseNSC);
                     if(ResponseNSC  != null && ResponseNSC.EstatusPedido == 1 )
                     {
@@ -1099,65 +1068,25 @@ public class PedidosOtrosCanalesUtils {
                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, ResponseNSC.Mensaje));
                         return pedido;
                     }
-                }
-            }
-             if(EnvioAprobacion != null)  {
-if(EnvioAprobacion == true )
-{
-Integer dias = pedido.Canal_Factura__r.Dias_de_cierre__c == null ? 0 : Integer.valueOf(pedido.Canal_Factura__r.Dias_de_cierre__c);
-if((pedido.Fecha_de_Embarque__c > Datetime.now().addDays(dias)) && !ContainsDelete )
-{
-System.debug('Entro executeGuardar Bodega '+ ContainsDelete);
-map<string,list<ProductosEliminado__c>> MapProductosEliminado = TraerProductosEliminados(Pedido.id);
-if(MapProductosEliminado != null && MapProductosEliminado.size() > 0)
-{
-ResponseNSC = EnviarModificacionPedido(pedido,areaResp,productos,  MapProductosEliminado.get(Pedido.Id));
+	         }
+	        if(cancelacion)
+	            {
+	                System.debug('Entro cancelacion nueva');
+	                ResponseNSC = WsActualizarDatosGenerales(pedido,areaResp, productos,2,'2');
+	                if(ResponseNSC  != null && ResponseNSC.EstatusPedido == 1 )
+	                {
+	                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));
+	                }
+	                else
+	                {
+	                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, ResponseNSC.Mensaje));
+	                    return pedido;
+	                }
+	            }
+        }
 
-}
-else
-{
-ResponseNSC = EnviarModificacionPedido(pedido,areaResp,productos, new list<ProductosEliminado__c>());
-}
-if(ResponseNSC  != null && ResponseNSC.EstatusPedido == 1 )
-{
-ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));
-for(pedidosOtrosCanalesUtils.producto p : productos)
-{
-if(p.item.Estatus__c == 3)
-{
-p.item.Estatus__c = 1;
-}
-}
-if(MapProductosEliminado != null && MapProductosEliminado.size() > 0)
-{
-update MapProductosEliminado.get(Pedido.Id);
-}
-}
-else
-{
-ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, ResponseNSC.Mensaje));
-return pedido;
-}
-}
-}
-}
-            if(cancelacion)
-            {
-                System.debug('Entro cancelacion nueva');
-                ResponseNSC = WsActualizarDatosGenerales(pedido,areaResp, productos,2,'2');
-                if(ResponseNSC  != null && ResponseNSC.EstatusPedido == 1 )
-                {
-                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));
-                }
-                else
-                {
-                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, ResponseNSC.Mensaje));
-                    return pedido;
-                }
-            }
-        }*/
-        //else
-       // {
+        else
+        {
             WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos = new WsPedidosMayoreoLegados.DatosPedidoLegado();
             ObtenerActalizaLegados(pedido);
             DatosPedidos.ActualizaPSV = ActualizaPSV;
@@ -1322,7 +1251,7 @@ return pedido;
                 ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, e.getmessage()));
                 return pedido;
             }
-        //}	
+        }	
         return pedido;
     }
     public static WsActualizaPSVPedidos.PedidosPSV CrearPedidoPsvActualiza(string folio,string folioSF,String tipoPedido,boolean actualizaSap,string folioSDL,string fechaEmbarque)
@@ -3016,6 +2945,15 @@ pedido.StageName = '11 - Bloqueado Cierre';
             {
                 CabezeropedidoMayoreo.estatusPedido = 8;
                 system.debug('CabezeropedidoMayoreo' + CabezeropedidoMayoreo);
+                request.pedidoMayoreo.pedidoMayoreo = new list<WsActualizaDatosGenerales_NSC_SDL.PedidoMayoreo>();
+                request.PedidoMayoreo.PedidoMayoreo.add(CtrlTrgOppWsActualizaDatosGenerales.CrearPedidoMayoreo(CabezeropedidoMayoreo,pedido,productos));
+            }
+        }
+        else
+        {
+        	 PedidosMayoreoWS.PedidoMayoreo CabezeropedidoMayoreo = CtrlTrgOppWsActualizaDatosGenerales.CrearCabezeroPedido(pedido,productos);
+            if(CabezeropedidoMayoreo != null)
+            {
                 request.pedidoMayoreo.pedidoMayoreo = new list<WsActualizaDatosGenerales_NSC_SDL.PedidoMayoreo>();
                 request.PedidoMayoreo.PedidoMayoreo.add(CtrlTrgOppWsActualizaDatosGenerales.CrearPedidoMayoreo(CabezeropedidoMayoreo,pedido,productos));
             }
