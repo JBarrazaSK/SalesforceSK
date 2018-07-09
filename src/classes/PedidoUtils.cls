@@ -3,7 +3,7 @@
  * Modifying by: Jose barraza
  * Created date: 07/04/2018
  **/ 
-public with sharing class PedidoUtils {
+public with sharing class PedidoUtils { 
  
     public static final Integer DEFAULT_PEDIDOITEMWRAPPERLIST_SIZE = 10;
     public static final Integer MAX_CALLOUT_RETRIES = 3;
@@ -935,33 +935,7 @@ public with sharing class PedidoUtils {
 			map<string,string> mapaUnidadMedida = new map<string,string>{'C'=>'CS','K'=>'KG','L'=>'LB','P'=>'PI'};
 			ABCPedidos_SF_to_ECC.TEXT_Linea_element 		elem4 = new ABCPedidos_SF_to_ECC.TEXT_Linea_element();
 			elem4.Comentarios 			= pedidoWrapper.pedido.Observacion__c;
-			string com =elem4.Comentarios ;
-			integer caracteres =  250;
-        	if(elem4.Comentarios.length() > caracteres)
-        		{        			
-        			while(com.length() != 0)
-        			{
-        				elem4 = new ABCPedidos_SF_to_ECC.TEXT_Linea_element();
-        				if(com.length() > caracteres)
-        				{
-	        				elem4.Comentarios = com.substring(0,caracteres);
-	        				result.SALES_TEXT.TEXT_Linea.add(elem4);
-	        				com =  com.substring(caracteres,com.length());
-        				}
-        				else
-        				{
-        					elem4.Comentarios  =  com;
-        					result.SALES_TEXT.TEXT_Linea.add(elem4);
-        					com = '';
-        				}
-        			}        		
-        		}
-        		else
-        		{
-        			result.SALES_TEXT.TEXT_Linea.add(elem4);
-        		}
-        		
-        		
+			result.SALES_TEXT.TEXT_Linea.add(elem4);       		
         	
         	for(Integer i=0; i<pedidoWrapper.pedidoItemList.size(); i++) {
         		ABCPedidos_SF_to_ECC.ITEMS_Linea_element 		elem1 = new ABCPedidos_SF_to_ECC.ITEMS_Linea_element();
@@ -1016,16 +990,15 @@ public with sharing class PedidoUtils {
         			
         		if(pedidoWrapper.pedidoItemList[i].Cajas_Conf__c != null)
         			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].Cajas_Conf__c);	
-        		
-        		if(result.SALES_HEADER_IN.Estatus == 'I' && mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c) != 'PI' )
+        		// Si es  pedido nuevo o modificacion y es diferente de Piezas  se mandas las cajas confirmadas 
+        		if((result.SALES_HEADER_IN.Estatus == 'I' || result.SALES_HEADER_IN.Estatus == 'U') && mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c) != 'PI' )
         		{
-        			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].piezas_Conf__c);	
+        			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].Cajas_Conf__c);        				
         		}
         		else
         		{
-        			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].Cajas_Conf__c);
+        			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].piezas_Conf__c);
         		}
-        		
         		if(Balanceo && mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c) == 'PI' )
         		{
         			//elem1.TipoSurtido 	= 'CJ';
@@ -1036,6 +1009,7 @@ public with sharing class PedidoUtils {
         		}
         		else if(Balanceo){
         			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].Cajas_Conf__c);
+        			
         		}
         		
         		elem5.FechaCarga 			= pedidoWrapper.pedido.FechaSurtidoProgramada__c.format('yyyyMMdd');

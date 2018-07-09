@@ -312,7 +312,6 @@ function setSummaryRow() {
         $(".pageBlockTableProductos tr.totalRow th:nth-child("+index+")").html(index == "4" || index == "7" ? floatToString(summary[totals[index]], 2) : index == "9" ? floatToCurrency(summary[totals[index]]) : numberToString(summary[totals[index]]));
     }
     $("[id$=inputImporte]").val(summary["16"]);
-     // console.log('SUMARY16 : '+ summary["16"] );
 }
 
 function removeRow(index) {
@@ -644,7 +643,20 @@ function numberToString(value) {
         valueReturn = integerValue.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")+valueReturn;
     }
     return valueReturn;
-}     
+}
+ function formatoMoneda(value)
+    {
+    	value = String(value).replace("$","").replace(",","");
+    	console.log(value)
+    	if(isNaN(value)){
+    		value = "$0.00" ;
+    	}else
+    	{
+    		value =  floatToCurrency(parseFloat(value).toFixed(2));
+    	}
+    
+    	return value;
+    }     
     function getPedidoItem(index) {
         var row = getRow(index);
          var objects = {
@@ -731,12 +743,13 @@ function numberToString(value) {
         pedidoItem.objects.KilosConf__c.val(pedidoItem.values.KilosConf__c);
         pedidoItem.objects.PrecioUnitarioOtorgado__c.val(floatToString(pedidoItem.values.PrecioUnitarioOtorgado__c, 4));
         pedidoItem.objects.precioUnitarioOtorgadoPesos.val(pedidoItem.values.precioUnitarioOtorgadoPesos);
-        pedidoItem.objects.Importe__c.val(floatToCurrency(parseFloat(pedidoItem.values.Importe__c)));
-        //pedidoItem.objects.Importe__c.val(pedidoItem.values.Importe__c);
-        
+        //pedidoItem.objects.Importe__c.val(floatToCurrency(parseFloat(pedidoItem.values.Importe__c)));
+
+        pedidoItem.objects.Importe__c.val(formatoMoneda(pedidoItem.values.Importe__c));  
+              
+    
         setSummaryRow();
     }
-    
     function restoreData(pedidoItem) {   
         var valueUnidadMedida =  pedidoItem.objects.Unidad__c.data("old");
         $("#selectUnidadMedida"+pedidoItem.values.index+" option[value="+valueUnidadMedida+"]").prop("selected", "selected").change();
@@ -804,7 +817,6 @@ function calculaEnBaseAPiezas(pedidoItemValues, type) {
         pedidoItemValues["Kilos"+type+"__c"] = inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar ? pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido*productMap[pedidoItemValues.productCode].Peso_Promedio__c : pedidoItemValues["Piezas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
         pedidoItemValues["kilos"+type] = pedidoItemValues.unit == "L" ? pedidoItemValues["Kilos"+type+"__c"]*conversionKiloPound : pedidoItemValues["Kilos"+type+"__c"];
     }
-    console.log('Piezas :'+pedidoItemValues["Piezas"+type+"__c"]);
 }
 
 function calculaEnBaseAKilos(pedidoItemValues, type) {
@@ -1522,7 +1534,7 @@ function rowOff(element) {
                         </td>
                         <td/>
                         <td class="textColumn">
-                            <apex:inputField value="{!pedidoItem.Importe__c}" styleClass="disabledInput"/>
+                            <apex:inputField value="{!pedidoItem.Importe__c}" styleClass="disabledInput format-num"/>
                         </td>
                         <!--<td class="inputColumn">
                             <apex:outputField value="{!pedidoItem.Precio_Requiere_Aprobacion__c}"/>

@@ -147,7 +147,7 @@ public with sharing class PedidoWizardController {
 
     }
     public void submit() {
-    	system.debug('SUBMIT():');
+    	system.debug('SUBMIT():'); 
         pedidoWrapper.setPedidoData();
         PedidoInsertNSCWS.PedidoRespuesta response = null;
         WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido responseSAP = null; 
@@ -160,17 +160,21 @@ public with sharing class PedidoWizardController {
         else if(responseSAP != null)
         	pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[0]);
 
-        if(response != null || responseSAP != null)
+		//NSC
+        if(response != null)
         {
-        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[0].Estatus == 'B') 
+        	pedidoWrapper.assignWebServiceResponseData(response);
+            pedidoWrapper.save();
+        }
+        else if(responseSAP != null)
+        {        	      	 
+        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[0].Estatus != 'C') 
         	{
-        		ApexPages.Message myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[0].Mensaje);
-            	ApexPages.addMessage(myMsg);        	
+        		pedidoWrapper.save();   
+        			
         	}
-        	else
-        	{        	
-            	pedidoWrapper.save();
-        	}
+        	ApexPages.Message myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[0].Mensaje);
+            ApexPages.addMessage(myMsg);
         }
         	
     }
