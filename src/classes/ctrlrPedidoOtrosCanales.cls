@@ -2548,8 +2548,13 @@ public class ctrlrPedidoOtrosCanales {
                     
                     esPlanta = false; cruce = false; pedido.Fecha_de_Cruce__c = pedido.Fecha_de_Inspeccion__c = pedido.Fecha_Embarque_Bodega__c = null;
                 }
-                else {
+                else if( pedido.Account.Canal_Distribucion__c.right(2) == 'EX' && (pedido.Account.Sociedad__c.right(3) == '303')) {
                     cruce = true; esPlanta = true;
+                }
+                else
+                {
+                    cruce = false; esPlanta = false;
+                    pedido.Fecha_de_Cruce__c = pedido.Fecha_de_Inspeccion__c = pedido.Fecha_Embarque_Bodega__c = null;
                 }
             }
         }

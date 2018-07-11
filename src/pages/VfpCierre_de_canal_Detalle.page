@@ -25,7 +25,7 @@ function noenter(e){
 </script>
 <apex:form id="form" >
 <apex:pageBlock id="Oficinas" title="Apertura - Cierre de oficinas de ventas">
-<apex:pageMessages />
+<apex:pageMessages id="pageMessages" />
 <table>
     <tr>
     <td align="right"><apex:outputLabel value="Oficina de ventas:" for="account__name"/></td>
@@ -76,8 +76,8 @@ function noenter(e){
            
             <table >
 			    <tr>
-			    	<td><apex:commandButton action="{!CerrarCanal}" value="{!ValorBoton}" reRender="form" /></td>
-			    	<td><apex:commandButton action="{!AperturarCanal}" value="Aperturar" /></td>
+			    	<td><apex:commandButton action="{!CerrarCanal}" value="{!ValorBoton}" reRender="form,pageMessages" /></td>
+			    	<td><apex:commandButton action="{!AperturarCanal}" value="Aperturar"  reRender="form"/></td>
 			    	<td><apex:commandButton action="{!ExtensionCanal}" value="Extension" /></td>
 				    <td align="right"><apex:outputLabel value="Motivo: " for="Motivos"/></td>
 				    <td align="left" class="TdLeft">

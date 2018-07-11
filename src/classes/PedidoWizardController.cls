@@ -167,13 +167,22 @@ public with sharing class PedidoWizardController {
             pedidoWrapper.save();
         }
         else if(responseSAP != null)
-        {        	      	 
-        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[0].Estatus != 'C') 
+        {   
+        	ApexPages.Message myMsg =  null;     	      	 
+        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[0].Estatus != 'C' && responseSAP.DT_SE_ABCPedidos_RespPedido[0].TipoMensaje == 'W') 
         	{
-        		pedidoWrapper.save();   
-        			
+        		pedidoWrapper.save();
         	}
-        	ApexPages.Message myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[0].Mensaje);
+        	
+        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[0].TipoMensaje == 'E' )
+        	{
+        		 myMsg = new ApexPages.Message(ApexPages.Severity.ERROR,responseSAP.DT_SE_ABCPedidos_RespPedido[0].Mensaje);
+        	}
+        	else 
+        	{
+        		 myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[0].Mensaje);
+        	}
+        	
             ApexPages.addMessage(myMsg);
         }
         	

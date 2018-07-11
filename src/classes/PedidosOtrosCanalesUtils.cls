@@ -1248,7 +1248,8 @@ public class PedidosOtrosCanalesUtils {
             }
             catch(Exception e)
             {
-                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, e.getmessage()));
+                //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, e.getmessage()));
+                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,'Ocurrió un problema al guardar en sistemas legados.'));
                 return pedido;
             }
         }	
@@ -2324,6 +2325,10 @@ pedido.StageName = '11 - Bloqueado Cierre';
             }
             if(p.item.Tipo_de_Precio__c =='PC')
             {
+                pedidoDetalle.nTipoPrecioOriginal=3;
+            }
+            if(p.item.Tipo_de_Precio__c =='DC')
+            {
                 pedidoDetalle.nTipoPrecioOriginal=4;
             }
             if(p.item.Tipo_de_Precio__c =='PP')
@@ -3266,18 +3271,22 @@ else*/
     }
     
     
-    public static list<AdminSaldosEstrategias__c> TraerEstrategiaComercial(Integer semana)
+    public static list<AdminSaldosEstrategias__c> TraerEstrategiaComercial(Integer semana, Integer anio)
     {
         integer semanaAnt = semana -1;
         System.debug('SemanaTraer:: '+ semana);
-        return [select Id,Anio__c,Fecha_Final__c,Fecha_Inicial__c,Folio__c,Num_Semana__r.Name,Saldo_Final_Auto__c,Saldo_Final_Export__c,Saldo_Final_Mayo__c,
+        
+     list<AdminSaldosEstrategias__c> adminSaldos =   [select Id,Anio__c,Fecha_Final__c,Fecha_Inicial__c,Folio__c,Num_Semana__r.Name,Saldo_Final_Auto__c,Saldo_Final_Export__c,Saldo_Final_Mayo__c,
                 productoId__r.ProductCode,Prod_Master__r.MasterID__c,productoId__c,Prod_Master__c
                 from AdminSaldosEstrategias__c
                 where
                 Num_Semana__r.name >=: String.valueOf(semanaAnt)
                 and Num_Semana__r.name <=: String.valueOf(semana)
-                order by   Num_Semana__r.name
+                and Anio__c =: String.valueOf(anio)
+                order by   Num_Semana__r.name,Anio__c
                ];
+          System.debug('TraerEstrategiaComercial '+ adminSaldos);
+         return  adminSaldos;
     }
     public static map<string,AdminSaldosEstrategias__c> TraerEstrategiaComercialPorSemana(Integer semana)
     {
@@ -3320,15 +3329,16 @@ else*/
     public static list<Producto> obtenerInventariosAdmonEstrategiaComercial(opportunity pedido,list<Producto> productos)
     {
         Integer Semana = CalcularSemana(pedido.Fecha_de_Embarque__c);
-        list<AdminSaldosEstrategias__c> listaEstrategiasCom = TraerEstrategiaComercial(Semana);
+        Integer anio = Datetime.now().year();
+        list<AdminSaldosEstrategias__c> listaEstrategiasCom = TraerEstrategiaComercial(Semana,anio);
         String canalDistribucion = pedido.Cliente__r.Canal_Distribucion__c.right(2);
-        
+        System.debug('productos:: ' + productos);
         for(Producto p: productos ) {
             if( p == null ) { continue; } if( String.isBlank( p.codigo ) ) { continue; }
             
             p.inventarioAnt = null;
             p.inventario = null;
-            
+          System.debug('listaEstrategiasCom:: ' + listaEstrategiasCom.size());  
             for(AdminSaldosEstrategias__c admon : listaEstrategiasCom)
             {
                 System.debug('p.codigo: ' + p.codigo);
@@ -3424,6 +3434,7 @@ else*/
     {
         Integer Semana = CalcularSemana(pedido.Fecha_de_Embarque__c);
         System.debug('DisminuirInventariosAdmonEstrategiaComercial Semana::: '+Semana);
+        System.debug('mapEstrategias::: '+ mapEstrategias);
         String canalDistribucion = pedido.Cliente__r.Canal_Distribucion__c.right(2);
         list<AdminSaldosEstrategias__c> listaAGrabar = new list<AdminSaldosEstrategias__c>();
         AdminSaldosEstrategias__c admon = null;
@@ -4431,6 +4442,8 @@ else*/
     public static void  GenerarAdmonEstrategia(opportunity pedido ,Producto primerProd,Boolean cancelacion, String canalDistribucion)
     {
         /// ADMINISTRACION ESTRATEGICA TRAER POR SEMANA
+        System.debug('GenerarAdmonEstrategia:: '+primerProd.Inventario);
+        System.debug(' PEDIDIDO ['+ pedido.Id +'] CANCELACION '+ cancelacion);
         if(pedido.Semana__c == null)
             mapEstrategias = TraerEstrategiaComercialPorSemana(Integer.ValueOf(CalcularSemana(pedido.Fecha_de_Embarque__c)));
         else
@@ -4675,6 +4688,7 @@ else*/
                             primerProd.inventario = String.ValueOf(Integer.ValueOf(primerProd.inventario) + productosSinModificar.get(primerProd.Codigo).item.Quantity);
                             System.debug('primerProd.inventario ::'+primerProd.inventario);
                             listaResultados = DisminuirInventariosAdmonEstrategiaComercial(pedido,primerProd);
+                            System.debug('listaResultados: '+ listaResultados);
                             if(listaResultados == null || listaResultados.size() == 0)
                             {
                                 ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'El producto no cuenta con Saldo'));
@@ -4745,6 +4759,7 @@ else*/
         else // pedidos nuevos
         {
             System.Debug('pedidos nuevos');
+            System.Debug('pedidos nuevos' + primerProd.inventario );
             if(primerProd.inventario != null)
             {
                 listaResultados = DisminuirInventariosAdmonEstrategiaComercial(pedido,primerProd);

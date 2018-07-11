@@ -692,6 +692,18 @@ public with sharing class BalanceoController {
     public static String getSAPCode(String picklistValue) {
         return String.isNotBlank(picklistValue) ? (picklistValue.contains(' - ') ? picklistValue.substring(picklistValue.indexOf(' - ')+3, picklistValue.length()) : picklistValue) : null;
     }
+    @RemoteAction  
+    public static Boolean OperaEnSapOfiCerrada(String OficinaVentas)
+    {
+    	Boolean  valor =  false;
+		 Oficina_de_Venta__c[] ofv =  [select id,Cerrado__c,Opera_en_SAP__c,Reaperturado__c,Nueva_Hora_Cierre_DT__c,Extension__c from Oficina_de_Venta__c where id =: String.ValueOf(OficinaVentas) and Opera_en_SAP__c = true limit 1];
+		  if (ofv.size() > 0)
+		 {
+		 	 valor =  ofv[0].Cerrado__c;
+		 }
+		 
+		 return valor;			
+    } 
 
     public class ProductoWrapper {
         public Product2 producto {get;set;}

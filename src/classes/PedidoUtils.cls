@@ -713,6 +713,7 @@ public with sharing class PedidoUtils {
         }
 		public Boolean OficinaVentaCierre(Integer OficinaVentas)
 		{
+			System.debug('OficinaVentaCierre:::: ');
 			 Boolean valor = false;
 			 Oficina_de_Venta__c[] ofv =  [select id,Cerrado__c,Opera_en_SAP__c,Reaperturado__c,Nueva_Hora_Cierre_DT__c,Extension__c from Oficina_de_Venta__c where codigo__c =: String.ValueOf(OficinaVentas) and Opera_en_SAP__c = true limit 1];
 			 if (ofv != null && ofv.size() > 0)
@@ -735,12 +736,14 @@ public with sharing class PedidoUtils {
 		       Time HoraActual = Time.newInstance(Datetime.now().hour(), Datetime.now().minute(), 0, 0);
 		       Time HoraCierre = null;
 		       string[] arregloHoracierre = null;
+		       System.debug('HoraCierreDT= '+HoraCierreDT + ' HoraCierre= '+ HoraCierre);
 		       if(!string.isBlank(HoraCierreDT))
 		       		arregloHoracierre = HoraCierreDT.split(':'); 
-		      
+		      System.debug('arregloHoracierre= '+arregloHoracierre );
 		       if(arregloHoracierre != null && arregloHoracierre.size() > 1)
 		       {
 		       		HoraCierre = Time.newInstance(Integer.valueOf(arregloHoracierre[0]), Integer.valueOf(arregloHoracierre[1]), 0, 0);
+		       		System.debug('HoraCierreDT= '+HoraCierreDT + ' HoraCierre= '+ HoraCierre);
 		       		if(HoraActual >= HoraCierre)
 		       		{
 		       			return true;
@@ -877,11 +880,8 @@ public with sharing class PedidoUtils {
             if(response != null) {
                 for(ListaPreciosQueryNSCWS.Precios precio : response.Datos.Precios) {
                     if(String.isNotBlank(precio.pve_cveprod) && precio.pve_cveprod.isNumeric()) {
-                        
                         String productCode = String.valueOf(Integer.valueOf(precio.pve_cveprod));
-                        system.debug('inventarioXProductCodeMap  ----> '+inventarioXProductCodeMap );
                         if(inventarioXProductCodeMap.containsKey(productCode)) {
-                           system.debug('productCode  ----> '+productCode );
                             if(!precioListXProductCodeMap.containsKey(productCode)) {
                                 precioListXProductCodeMap.put(productCode, new List<ListaPreciosQueryNSCWS.Precios> { precio });
                             } else if(cluster != '36') {

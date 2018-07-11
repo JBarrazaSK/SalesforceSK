@@ -175,7 +175,6 @@
     <script type="text/javascript">
 
     j$(document).ready(function(){
-
     });
 
 	function validaCantidad(item){
@@ -206,12 +205,32 @@
 	    onInputEnterKeydown(event);
 	}
 
-    function getRemotePedidos() {
-        var fechaSurtidoProgramada = j$('[id$="fechaSurtidoProgramada"]').val();
+    function getRemotePedidos() 
+    {      
+        var filtroOV = j$('[id$=":filtroOficinaVentas_lkid"]').val();
+		try
+		{
+	 		BalanceoController.OperaEnSapOfiCerrada(filtroOV,
+	 			function(result, event){
+	                if (event.status) {	                	
+	                    if(result){
+							alert("El canal seleccionado se encuentra cerrado.");
+	                    }else{
+	                    	getPedidos();
+	                    }
+					} 
+	       		},
+	    		{escape: true}
+	    	); 		
+ 		}catch(e){
+        	console.log(e);
+       	}
+ 	}
+ 	function getPedidos(){
+ 		var fechaSurtidoProgramada = j$('[id$="fechaSurtidoProgramada"]').val();
         var fechaSurtidoProgramadaArr = [];
         var fechaSurtidoProgramadaVal = '';
         var filtroOV = j$('[id$=":filtroOficinaVentas_lkid"]').val();
-
         try{
         	fechaSurtidoProgramadaArr = fechaSurtidoProgramada.split("/");
         	if(fechaSurtidoProgramadaArr.length!=3){

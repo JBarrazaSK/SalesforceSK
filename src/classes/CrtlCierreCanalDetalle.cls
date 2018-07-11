@@ -90,27 +90,40 @@ public CrtlCierreCanalDetalle()
 
  	}
  }
- public static void showPageMessage(string level,string message) {
+ 
+ public static void showPageMessage(string level,string message) 
+ {
+ 	ApexPages.getMessages().clear();
+ 	ApexPages.Message mensaje  = null;
       if(level == 'WARNING') {
-        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning, message));
+      		mensaje = new ApexPages.Message(ApexPages.Severity.Warning, message);
+         //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning, message));
       }
-       if(level == 'CONFIRM') {
-        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, message));
+       if(level == 'CONFIRM') 
+       {
+       	mensaje = new ApexPages.Message(ApexPages.Severity.CONFIRM, message);
+        //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, message));
       }
-      if(level == 'ERROR') {
-        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, message));
+      if(level == 'ERROR') 
+      {
+      	mensaje = new ApexPages.Message(ApexPages.Severity.ERROR, message);
+        //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, message));
       }
+       ApexPages.addMessage(mensaje);
   }
-  public static Boolean TraerPedidosBloqueados(Oficina_de_Venta__c  oficina)
+  public Boolean TraerPedidosBloqueados(Oficina_de_Venta__c  oficina)
   {
   		Boolean valor = false;
-  		Datetime Fecha = Datetime.now().AddDays(1);
-  		Integer registros = [select COUNT() from Pedido__c where FechaSurtidoProgramada__c =: fecha
-  																 and PedidoRechazado__c = true
+  		Date d = System.today().AddDays(1);
+		Datetime myDT = datetime.newInstance(d.year(), d.month(),d.day());
+		String myDate = myDT.format('yyyy-MM-dd');
+		Date Fecha = date.valueOf(myDate);
+  		Integer registros = [select COUNT() from Pedido__c where DAY_ONLY(FechaSurtidoProgramada__c) =: Fecha
+  																 and RequiereAutorizacion__c = true
   																 and OficinaVentas__c =: oficina.Id];
-  		if(registros > 0)
+  		if(registros > 0 && ValorBoton != 'Continuar')
   		{
-  			showPageMessage('WARNING','Hay '+registros+' '+'Pedidos rechazados en la Oficina de ventas: '+oficina.name+' ¿Desea Continuar?' );
+  			showPageMessage('WARNING','Hay '+registros+' '+'Pedidos retenidos por cartera en la Oficina de ventas: '+oficina.name+' ¿Desea Continuar?' );
   			valor = true;
   		}
   		return valor;
@@ -166,17 +179,18 @@ public CrtlCierreCanalDetalle()
 		 			ValorBoton = 'Continuar';
 		 			return;
 		 		}
+ 				ApexPages.getMessages().clear();
  				ofv.oficina.cerrado__c = true;
 				ofv.oficina.Reaperturado__c = false;
 				ofv.oficina.Extension__c = false;
- 				oficinasAGuardar.add(ofv.oficina);
+ 				oficinasAGuardar.add(ofv.oficina); 				
  			}
  			
  		}
  	}
  	if(oficinasAGuardar.size() > 0)
  	{
- 		
+ 		ApexPages.getMessages().clear();
  		respuesta = EnviarAServicio(oficinasAGuardar,'C');
  		if(respuesta == null)
  	    {
@@ -194,8 +208,9 @@ public CrtlCierreCanalDetalle()
  		}
  		
  		update oficinasAGuardar;
- 		showPageMessage('CONFIRM','se ha Cerrado con éxito las oficinas de ventas seleccionadas');
+ 		showPageMessage('CONFIRM','Se ha Cerrado con éxito las oficinas de ventas seleccionadas');
  		consultar();
+ 		ValorBoton = 'Cierre';
  	}
  	
  }
@@ -262,6 +277,7 @@ public CrtlCierreCanalDetalle()
 		 	{
 		 	  showPageMessage('WARNING','Se enviaron  a flujo de aprobacion las sucursales seleccionadas');
 		 	  update oficinasAGuardar;
+		 	  consultar();
 		 	  return;
 		 	}
 	 		respuesta = EnviarAServicio(oficinasAGuardar,'A');
