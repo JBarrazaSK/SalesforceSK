@@ -159,6 +159,7 @@ public with sharing class PedidoUtils {
             //queryAccount(accRef);
         }
         pedidoWrapper.pedido.TipoSurtido__c = tipoSurtido;
+        system.debug('stepForth');
         if(ApexPages.hasMessages() || !accountWrapper.isValidAccountWrapper()) {
             accountWrapper.oficinaVentasName = oficinaVentasName;
             return;
@@ -581,6 +582,7 @@ public with sharing class PedidoUtils {
                     ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, MULTIPLE_ACCOUNT_QUERY_RESULTS_FOUND_WARNING));
                 }
             } else {
+            	system.debug('stepForth1');
                 isValidAccount();
             }
         }
@@ -617,6 +619,7 @@ public with sharing class PedidoUtils {
         }
 
         private Boolean isValidAccount() {
+        	system.debug('stepForth2 '+ account);
             if(account.Id != null) {
                 List<String> missingFields = new List<String>();
                 if(account.Canal_de_Distribucion_NSC__r.Id != null) {
@@ -1958,7 +1961,8 @@ public with sharing class PedidoUtils {
 			 inv.TipoInventario = inventario.TipoInventario == null?0:Integer.ValueOf(inventario.TipoInventario);
 			 inv.TipoManejoInventario = inventario.TipoManejoInventario == null?0:Integer.ValueOf(inventario.TipoManejoInventario);
 			 inv.EsPesoEstandar = inventario.EsPesoEstandar == '?'?false : Boolean.ValueOf(inventario.EsPesoEstandar);
-			 inv.Contenido = inventario.Contenido == null?0:Integer.ValueOf(inventario.Contenido);
+			 system.debug('INVENTARIO :' + inventario.Contenido);
+			 inv.Contenido = inventario.Contenido == null ? 0 : Double.ValueOf(inventario.Contenido);
 			
 	        return inv;
 		}

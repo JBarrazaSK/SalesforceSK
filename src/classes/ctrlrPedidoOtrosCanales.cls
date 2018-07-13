@@ -911,6 +911,7 @@ public class ctrlrPedidoOtrosCanales {
                     temp.item.FolioPrecioSAP__c = String.valueOf( precioWS.pve_folio );
                     temp.precioSAP = precioWS.precio;
                     // Ramon Atondo.
+                    system.debug('PRECIO ORIGINAL: '+ precioWS.precio);
                     temp.item.Precio_Unitario_Original__c = precioWS.precio;
                     
                     temp.item.UnitPrice = precioWS.precio;
@@ -930,10 +931,11 @@ public class ctrlrPedidoOtrosCanales {
           if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX'  
               && pedido.Cliente__r.Sociedad__c.right(3) == '303' ) 
           {
-            if(!temp.isPrecio && !temp.showDelete){
-                   temp.item.UnitPrice =  precioUnitario;
-                   temp.item.Precio_Unitario_Original__c = precioUnitario;
-               }
+            if(!temp.isPrecio && !temp.showDelete)
+            {
+               temp.item.UnitPrice =  precioUnitario;
+               temp.item.Precio_Unitario_Original__c = precioUnitario;
+            }
 
           }
             
@@ -961,26 +963,14 @@ public class ctrlrPedidoOtrosCanales {
                         temp.precioSAP = precioWS.precio;
                         temp.item.Precio_Unitario_Viz__c = precioWS.precio;
                         temp.item.TipoPrecioViz__c = precioWS.pve_tipprec;
+                        
                     }
                 }
             }
             
         }
         return temp;
-    }
-    /*
-    public void cleanProducts() {
-        if( productos == null || productos.size() == 0 ) { return; }
-        for( PedidosOtrosCanalesUtils.Producto p: productos ) {
-            if( p == null ) { continue; }
-            if( String.isBlank( p.codigo ) ) { continue; }
-            if( p.item == null ) { continue; }
-            p.item.Importe__c = 0.0;
-        }
-
-    }
-    */
-    
+    }    
     /// Consulta los precios de los productos seleccionados.
     //Ramon Atondo 31/05/2018
     public void consultarPrecio()
@@ -1007,12 +997,26 @@ public class ctrlrPedidoOtrosCanales {
               && pedido.Account.Sociedad__c.right(3) == '303' )
       {
           ListaPreciosWS.ArrayOfPreciosXCliente clientes = PedidosOtrosCanalesUtils.fillPreciosCliente( pedido, listProductos, true );
-           ListaPreciosWS.ListaPreciosSoap request = new ListaPreciosWS.ListaPreciosSoap();
-           ListaPreciosWS.RespuestaOfListOfPrecioClienteSF response;
+          ListaPreciosWS.ListaPreciosSoap request = new ListaPreciosWS.ListaPreciosSoap();
+          ListaPreciosWS.RespuestaOfListOfPrecioClienteSF response;
           response = request.RegresaListaPreciosMayoristas( clientes );
+          
           mapPreciosViz = new Map<String, List<ListaPreciosWS.Precios>>();
           mapPreciosViz = PedidosOtrosCanalesUtils.getPrices( response );
           
+          ListaPreciosWS.ArrayOfPreciosXCliente clientes2 = PedidosOtrosCanalesUtils.fillPreciosCliente( pedido, listProductos, false );
+          ListaPreciosWS.ListaPreciosSoap request2 = new ListaPreciosWS.ListaPreciosSoap();
+          ListaPreciosWS.RespuestaOfListOfPrecioClienteSF response2;
+          response2 = request.RegresaListaPreciosMayoristas( clientes2 );
+          
+          mapPrecios = new Map<String, List<ListaPreciosWS.Precios>>();
+  		  mapPrecios = PedidosOtrosCanalesUtils.getPrices( response2 );
+  		  
+           if( mapPrecios == null ) {
+                System.debug( 'No hay precios disponibles, imposible continuar...' ); noPrices = true;
+                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, PedidosOtrosCanalesUtils.NO_PRICES_AVAILABLE));
+                return;
+            }
              if( mapPreciosViz == null ) {
                   System.debug( 'No hay precios disponibles para el cliente Intercompañía, imposible continuar...' ); 
                     noPricesViz = true;
@@ -1024,14 +1028,35 @@ public class ctrlrPedidoOtrosCanales {
    
         for( PedidosOtrosCanalesUtils.Producto p: listProductos ) 
         {      
-          Double csTemp = mapCO.get( p.codigo+'-'+p.item.Origen_Surtido__c );
-                System.debug( 'consultarPrecio--> csTemp: '+ csTemp );
-              List<ListaPreciosWS.Precios> listaPreciosViz = mapPreciosViz.get( p.codigo );
-                  if( listaPreciosViz == null || listaPreciosViz.size() == 0 ){
-                      System.debug( 'No hay precios Intercompañía disponibles, imposible continuar...' ); noPricesViz = true;
-                      ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, PedidosOtrosCanalesUtils.NO_PRICES_AVAILABLE));
-                      return;
-                  }
+        		Double csTemp = mapCO.get( p.codigo+'-'+p.item.Origen_Surtido__c );
+        	 	List<ListaPreciosWS.Precios> listaPrecios = mapPrecios.get( p.codigo );
+                System.debug('GetKey: '+p.codigo+'-'+p.item.Origen_Surtido__c);
+                for( ListaPreciosWS.Precios precioWS: listaPrecios ) 
+                {
+                  if( csTemp >= precioWS.pve_volini && csTemp <= precioWS.pve_volfin ) {
+                        if( precioWS.precio == 0 ) {
+                            p.item.UnitPrice.addError(PedidosOtrosCanalesUtils.NO_PRODUCT_PRICE);
+                            return;
+                        }
+                        System.debug('ConsultaPrecios : '+p.codigo + 'precioWS.precio '+ precioWS.precio);
+                        p.item.FolioPrecioSAP__c = String.valueOf( precioWS.pve_folio );
+                        p.precioSAP = precioWS.precio;
+                        p.item.UnitPrice = precioWS.precio;
+                        p.item.Precio_Unitario_Original__c =  precioWS.precio;
+                        index = p.index; 
+                        System.debug('Index: '+index+' UM: '+p.item.Unidad__c);
+                    }
+                }
+        	
+				// Precios Viz        	
+          		//Double csTemp = mapCO.get( p.codigo+'-'+p.item.Origen_Surtido__c );
+              	List<ListaPreciosWS.Precios> listaPreciosViz = mapPreciosViz.get( p.codigo );
+	              if( listaPreciosViz == null || listaPreciosViz.size() == 0 )
+	              {
+	                      System.debug( 'No hay precios Intercompañía disponibles, imposible continuar...' ); noPricesViz = true;
+	                      ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, PedidosOtrosCanalesUtils.NO_PRICES_AVAILABLE));
+	                      return;
+	              }
                 for( ListaPreciosWS.Precios precioWS: listaPreciosViz ) 
                 {
                  if( p.item.Cajas__c >= precioWS.pve_volini && p.item.Cajas__c <= precioWS.pve_volfin ){
@@ -1044,27 +1069,23 @@ public class ctrlrPedidoOtrosCanales {
                                 System.debug('listaPreciosViz : '+p.codigo + 'precioWS.precio '+ precioWS.precio);
                                 p.item.Precio_Unitario_Viz__c = precioWS.precio;
                                 p.item.FolioPrecioSAPViz__c = String.valueOf(precioWS.pve_folio);
-                                 p.item.TipoPrecioViz__c = precioWS.pve_tipprec;
+                                p.item.TipoPrecioViz__c = precioWS.pve_tipprec;
                             }
                        }
                     }
                 }
-                System.debug('consultarPrecio --> NoPrice '+  noPrices);        
-                 System.debug( '2 consultarPrecio--> p.codigo: '+ p.codigo+ ' Precio '+ p.item.UnitPrice );   
                 // Calcula los montos en base al producto.
-                calculateAmounts(p);
-    
+                calculateAmounts(p);    
            }
       }
       else
       {
-            ListaPreciosWS.ArrayOfPreciosXCliente clientes = PedidosOtrosCanalesUtils.fillPreciosCliente( pedido, listProductos, false );
-           ListaPreciosWS.ListaPreciosSoap request = new ListaPreciosWS.ListaPreciosSoap();
-           ListaPreciosWS.RespuestaOfListOfPrecioClienteSF response;
+          ListaPreciosWS.ArrayOfPreciosXCliente clientes = PedidosOtrosCanalesUtils.fillPreciosCliente( pedido, listProductos, false );
+          ListaPreciosWS.ListaPreciosSoap request = new ListaPreciosWS.ListaPreciosSoap();
+          ListaPreciosWS.RespuestaOfListOfPrecioClienteSF response;
           response = request.RegresaListaPreciosMayoristas( clientes );          
           mapPrecios = new Map<String, List<ListaPreciosWS.Precios>>();
-          mapPrecios = PedidosOtrosCanalesUtils.getPrices( response );
-          
+          mapPrecios = PedidosOtrosCanalesUtils.getPrices( response );          
              
           if( mapPrecios == null ) {
                 System.debug( 'No hay precios disponibles, imposible continuar...' ); noPrices = true;
@@ -1086,7 +1107,7 @@ public class ctrlrPedidoOtrosCanales {
                 Double csTemp = mapCO.get( p.codigo+'-'+p.item.Origen_Surtido__c );
                 System.debug( 'consultarPrecio--> csTemp: '+ csTemp );
                 
-                  List<ListaPreciosWS.Precios> listaPrecios = mapPrecios.get( p.codigo );
+                List<ListaPreciosWS.Precios> listaPrecios = mapPrecios.get( p.codigo );
                 System.debug('GetKey: '+p.codigo+'-'+p.item.Origen_Surtido__c);
                 for( ListaPreciosWS.Precios precioWS: listaPrecios ) {
                   if( csTemp >= precioWS.pve_volini && csTemp <= precioWS.pve_volfin ) {

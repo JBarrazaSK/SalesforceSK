@@ -168,22 +168,34 @@ public with sharing class PedidoWizardController {
         }
         else if(responseSAP != null)
         {   
-        	ApexPages.Message myMsg =  null;     	      	 
-        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[0].Estatus != 'C' && responseSAP.DT_SE_ABCPedidos_RespPedido[0].TipoMensaje == 'W') 
-        	{
-        		pedidoWrapper.save();
+        	ApexPages.Message myMsg =  null;    
+        	if (responseSAP.DT_SE_ABCPedidos_RespPedido != null)
+        	{  	 
+        		for(Integer i = 0; i<responseSAP.DT_SE_ABCPedidos_RespPedido.size();i++ )
+        		{
+	        		  	 
+		        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != 'C' 
+		        			&& (responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'W' 
+		        				|| responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'S')) 
+		        	{
+		        		pedidoWrapper.save();
+		        	}	        	
+		        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'E' )
+		        	{
+		        		 myMsg = new ApexPages.Message(ApexPages.Severity.ERROR,responseSAP.DT_SE_ABCPedidos_RespPedido[i].Mensaje);
+		        	}
+		        	else if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'W' )
+		        	{
+		        		 myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[i].Mensaje);
+		        	}
+		        	/*else if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'S' )
+		        	{
+		        		 myMsg = new ApexPages.Message(ApexPages.Severity.CONFIRM,responseSAP.DT_SE_ABCPedidos_RespPedido[i].Mensaje);
+		        	}
+		        	*/
+		            ApexPages.addMessage(myMsg);
+	            }   
         	}
-        	
-        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[0].TipoMensaje == 'E' )
-        	{
-        		 myMsg = new ApexPages.Message(ApexPages.Severity.ERROR,responseSAP.DT_SE_ABCPedidos_RespPedido[0].Mensaje);
-        	}
-        	else 
-        	{
-        		 myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[0].Mensaje);
-        	}
-        	
-            ApexPages.addMessage(myMsg);
         }
         	
     }

@@ -537,12 +537,14 @@ public class PedidosOtrosCanalesUtils {
 
     public static Map<String, List<ListaPreciosWS.Precios>> getPrices( ListaPreciosWS.RespuestaOfListOfPrecioClienteSF response ) {
         ListaPreciosWS.ArrayOfPrecioClienteSF listaMay = response.Datos;
+        System.debug('LISTMAY:'+  listaMay);
         if( listaMay == null ) {
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, PedidosOtrosCanalesUtils.NO_PRICES_AVAILABLE));
             return null;
         }
         
         List<ListaPreciosWS.PrecioClienteSF> preciosCte = listaMay.PrecioClienteSF;
+        System.debug('preciosCte: '+  preciosCte);
         if( preciosCte == null ) {
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, PedidosOtrosCanalesUtils.NO_PRICES_AVAILABLE));
             return null;
@@ -944,7 +946,9 @@ public class PedidosOtrosCanalesUtils {
         productosOld = productosOld;
         ValidarCambiosPedidos(pedido, productos,pedidoOld,productosOld);
         //return guardarPedidoSDL( pedido, productos, false );
+         system.debug('Guardar pedidoLEgado' + guardarPedidoLegados( pedido, productos, false ));
         return guardarPedidoLegados( pedido, productos, false );
+       
     }
     public Static void ValidarCambiosPedidos(Opportunity pedido, List<Producto> productos,Opportunity pedidoOld,map<string,PedidosOtrosCanalesUtils.Producto> productosOld)
     {
@@ -1129,18 +1133,65 @@ public class PedidosOtrosCanalesUtils {
                 }
             }
             
-            WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap services = new WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap();
+            //WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap services = new WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap();
             try
             {
-                WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados Response = services.GenerarPedidoMayoreo(DatosPedidos);
-                system.debug('Respuesta: ------------------->'+Response);
-                if(Response != null && Response.Resultado =='TerminadoConExito')
+            	 // Se ejecuta 3 veces en caso de error
+            	for(Integer x= 0; x<= 2; x++)
+            	{
+            	 	pedido =	PedidosOtrosCanalesUtils.responseWS(pedido,mensaje ,DatosPedidos);
+            	}
+            		
+            }
+            catch(Exception e)
+            {
+                //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, e.getmessage()));
+                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,'Ocurrió un problema al guardar en sistemas legados. ' + e.getMessage()));
+                return pedido;
+            }
+        }	
+        return pedido;
+    }
+    public static Boolean validaDatosPedidos(WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
+    {
+    	integer contador = 0;
+    	boolean bandera = false;
+    	if(DatosPedidos.ActualizaPSV)
+    	{
+    		contador++;
+    	} 
+    	if(DatosPedidos.ActualizaSAP)
+    	{ contador++;}
+    	
+    	if(DatosPedidos.ActualizaNSC)
+    	{
+    		 contador++;
+    	}	
+    	if(contador > 0)
+    		bandera = true;
+    
+     	return bandera;
+    }
+    public static Opportunity responseWS(Opportunity pedido,String mensaje,WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
+    {    			
+		WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap services = new WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap();
+		system.debug('DATOS PEDIDOS: '+ DatosPedidos.ActualizaPSV+' - '+DatosPedidos.ActualizaSAP +' - '+DatosPedidos.ActualizaNSC);
+		if(validaDatosPedidos(DatosPedidos))
+		{
+            WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados Response = services.GenerarPedidoMayoreo(DatosPedidos);
+            system.debug('Respuesta: ------------------->'+Response);
+            if(Response != null && Response.Resultado =='TerminadoConExito')
+            {
+                mensaje  = 'Pedido registrado con éxito.';
+                if(DatosPedidos.ActualizaPSV)
                 {
-                    mensaje  = 'Pedido registrado con éxito.';
-                    if(DatosPedidos.ActualizaPSV)
+                    pedido.Folio_Pedido_SDL__c = Response.SdlFolioPedidoSDL;
+                    pedido.Folio_Embarque__c = Response.SdlFolioEmbarqueSDL; 
+                    
+                    if(String.isNotBlank(pedido.Folio_Pedido_SDL__c) 
+                    		|| String.isNotBlank(pedido.Folio_Embarque__c))
                     {
-                        pedido.Folio_Pedido_SDL__c = Response.SdlFolioPedidoSDL;
-                        pedido.Folio_Embarque__c = Response.SdlFolioEmbarqueSDL; 
+                    	DatosPedidos.ActualizaPSV =  false;
                         if(String.isNotBlank(Response.SdlFolioEmbarqueSDL))
                         {
                             mensaje +=' Folio SDL:'+Response.SdlFolioPedidoSDL +' Folio Embarque:'+Response.SdlFolioEmbarqueSDL;
@@ -1149,110 +1200,110 @@ public class PedidosOtrosCanalesUtils {
                         {
                             mensaje +=' Folio SDL:'+Response.SdlFolioPedidoSDL;
                         }
-                        
-                    }
-                    if(DatosPedidos.ActualizaSAP)
-                    {
-                        pedido.Numero_Pedido_SAP__c = Response.SapShip_To;
-                        mensaje += ' Folio SAP:'+Response.SapShip_To;
-                        
-                    }
-                    if(DatosPedidos.ActualizaNSC && Response.NscNumeroPedido != null)
-                    {
-                        pedido.Numero_de_Pedido_NSC__c = string.ValueOf(integer.ValueOf(Response.NscNumeroPedido)); 
-                        mensaje +=' Folio NSC:'+ integer.ValueOf(Response.NscNumeroPedido);
-                    }
-                    
-                    string Fecha = dateToString(pedido.Fecha_de_Embarque__c,'yyyyMMdd'); 
-                    WsActualizaPSVPedidos.PedidosPSV actualizaPedido;
-                    list<WsActualizaPSVPedidos.PedidosPSV> listaActualizaPedidos = new list<WsActualizaPSVPedidos.PedidosPSV>();
-                    WsActualizaPSVPedidos servicesActualiza = new WsActualizaPSVPedidos();
-                    WsActualizaPSVPedidos.RespuestaOfBoolean ResponseActualiza; 
-                    if(IsVizcatle(pedido) &&  pedido.StageName != '11 - Bloqueado Cierre')
-                    {
-                        actualizaPedido = CrearPedidoPsvActualiza(Response.SapShip_To,pedido.Id_Externo__c,'E', true,Response.SdlFolioPedidoSDL,Fecha);
-                        listaActualizaPedidos.add(actualizaPedido);
-                        
-                        actualizaPedido = new WsActualizaPSVPedidos.PedidosPSV();
-                        Fecha = dateToString(pedido.Fecha_Embarque_Bodega__c,'yyyyMMdd'); 
-                        actualizaPedido = CrearPedidoPsvActualiza(string.ValueOf(integer.ValueOf(Response.NscNumeroPedido)),pedido.Id_Externo__c,'V', false,Response.SdlFolioPedidoSDL,Fecha);
-                        listaActualizaPedidos.add(actualizaPedido);  
-                        
-                    }
-                    else if(pedido.StageName != '11 - Bloqueado Cierre')
-                    {
-                        actualizaPedido = new WsActualizaPSVPedidos.PedidosPSV();
-                        string pedidoAct = DatosPedidos.ActualizaNSC == true?pedido.Numero_de_Pedido_NSC__c:Response.SapShip_To;
-                        actualizaPedido = CrearPedidoPsvActualiza(pedidoAct,pedido.Id_Externo__c,ObtenerCanalVenta(pedido), DatosPedidos.ActualizaSAP,Response.SdlFolioPedidoSDL,Fecha);
-                        listaActualizaPedidos.add(actualizaPedido);
-                        
-                    }
-                    for(WsActualizaPSVPedidos.PedidosPSV psv : listaActualizaPedidos)
-                    {
-                        servicesActualiza = new WsActualizaPSVPedidos();
-                        ResponseActualiza = new WsActualizaPSVPedidos.RespuestaOfBoolean();
-                        ResponseActualiza = servicesActualiza.ActualizaPSVPedidos(psv);
-                        if(ResponseActualiza != null)
-                        {
-                            system.debug('Respuesta: '+ResponseActualiza.Mensaje);
-                            
-                        }
-                        
-                    }
-                    if(mapEstrategiasMod != null && mapEstrategiasMod.size() >0) 
-                    {
-                        System.debug('listaAGrabar : : '+mapEstrategiasMod );
-                        upsert mapEstrategiasMod.values();
-                    }
-                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, mensaje));
+                    }                                           
                 }
-                else
+                if(DatosPedidos.ActualizaSAP)
                 {
-                    if(Response == null)
-                    {
-                        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'No ubo respuesta de los servicios legados, Favor de reintentar.'));
-                    }
-                    else
-                    {
-                        if(Response.SapReturn != null)
-                        {
-                            for(WsPedidosMayoreoLegados.DT_SDL_ResItem item :Response.SapReturn.DT_SDL_ResItem)
-                            {
-                                if(item.TYPE_x == 'E')
-                                {
-                                    system.debug('item '+ item);
-                                    system.debug('item.ROW '+ item.ROW);
-                                    system.debug('productosSap '+ productosSap.get(item.ROW.trim()));
-                                    if(item.MESSAGE.contains('Unidad de medida de ventas PI no está prevista en la posición'))
-                                    {
-                                        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'Unidad de medida de ventas PI no está prevista en el producto: '  + productosSap.get(item.ROW.trim()).prodName));
-                                    }
-                                    else
-                                    {
-                                        if(!item.MESSAGE.contains('Error en SALES_ITEM_IN'))
-                                            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,item.MESSAGE));
-                                    }
-                                    
-                                }
-                            }
-                        }
-                        else
-                        {
-                            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,Response.Mensaje));
-                        }
-                        
-                    }
-                    return pedido;
+                	if(String.isNotBlank(Response.SapShip_To))
+                	{
+                    	pedido.Numero_Pedido_SAP__c = Response.SapShip_To;
+                    	mensaje += ' Folio SAP:'+Response.SapShip_To;
+                    	DatosPedidos.ActualizaSAP =  false;
+                	}
+                    
+                }
+                if(DatosPedidos.ActualizaNSC && Response.NscNumeroPedido != null)
+                {
+                	if(String.isNotBlank(Response.SapShip_To))
+                	{                    	
+                    	pedido.Numero_de_Pedido_NSC__c = string.ValueOf(integer.ValueOf(Response.NscNumeroPedido)); 
+                    	mensaje +=' Folio NSC:'+ integer.ValueOf(Response.NscNumeroPedido);
+                    	DatosPedidos.ActualizaNSC =  false;
+                	}
+                }                   
+            string Fecha = dateToString(pedido.Fecha_de_Embarque__c,'yyyyMMdd'); 
+            WsActualizaPSVPedidos.PedidosPSV actualizaPedido;
+            list<WsActualizaPSVPedidos.PedidosPSV> listaActualizaPedidos = new list<WsActualizaPSVPedidos.PedidosPSV>();
+            WsActualizaPSVPedidos servicesActualiza = new WsActualizaPSVPedidos();
+            WsActualizaPSVPedidos.RespuestaOfBoolean ResponseActualiza; 
+            if(IsVizcatle(pedido) &&  pedido.StageName != '11 - Bloqueado Cierre')
+            {
+                actualizaPedido = CrearPedidoPsvActualiza(Response.SapShip_To,pedido.Id_Externo__c,'E', true,Response.SdlFolioPedidoSDL,Fecha);
+                listaActualizaPedidos.add(actualizaPedido);
+                
+                actualizaPedido = new WsActualizaPSVPedidos.PedidosPSV();
+                Fecha = dateToString(pedido.Fecha_Embarque_Bodega__c,'yyyyMMdd'); 
+                actualizaPedido = CrearPedidoPsvActualiza(string.ValueOf(integer.ValueOf(Response.NscNumeroPedido)),pedido.Id_Externo__c,'V', false,Response.SdlFolioPedidoSDL,Fecha);
+                listaActualizaPedidos.add(actualizaPedido);  
+                
+            }
+            else if(pedido.StageName != '11 - Bloqueado Cierre')
+            {
+                actualizaPedido = new WsActualizaPSVPedidos.PedidosPSV();
+                string pedidoAct = DatosPedidos.ActualizaNSC == true?pedido.Numero_de_Pedido_NSC__c:Response.SapShip_To;
+                actualizaPedido = CrearPedidoPsvActualiza(pedidoAct,pedido.Id_Externo__c,ObtenerCanalVenta(pedido), DatosPedidos.ActualizaSAP,Response.SdlFolioPedidoSDL,Fecha);
+                listaActualizaPedidos.add(actualizaPedido);
+                
+            }
+            for(WsActualizaPSVPedidos.PedidosPSV psv : listaActualizaPedidos)
+            {
+                servicesActualiza = new WsActualizaPSVPedidos();
+                ResponseActualiza = new WsActualizaPSVPedidos.RespuestaOfBoolean();
+                ResponseActualiza = servicesActualiza.ActualizaPSVPedidos(psv);
+                if(ResponseActualiza != null)
+                {
+                    system.debug('Respuesta: '+ResponseActualiza.Mensaje);
+                    
                 }
                 
             }
-            catch(Exception e)
+            if(mapEstrategiasMod != null && mapEstrategiasMod.size() >0) 
             {
-                //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, e.getmessage()));
-                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,'Ocurrió un problema al guardar en sistemas legados.'));
-                return pedido;
+                System.debug('listaAGrabar : : '+mapEstrategiasMod );
+                upsert mapEstrategiasMod.values();
             }
-        }	
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, mensaje));
+         }
+	      else
+	        {
+	            if(Response == null)
+	            {
+	                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'No ubo respuesta de los servicios legados, Favor de reintentar.'));
+	            }
+	            else
+	            {
+	                if(Response.SapReturn != null)
+	                {
+	                    for(WsPedidosMayoreoLegados.DT_SDL_ResItem item :Response.SapReturn.DT_SDL_ResItem)
+	                    {
+	                        if(item.TYPE_x == 'E')
+	                        {
+	                            system.debug('item '+ item);
+	                            system.debug('item.ROW '+ item.ROW);
+	                            system.debug('productosSap '+ productosSap.get(item.ROW.trim()));
+	                            if(item.MESSAGE.contains('Unidad de medida de ventas PI no está prevista en la posición'))
+	                            {
+	                                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'Unidad de medida de ventas PI no está prevista en el producto: '  + productosSap.get(item.ROW.trim()).prodName));
+	                            }
+	                            else
+	                            {
+	                                if(!item.MESSAGE.contains('Error en SALES_ITEM_IN'))
+	                                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,item.MESSAGE));
+	                            }
+	                            
+	                        }
+	                    }
+	                }
+	                else
+	                {
+	                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,Response.Mensaje));
+	                }
+	                
+	            }
+	            return pedido;
+	        }
+		}
+	
         return pedido;
     }
     public static WsActualizaPSVPedidos.PedidosPSV CrearPedidoPsvActualiza(string folio,string folioSF,String tipoPedido,boolean actualizaSap,string folioSDL,string fechaEmbarque)
@@ -1267,7 +1318,7 @@ public class PedidosOtrosCanalesUtils {
         pedido.ActualizaSAP = actualizaSap;
         pedido.Error = false;
         pedido.MensajeError = '';
-        system.debug('pedido: '+pedido);
+        system.debug('CrearPedidoPsvActualizPedido: '+pedido);
         return pedido;
     }   
     public static map<string,Configuracion_pedidosOC__c> FillTipoPedido() {
@@ -2161,7 +2212,8 @@ pedido.StageName = '11 - Bloqueado Cierre';
         }
         
         string SucViz = (String.isNotBlank(idPlanta) && canalDistribucion=='EX' && sociedad == '303')?'V':'';
-        DatosPedidoNSC.nCanalDistribucionVenta=   Integer.ValueOf(pedido.Account.Canal_de_Distribucion_NSC__r.Codigo__c);//Integer.ValueOf(pedido.Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c);
+        system.debug('SucViz::: ' + SucViz);
+        DatosPedidoNSC.nCanalDistribucionVenta=   	   Integer.ValueOf(pedido.Account.Canal_de_Distribucion_NSC__r.Codigo__c);//Integer.ValueOf(pedido.Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c);
         DatosPedidoNSC.nPedidoCliente= 				   0; // revisar con wendy
         DatosPedidoNSC.cOrganizacionVenta= 			   organizacionVentas;
         DatosPedidoNSC.Original_nPedidoCliente=        0; // revisar con wendy
@@ -2973,8 +3025,17 @@ pedido.StageName = '11 - Bloqueado Cierre';
     public static WsActualizaDatosGenerales_NSC_SDL.PedidoDatosGenerales CrearPedidoDatosGenerales(Opportunity pedido,string areaResp, integer TipoAutorizado,String TipoMov)
     {
         WsActualizaDatosGenerales_NSC_SDL.PedidoDatosGenerales PedidoDatosGenerales = new  WsActualizaDatosGenerales_NSC_SDL.PedidoDatosGenerales();
-        PedidoDatosGenerales.CanalVenta = ObtenerCanalVenta(pedido);
-        pedido.Cliente__r   = retrieveCteInfo( pedido.Cliente__c );
+       // PedidoDatosGenerales.CanalVenta = ObtenerCanalVenta(pedido);
+       if(string.isNotBlank(pedido.Canal_Factura__r.IdPlanta__c) 
+       		&&  pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX')
+       {
+       		PedidoDatosGenerales.CanalVenta = 'V';
+       }
+       else
+       {
+       		PedidoDatosGenerales.CanalVenta = ObtenerCanalVenta(pedido);
+       }        
+        pedido.Cliente__r   = retrieveCteInfo( pedido.Cliente__c );        
         if(pedido.Cliente__r.Canal_de_Distribucion_NSC__c == null)
         {
             pedido.Cliente__r   = retrieveCteInfo( pedido.Cliente__c );
@@ -3295,15 +3356,15 @@ else*/
         
         integer semanaAnt = semana -1;
         System.debug('TraerSemana::: '+semana);
-        
+        integer anio = Datetime.now().year();
         for( AdminSaldosEstrategias__c admon :[select Id,Anio__c,Fecha_Final__c,Fecha_Inicial__c,Folio__c,Num_Semana__r.Name,Saldo_Final_Auto__c,Saldo_Final_Export__c,Saldo_Final_Mayo__c,
                                                productoId__r.ProductCode,Prod_Master__r.MasterID__c,productoId__c,Prod_Master__c
                                                from AdminSaldosEstrategias__c
                                                where
                                                Num_Semana__r.name >=: String.valueOf(semanaAnt)
                                                and Num_Semana__r.name <=: String.valueOf(semana)
-                                               
-                                               order by   Num_Semana__r.name
+                                               and Anio__c =: String.valueOf(anio)
+                                               order by   Num_Semana__r.name,Anio__c
                                               ])
         {
             if(admon.productoId__c != null)

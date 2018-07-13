@@ -44,7 +44,7 @@ public class ProductoInventarioQueryNSCWS {
         public Integer TipoInventario { get; set; }
         public Integer TipoManejoInventario { get; set; }
         public Boolean EsPesoEstandar { get; set; }
-        public Integer Contenido { get; set; }
+        public Double Contenido { get; set; }
         private transient String[] Producto_type_info = new String[]{'Producto','http://www.sukarne.com/ws/salesforce',null,'1','1','false'};
         private transient String[] InvActual_type_info = new String[]{'InvActual','http://www.sukarne.com/ws/salesforce',null,'1','1','false'};
         private transient String[] CompAlmHoy_type_info = new String[]{'CompAlmHoy','http://www.sukarne.com/ws/salesforce',null,'1','1','false'};

@@ -293,17 +293,14 @@ function setExistingProductos() {
 }
 
 function setSummaryRow() {
-//console.log('-------------------------------' );
     var summary = { 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 16:0 };
     for(var index in summary) {
-  //   console.log('INDEX: '+ index );
         $(".pageBlockTableProductos td:nth-child("+index+") input:last-child").each(function() {
         	var value =  $.trim($(this).val().replace("$","").replace(",",""));
             //var value = stringCurrencyToFloat($(this).val());
             if(value) {
            		var importe  =  parseFloat(value);
                 summary[index] += importe;
-    //            console.log('value: '+value +'SUMARY : '+ summary[index] +' IMPORTE: '+ importe);
             }
         });
     }
@@ -510,11 +507,24 @@ function setProducto(productCode, index) {
     }
     inputProductCode.val(productCode);
 }
+function limpiarCantidades(index){
+	var row = getRow(index);
+   	var pedidoItem = getPedidoItem(index);
+/*
+   		pedidoItem.values.Cajas__c = "";
+   		pedidoItem.values.Piezas__c = "";
+   		pedidoItem.values.kilos__c =  "";
+   		pedidoItem.values.CajasConf__c = "";   		
+        pedidoItem.values.PiezasConf__c = "";
+        pedidoItem.values.KilosConf__c = "";
+        */
 
+}
 function hiddenUnidadMedida(index) {
     var row = getRow(index);
     var unidad = row.find("[id$=selectUnidadMedida"+index+"]").val();  
-    row.find("[id$=inputUnidadBase]").val(unidad);   
+    row.find("[id$=inputUnidadBase]").val(unidad); 
+       
 
     switch(unidad) {
         case "C":  
@@ -647,7 +657,6 @@ function numberToString(value) {
  function formatoMoneda(value)
     {
     	value = String(value).replace("$","").replace(",","");
-    	console.log(value)
     	if(isNaN(value)){
     		value = "$0.00" ;
     	}else
@@ -801,8 +810,11 @@ function calculaEnBaseACajas(pedidoItemValues, type)
 	pedidoItemValues["Piezas"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
 	pedidoItemValues["Piezas"+type] =pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
  		
-    pedidoItemValues["Kilos"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
+    //pedidoItemValues["Kilos"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
+    pedidoItemValues["Kilos"+type+"__c"] = inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar ? pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido*productMap[pedidoItemValues.productCode].Peso_Promedio__c : pedidoItemValues["Piezas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
     pedidoItemValues["kilos"+type] = pedidoItemValues.unit == "L" ? pedidoItemValues["Kilos"+type+"__c"]*conversionKiloPound : pedidoItemValues["Kilos"+type+"__c"];
+    
+  
 }
 
 function calculaEnBaseAPiezas(pedidoItemValues, type) {
@@ -825,9 +837,9 @@ function calculaEnBaseAKilos(pedidoItemValues, type) {
         if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
             pedidoItemValues["Piezas"+type+"__c"] = cantidad*inventarioMap[pedidoItemValues.productCode].Contenido;
         }
-        pedidoItemValues["Piezas"+type+"__c"] = cantidad*inventarioMap[pedidoItemValues.productCode].Contenido;
-        pedidoItemValues["Piezas"+type] = cantidad*inventarioMap[pedidoItemValues.productCode].Contenido;
-        pedidoItemValues["Cajas"+type+"__c"] = cantidad;
+        pedidoItemValues["Piezas"+type+"__c"] = cantidad;//*inventarioMap[pedidoItemValues.productCode].Contenido;
+        pedidoItemValues["Piezas"+type] = cantidad;//*inventarioMap[pedidoItemValues.productCode].Contenido;
+        pedidoItemValues["Cajas"+type+"__c"] = cantidad/inventarioMap[pedidoItemValues.productCode].Contenido;
     }
 }
 
@@ -910,11 +922,12 @@ function processCajasSolicitadas(index) {
     } else {        
         if(pedidoItem.values.Cajas__c == 0) {
             hasError = !alert("El número de cajas solicitadas debe ser mayor a 1.");
-        } else if(pedidoItem.values.Cajas__c < pedidoItem.values.CajasConf__c) {
+        } else if(pedidoItem.values.Cajas__c < pedidoItem.values.CajasConf__c) {        
             hasError = !alert("El producto solicitado debe ser mayor o igual al producto confirmado.");
         }
         if(!hasError) {
             calculaEnBaseACajas(pedidoItem.values, "");
+            console.log("- KILOS -"+pedidoItem.values.Kilos__c +" -KILOsCONF- "+ pedidoItem.values.KilosConf__c);
             if(!$.isNumeric(pedidoItem.values.CajasConf__c)) {
                 copySolicitadoToConfirmado(pedidoItem.values);
             } else if(pedidoItem.values.Kilos__c < pedidoItem.values.KilosConf__c) {
@@ -1267,7 +1280,7 @@ function rowOff(element) {
                 <label class="labelCol">Id de sesión:</label>{!pedidoWrapper.preId}
             </apex:outputPanel>
             <apex:outputPanel styleClass="folio" rendered="{!pedidoWrapper.pedido.Id != null}">
-                <label class="labelCol">Folio NSC:</label>{!pedidoWrapper.pedido.Numero_de_Pedido_NSC__c}
+                <label class="labelCol">Folio:</label>{!pedidoWrapper.pedido.Numero_de_Pedido_NSC__c}{!pedidoWrapper.pedido.Numero_Pedido_SAP__c}
                 <label class="labelCol">Folio Salesforce:</label>{!pedidoWrapper.pedido.Name}
             </apex:outputPanel>
         </apex:pageBlockButtons>
