@@ -247,7 +247,7 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
    }
     public static Boolean ValidarCarteraWs(list<CtrlPedidosBloqueadoCartera.PedidosWrapper> listaPedidos)
     {
-    	system.debug('Entro ----------------------------> ');
+   		  	
     	Boolean Valido = false;
     	PedidosOtrosCanalesUtils.ValidacionCredito esvalido;
     	map<string,opportunity> mapValidos = new map<string,opportunity>();
@@ -265,6 +265,7 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
     	String mensaje ='';
     	String canal ='';
     	Boolean isBodega = false;
+    	
     	for(opportunity opp : mapValidos.values())
     	{
     		system.debug('opp.Canal_Factura__r.IdPlanta__c ----------------------------> '+opp.Canal_Factura__r.IdPlanta__c);

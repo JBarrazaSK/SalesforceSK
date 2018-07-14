@@ -1146,7 +1146,7 @@ public class PedidosOtrosCanalesUtils {
             catch(Exception e)
             {
                 //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, e.getmessage()));
-                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,'Ocurrió un problema al guardar en sistemas legados. ' + e.getMessage()));
+                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,'Ocurrió un problema al guardar en sistemas legados.'));
                 return pedido;
             }
         }	
@@ -1264,11 +1264,10 @@ public class PedidosOtrosCanalesUtils {
             }
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, mensaje));
          }
-	      else
-	        {
+         else{
 	            if(Response == null)
 	            {
-	                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'No ubo respuesta de los servicios legados, Favor de reintentar.'));
+	                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'No hubo respuesta de los servicios legados, Favor de reintentar.'));
 	            }
 	            else
 	            {
@@ -1302,8 +1301,7 @@ public class PedidosOtrosCanalesUtils {
 	            }
 	            return pedido;
 	        }
-		}
-	
+		}	
         return pedido;
     }
     public static WsActualizaPSVPedidos.PedidosPSV CrearPedidoPsvActualiza(string folio,string folioSF,String tipoPedido,boolean actualizaSap,string folioSDL,string fechaEmbarque)
@@ -2230,8 +2228,8 @@ pedido.StageName = '11 - Bloqueado Cierre';
         DatosPedidoNSC.nFormaPago=                     pedido.Cliente__r.Tipo_de_Credito__c.right(1) =='3'?2 :Integer.ValueOf(pedido.Cliente__r.Tipo_de_Credito__c.right(1));
         DatosPedidoNSC.bPedidoAceptado=			       true; 
         DatosPedidoNSC.bPedidoSurtido=			       false; 
-        DatosPedidoNSC.bRequiereAutorizacion=          false; 
-        DatosPedidoNSC.bTipoAutorizacionRemota=        false; 
+        //DatosPedidoNSC.bRequiereAutorizacion=          false; 
+        //DatosPedidoNSC.bTipoAutorizacionRemota=        false; 
         DatosPedidoNSC.bPedidoAutorizado=              false; 
         DatosPedidoNSC.bPedidoRechazado=               false;
         DatosPedidoNSC.bCapturadoDespuesDeCierre=      false;
@@ -2244,7 +2242,7 @@ pedido.StageName = '11 - Bloqueado Cierre';
         DatosPedidoNSC.bIntegrado=                     false;
         DatosPedidoNSC.bSolicitudAutorizacionRemotaEnviada=false;
         DatosPedidoNSC.nPedidoPadre=                   0;
-        DatosPedidoNSC.cMotivoAutorizacion=            ''; 
+        //DatosPedidoNSC.cMotivoAutorizacion=            ''; 
         DatosPedidoNSC.nImporte=                       pedido.Amount;
         DatosPedidoNSC.cObservacion=                   pedido.Description ==null ?'':pedido.Description;
         DatosPedidoNSC.cSupervisor=                    SucViz ==''?ObtenerCanalVenta(pedido):SucViz;
@@ -2256,6 +2254,21 @@ pedido.StageName = '11 - Bloqueado Cierre';
         DatosPedidoNSC.cUsuario_Registro=              'Pedidos.SF';
         DatosPedidoNSC.dFecha_Registro=                 datetime.now();
         DatosPedidoNSC.cMaquina_Registro=               ObtenerUsuario();
+        
+        system.debug('PEDIDO LIBERADO: ' +pedido.Liberado__c );
+        
+       if(pedido.Liberado__c =='N')
+       {
+       		DatosPedidoNSC.bRequiereAutorizacion=          true;
+       		DatosPedidoNSC.bTipoAutorizacionRemota=        true; 
+       		DatosPedidoNSC.cMotivoAutorizacion=           pedido.Motivo_Rechazo_Cartera__c; 
+       }
+       else
+       {
+       		DatosPedidoNSC.bRequiereAutorizacion=          false;
+       		DatosPedidoNSC.bTipoAutorizacionRemota=        false; 
+       		DatosPedidoNSC.cMotivoAutorizacion=            ''; 
+       }
         if(pedido.Id!= null)
         {
             DatosPedidoNSC.cUsuario_UltimaModificacion=    ObtenerUsuario(); 

@@ -158,7 +158,7 @@ public with sharing class PedidoWizardController {
         if(response != null)
         	pedidoWrapper.assignWebServiceResponseData(response);
         else if(responseSAP != null)
-        	pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[0]);
+        	//pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[0]);
 
 		//NSC
         if(response != null)
@@ -172,12 +172,12 @@ public with sharing class PedidoWizardController {
         	if (responseSAP.DT_SE_ABCPedidos_RespPedido != null)
         	{  	 
         		for(Integer i = 0; i<responseSAP.DT_SE_ABCPedidos_RespPedido.size();i++ )
-        		{
+        		{      			
 	        		  	 
-		        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != 'C' 
-		        			&& (responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'W' 
-		        				|| responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'S')) 
+					if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != 'C' && responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null) 
+		        			&& (responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'S')) 
 		        	{
+		        		pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[i]);
 		        		pedidoWrapper.save();
 		        	}	        	
 		        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'E' )

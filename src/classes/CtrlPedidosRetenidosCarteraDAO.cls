@@ -9,7 +9,7 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
     {
 		    String fieldName = ',Name,Folio_Pedido_SDL__c,Fecha_de_Embarque__c,Cliente__r.Name,Cliente__r.Numero_Cliente_SAP__c,Canal__c,Fecha_de_Entrega__c,';
 		    fieldName +='Motivo_Rechazo_Cartera__c,Cliente__r.Organizacion_de_Ventas__c,Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c,';
-		    fieldName +='Cliente__r.Sociedad__c,Cliente__r.Canal_Distribucion__c,Cliente__r.Moneda_Cliente__c,Id_Externo__c,Canal_Factura__r.IdPlanta__c,Account.Name ';
+		    fieldName +='Cliente__r.Sociedad__c,Cliente__r.Canal_Distribucion__c,Cliente__r.Moneda_Cliente__c,Id_Externo__c,Canal_Factura__r.IdPlanta__c,Account.Name, Numero_Pedido_SAP__c	,Id_Externo__c';
 				String bloqueado = 'N';
 			 	String fechaInicial = String.valueOf(fecha);
 				String fechaEmbFinal   = String.valueOf(fechaFinal);
@@ -213,45 +213,72 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
 
     		}
     	}
+    	
 		//
     	WsLiberacionPedidosCarteraPSV.LiberacionPedidosCarteraPSVSoap Services = new WsLiberacionPedidosCarteraPSV.LiberacionPedidosCarteraPSVSoap();
     	list<opportunity> listaOpp = new list<opportunity>();
     	String mensaje ='';
     	String canal ='';
     	Boolean isBodega = false;
+    	WsABCPeidosSFSAP.ABCPedidosSF_SAPSoap request = new WsABCPeidosSFSAP.ABCPedidosSF_SAPSoap();
+    	ApexPages.Message myMsg =  null;    
     	for(opportunity opp : mapValidos.values())
-    	{
-    		if(opp.Canal_Factura__r.IdPlanta__c == null)
-    		{
-    			isBodega = true;
-    		}
-    			canal = opp.Canal__c;
-    			if(canal != 'A')
-				{
-					if(Canal == 'E' && isBodega)
+    	{   		
+    		ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_ReqLista result = new ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_ReqLista();
+   			WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_ReqLista pedidoWSArray = new WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_ReqLista();
+    			
+        	result.SALES_HEADER_IN = new ABCPedidos_SF_to_ECC.SALES_HEADER_IN_element();        
+        	result.SALES_HEADER_IN.FolioPedidoSAP 			= opp.Numero_Pedido_SAP__c;
+        	result.SALES_HEADER_IN.FolioPedidoSalesForce	= 'FL'+opp.Id_Externo__c;
+        	result.SALES_HEADER_IN.Estatus 					= 'R';
+        	
+    		pedidoWSArray.DT_SE_ABCPedidos_ReqLista = new list<ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_ReqLista>{result};
+			WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido  respuesta = request.EnviarInformacionASap(pedidoWSArray);
+			
+			// Si responde  != null y mensaje sea S y el estatus sea Dif de B. Es Liberado.
+			
+			if (respuesta.DT_SE_ABCPedidos_RespPedido != null)
+        	{ 
+    			if(respuesta.DT_SE_ABCPedidos_RespPedido[0].TipoMensaje == 'S' 
+    						&& respuesta.DT_SE_ABCPedidos_RespPedido[0].Estatus != 'B')
+    			{
+					if(opp.Canal_Factura__r.IdPlanta__c == null)
+		    		{
+		    			isBodega = true;
+		    		}
+	    			canal = opp.Canal__c;
+	    			if(canal != 'A')
 					{
-						canal = 'B';
+						if(Canal == 'E' && isBodega)
+						{
+							canal = 'B';
+						}
+						else if(isBodega)
+						{
+							canal = 'N';
+						}
 					}
-					else if(isBodega)
-					{
-						canal = 'N';
-					}
-				}
-
-    		opp.fecha_aprov_recha__c = Datetime.Now().Date();
-    		WsLiberacionPedidosCarteraPSV.RespuestaBase Response = Services.LiberarPedidoCartera(opp.Folio_Pedido_SDL__c,canal,ObtenerUsuario());
-    		if(Response == null || Response.Tipo !='TerminadoConExito')
-    		{
-    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, Response.Mensaje));
-    			return Valido;
-    		}
-    		else
-    		{
-    			mensaje = Response.Mensaje;
-    			opp.Liberado__c = 'S';
-    			listaOpp.add(opp);
-    		}
-
+		
+		    		opp.fecha_aprov_recha__c = Datetime.Now().Date();
+		    		WsLiberacionPedidosCarteraPSV.RespuestaBase Response = Services.LiberarPedidoCartera(opp.Folio_Pedido_SDL__c,canal,ObtenerUsuario());
+		    		if(Response == null || Response.Tipo !='TerminadoConExito')
+		    		{
+		    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, Response.Mensaje));
+		    			return Valido;
+		    		}
+		    		else
+		    		{
+		    			mensaje = Response.Mensaje;
+		    			opp.Liberado__c = 'S';
+		    			listaOpp.add(opp);
+		    		}
+    				
+    			}else{
+    				 myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,respuesta.DT_SE_ABCPedidos_RespPedido[0].Mensaje);
+    			
+    			}
+    			ApexPages.addMessage(myMsg);
+        	}
     	}
     	if(listaOpp.size() > 0)
     	{
