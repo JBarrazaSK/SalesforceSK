@@ -1043,24 +1043,28 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 									
 								MapaCantidadProductos.put(p.codigo,oppl);
 						}
+					d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
+		            d = PedidosOtrosCanalesUtils.CrearDetalleNSCSDL(p.item,contador++, request.pedidoDatosGenerales.TipoMoneda,p.codigo,pedido);
+		            if(d != null)
+		                detalleWs.add(d);
 				}
 				for(opportunityLineItem p : MapaCantidadProductos.values())
 				{
-
-            d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
-            d = PedidosOtrosCanalesUtils.CrearDetalleNSCSDL(p,contador++, request.pedidoDatosGenerales.TipoMoneda,p.ProductCode,pedido);
-            if(d != null)
-                detalleWs.add(d);
-
-        }
-				for(ProductosEliminado__c pe : ProductosEliminado )
+		          /*  d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
+		            d = PedidosOtrosCanalesUtils.CrearDetalleNSCSDL(p,contador++, request.pedidoDatosGenerales.TipoMoneda,p.ProductCode,pedido);
+		            if(d != null)
+		                detalleWs.add(d);
+		*/
+		        }
+		for(ProductosEliminado__c pe : ProductosEliminado )
         {
-						d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
-						d = PedidosOtrosCanalesUtils.CrearDetalleNSCSDLEliminado(30, request.pedidoDatosGenerales.TipoMoneda,pe.CodigoProducto__c);
-						if(d != null)
-								detalleWs.add(d);
+			d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
+			d = PedidosOtrosCanalesUtils.CrearDetalleNSCSDLEliminado(30, request.pedidoDatosGenerales.TipoMoneda,pe.CodigoProducto__c);
+			if(d != null)
+					detalleWs.add(d);
         }
-		    arregloDetalle.DetallePedidoMayoreo  =  new list<WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo>();
+		System.debug('PEDIDODETALLE=> '+ detalleWs);
+		arregloDetalle.DetallePedidoMayoreo  =  new list<WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo>();
         arregloDetalle.DetallePedidoMayoreo  = detalleWs;
         request.pedidoDatosGenerales.DetallePedido = new WsActualizaDatosGenerales_NSC_SDL.ArrayOfDetallePedidoMayoreo();
         request.pedidoDatosGenerales.DetallePedido = arregloDetalle;

@@ -214,8 +214,8 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
     		}
     	}
     	
-		//
-    	WsLiberacionPedidosCarteraPSV.LiberacionPedidosCarteraPSVSoap Services = new WsLiberacionPedidosCarteraPSV.LiberacionPedidosCarteraPSVSoap();
+    	//WsLiberacionPedidosCarteraPSV.LiberacionPedidosCarteraPSVSoap Services = new WsLiberacionPedidosCarteraPSV.LiberacionPedidosCarteraPSVSoap();
+    	WsLiberacionPedidosCarteraLegados.LiberacionPedidosCarteraPSVSoap Services = new WsLiberacionPedidosCarteraLegados.LiberacionPedidosCarteraPSVSoap();
     	list<opportunity> listaOpp = new list<opportunity>();
     	String mensaje ='';
     	String canal ='';
@@ -260,17 +260,32 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
 					}
 		
 		    		opp.fecha_aprov_recha__c = Datetime.Now().Date();
-		    		WsLiberacionPedidosCarteraPSV.RespuestaBase Response = Services.LiberarPedidoCartera(opp.Folio_Pedido_SDL__c,canal,ObtenerUsuario());
-		    		if(Response == null || Response.Tipo !='TerminadoConExito')
+		    		if(opp.Cliente__r.Canal_de_Distribucion_NSC__c == null ||opp.Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c == null)
 		    		{
-		    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, Response.Mensaje));
-		    			return Valido;
-		    		}
-		    		else
-		    		{
-		    			mensaje = Response.Mensaje;
-		    			opp.Liberado__c = 'S';
-		    			listaOpp.add(opp);
+		    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning,'El cliente no cuenta con canal de distribucion'));
+		    			return null;
+		    		}else{
+			    		WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido DatosLiberacionPedido = new WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido();
+			    		DatosLiberacionPedido.FolioPSV = opp.Folio_Pedido_SDL__c;
+			    		DatosLiberacionPedido.FolioNSC = opp.Numero_de_Pedido_NSC__c;
+			    		DatosLiberacionPedido.CanalDistribucion = Integer.valueOf(opp.Cliente__r.Canal_Distribucion__c);
+			    		DatosLiberacionPedido.Tipo =  canal;
+			    		DatosLiberacionPedido.Usuario = ObtenerUsuario();
+			    				    		
+			    		System.debug('DatosLiberacionPedido:=> ' + DatosLiberacionPedido);
+			    		WsLiberacionPedidosCarteraLegados.RespuestaBase Response = Services.LiberarPedidoCartera(DatosLiberacionPedido);
+		    		
+			    		if(Response == null || Response.Tipo !='TerminadoConExito')
+			    		{
+			    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, Response.Mensaje));
+			    			return Valido;
+			    		}
+			    		else
+			    		{
+			    			mensaje = Response.Mensaje;
+			    			opp.Liberado__c = 'S';
+			    			listaOpp.add(opp);
+			    		}
 		    		}
     				
     			}else{

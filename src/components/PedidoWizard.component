@@ -507,19 +507,7 @@ function setProducto(productCode, index) {
     }
     inputProductCode.val(productCode);
 }
-function limpiarCantidades(index){
-	var row = getRow(index);
-   	var pedidoItem = getPedidoItem(index);
-/*
-   		pedidoItem.values.Cajas__c = "";
-   		pedidoItem.values.Piezas__c = "";
-   		pedidoItem.values.kilos__c =  "";
-   		pedidoItem.values.CajasConf__c = "";   		
-        pedidoItem.values.PiezasConf__c = "";
-        pedidoItem.values.KilosConf__c = "";
-        */
 
-}
 function hiddenUnidadMedida(index) {
     var row = getRow(index);
     var unidad = row.find("[id$=selectUnidadMedida"+index+"]").val();  

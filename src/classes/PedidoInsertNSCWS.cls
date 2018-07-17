@@ -303,8 +303,11 @@ public class PedidoInsertNSCWS {
         public Integer timeout_x;
         private String[] ns_map_type_info = new String[]{'http://www.sukarne.com/ws/salesforce', 'PedidoInsertNSCWS'};
         public PedidosSoap(){
-            PedidoParameters__c pp = PedidoParameters__c.getInstance();
-            this.endpoint_x = pp.EndpointPedidos__c + '/SKServiciosExternos/SalesForce/Pedidos.asmx';
+            /*PedidoParameters__c pp = PedidoParameters__c.getInstance();
+            this.endpoint_x = pp.EndpointPedidos__c + '/SKServiciosExternos/SalesForce/Pedidos.asmx';*/
+           endpoints__c ep = endpoints__c.getInstance();
+           this.endpoint_x = ep.PedidosDetalleNSC__c;
+           this.timeout_x = 120000;
         }    
         public PedidoInsertNSCWS.RespuestaOfPedidoRespuesta RegistrarPedido(PedidoInsertNSCWS.Pedido pedido) {
             PedidoInsertNSCWS.RegistrarPedido_element request_x = new PedidoInsertNSCWS.RegistrarPedido_element();

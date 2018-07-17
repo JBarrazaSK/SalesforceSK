@@ -2,14 +2,18 @@
 
 public class WsLiberacionPedidosCarteraPSV {
     public class LiberarPedidoCartera_element {
-        public String Folio;
+        public String FolioPSV;
+		public String FolioNSC;
+		public String CanalDistrubucion;
         public String Tipo;
         public String Usuario;
-        private String[] Folio_type_info = new String[]{'Folio','http://tempuri.org/',null,'0','1','false'};
+        private String[] FolioPSV_type_info = new String[]{'FolioPSV','http://tempuri.org/',null,'0','1','false'};
+        private String[] FolioNSC_type_info = new String[]{'FolioNSC','http://tempuri.org/',null,'0','1','false'};
+        private String[] CanalDistribucion_type_info = new String[]{'CanalDistribucion','http://tempuri.org/',null,'0','1','false'};
         private String[] Tipo_type_info = new String[]{'Tipo','http://tempuri.org/',null,'0','1','false'};
         private String[] Usuario_type_info = new String[]{'Usuario','http://tempuri.org/',null,'0','1','false'};
         private String[] apex_schema_type_info = new String[]{'http://tempuri.org/','true','false'};
-        private String[] field_order_type_info = new String[]{'Folio','Tipo','Usuario'};
+        private String[] field_order_type_info = new String[]{'FolioPSV','FolioNSC','CanalDistribucion','Tipo','Usuario'};
     }
     public class LiberarPedidoCarteraResponse_element {
         public WsLiberacionPedidosCarteraPSV.RespuestaBase LiberarPedidoCarteraResult;
@@ -38,10 +42,12 @@ public class WsLiberacionPedidosCarteraPSV {
             endpoints__c ep = endpoints__c.getInstance();
             this.endpoint_x = ep.LiberacionPedidosCarteraPSV__c;
         }   
-        
-        public WsLiberacionPedidosCarteraPSV.RespuestaBase LiberarPedidoCartera(String Folio,String Tipo,String Usuario) {
+        //public WsLiberacionPedidosCarteraPSV.RespuestaBase LiberarPedidoCartera(String Folio,String Tipo,String Usuario) {
+        public WsLiberacionPedidosCarteraPSV.RespuestaBase LiberarPedidoCartera(String Folio,String FolioNSC,String CanalDistribucion,String Tipo,String Usuario) {
             WsLiberacionPedidosCarteraPSV.LiberarPedidoCartera_element request_x = new WsLiberacionPedidosCarteraPSV.LiberarPedidoCartera_element();
-            request_x.Folio = Folio;
+            request_x.FolioPSV = Folio;
+            request_x.FolioNSC = FolioNSC;
+            request_x.CanalDistrubucion = CanalDistribucion;
             request_x.Tipo = Tipo;
             request_x.Usuario = Usuario;
             WsLiberacionPedidosCarteraPSV.LiberarPedidoCarteraResponse_element response_x;

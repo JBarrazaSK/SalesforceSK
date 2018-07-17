@@ -978,6 +978,7 @@ public with sharing class PedidoUtils {
 	        		elem2.Cliente 				= pedidoWrapper.pedido.Prospecto__c != null ? pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c :accountWrapper.account.Numero_Cliente_SAP__c.right(10);
 	        		result.SALES_PARTNERS.PARTNERS_Linea.add(elem2);
         		}
+        		system.debug('TIPOPRECIO: ' + pedidoWrapper.pedidoItemList[i].TipoPrecio__c);
         		elem3.TipoPrecio	=  String.valueOf(pedidoWrapper.pedidoItemList[i].TipoPrecio__c);
         		elem3.Precio		=  String.valueOf(pedidoWrapper.pedidoItemList[i].PrecioUnitarioOriginal__c);
         		if(mapaMoneda.containsKey(pedidoWrapper.pedidoItemList[i].Moneda__c))
@@ -986,6 +987,7 @@ public with sharing class PedidoUtils {
         			elem3.Unidad 	= mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].TipoPrecio__c);
         		result.SALES_CONDITIONS_IN.CONDITIONS_Linea.add(elem3);        		
         		
+        		system.debug('UNIDNAD__C: ' + elem3.Unidad);
         		
         		/*if(pedidoWrapper.pedidoItemList[i].Cajas_Balanceadas__c != null)
         			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].Cajas_Balanceadas__c);*/
@@ -1416,6 +1418,8 @@ public with sharing class PedidoUtils {
             	  ApexPages.addMessage(myMsg);
                   return null;
               }
+            system.debug('PEDIDO WRAPER: '+pedidoWrapper);
+            system.debug('ACCOUNT WRAPER: '+accountWrapper);
             PedidoInsertNSCWS.Pedido pedidoWS = setPedidoWS(pedidoWrapper,accountWrapper);
             PedidoInsertNSCWS.RespuestaOfPedidoRespuesta response = sendPedido(pedidoWS);
             if(response != null) {

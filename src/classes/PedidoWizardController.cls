@@ -150,15 +150,12 @@ public with sharing class PedidoWizardController {
     	system.debug('SUBMIT():'); 
         pedidoWrapper.setPedidoData();
         PedidoInsertNSCWS.PedidoRespuesta response = null;
+        ApexPages.Message myMsg =  null;   
         WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido responseSAP = null; 
         if(externalSources.OperaEnSap(Integer.valueOf(accountWrapper.ofiventas)))
         	responseSAP = externalSources.syncPedidoSAP(pedidoWrapper, accountWrapper,false);
         else
-        	response = externalSources.syncPedido(pedidoWrapper, accountWrapper);
-        if(response != null)
-        	pedidoWrapper.assignWebServiceResponseData(response);
-        else if(responseSAP != null)
-        	//pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[0]);
+        	response = externalSources.syncPedido(pedidoWrapper, accountWrapper);                
 
 		//NSC
         if(response != null)
@@ -167,14 +164,13 @@ public with sharing class PedidoWizardController {
             pedidoWrapper.save();
         }
         else if(responseSAP != null)
-        {   
-        	ApexPages.Message myMsg =  null;    
+        {    
         	if (responseSAP.DT_SE_ABCPedidos_RespPedido != null)
-        	{  	 
+        	{  
         		for(Integer i = 0; i<responseSAP.DT_SE_ABCPedidos_RespPedido.size();i++ )
         		{      			
 	        		  	 
-					if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != 'C' && responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null) 
+					if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null && responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != 'C') 
 		        			&& (responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'S')) 
 		        	{
 		        		pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[i]);
@@ -183,17 +179,13 @@ public with sharing class PedidoWizardController {
 		        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'E' )
 		        	{
 		        		 myMsg = new ApexPages.Message(ApexPages.Severity.ERROR,responseSAP.DT_SE_ABCPedidos_RespPedido[i].Mensaje);
+		        		 ApexPages.addMessage(myMsg);
 		        	}
 		        	else if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'W' )
 		        	{
 		        		 myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[i].Mensaje);
-		        	}
-		        	/*else if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'S' )
-		        	{
-		        		 myMsg = new ApexPages.Message(ApexPages.Severity.CONFIRM,responseSAP.DT_SE_ABCPedidos_RespPedido[i].Mensaje);
-		        	}
-		        	*/
-		            ApexPages.addMessage(myMsg);
+		        		 ApexPages.addMessage(myMsg);
+		        	}		            
 	            }   
         	}
         }

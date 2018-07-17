@@ -115,11 +115,11 @@ public class ctrlrPedidoOtrosCanales {
               p.item.Precio_Unitario_Original__c =  p.item.UnitPrice - pedido.flete__c;
                 if(pedido.Numero_Pedido_SAP__c != '0')
                 {
-                    p.showDelete = false;
+                    p.showDelete = true;
                 }
                 if(pedido.Numero_de_Pedido_NSC__c != '0')
                 {
-                    p.showDelete = false;
+                    p.showDelete = true;
                 }
                 if( p.item.Unidad__c == 'C' ||  p.item.Unidad__c == 'P' ) { cantidad = true; peso = false;  p.HabilitaCantidad = true;  p.HabilitaVolumen = false; }
                 else if(  p.item.Unidad__c == 'K' ||  p.item.Unidad__c == 'L' ) { cantidad = false; peso = true;  p.HabilitaCantidad = false;  p.HabilitaVolumen = true;}
@@ -379,12 +379,7 @@ public class ctrlrPedidoOtrosCanales {
         if( productos == null ) { return; }
         if( String.isBlank( index ) ) { return; }
         if( pedido.Flete__c == null ) { pedido.Flete__c = 0; }
-        System.debug('MapDispoResp: '+mapDIspoResp); 
-        System.debug('Index: '+index+' Productos: '+productos);
         PedidosOtrosCanalesUtils.Producto temp = productos.get( Integer.valueOf(index) );
-        System.debug('Indice: ' + Integer.valueOf(index));
-        System.debug('Cantidad: '+temp.item.Cantidad__c);
-        System.debug('Cantidad2: '+temp);
         if( temp == null ) { return; } 
         if( temp.item == null ) { return; } 
         if( temp.item.Cantidad__c == null && temp.item.Volumen__c == null ) { return; }
@@ -393,10 +388,11 @@ public class ctrlrPedidoOtrosCanales {
         temp.PrecioUnitarioAnterior = 0;
         // Ramon Atondo 05/06/2018
         if(!Test.isRunningTest()){
-          System.debug('Consultando precios::::');
-         Precios();  
+          	System.debug('Consultando precios::::');
+         	Precios();  
 	       if(ValidarDisponibilidad(temp)) 
 	         {
+	         	System.debug('CONSULTADO DIPONIBILIDAD::::');
 	         	Disponibilidad();
 	         }          
         }         
@@ -890,7 +886,7 @@ public class ctrlrPedidoOtrosCanales {
             return temp;
         }
         List<ListaPreciosWS.Precios> listaPrecios = mapPrecios.get( temp.codigo );
-
+		system.debug('LISTAPRECIOS:  '+  listaPrecios);
         if( listaPrecios == null || listaPrecios.size() == 0 ){
             System.debug( 'No hay precios disponibles, imposible continuar...' ); noPrices = true;
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, PedidosOtrosCanalesUtils.NO_PRICES_AVAILABLE));
@@ -938,12 +934,11 @@ public class ctrlrPedidoOtrosCanales {
             }
 
           }
-            
         if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' 
             && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) 
               && pedido.Cliente__r.Sociedad__c.right(3) == '303' ) 
         {
-
+			
             if( mapPreciosViz == null ) {
                 System.debug( 'No hay precios disponibles para el cliente Intercompañía, imposible continuar...' ); noPrices = true;
                 ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, PedidosOtrosCanalesUtils.NO_PRICES_AVAILABLE_VIZ));
@@ -1139,33 +1134,34 @@ public class ctrlrPedidoOtrosCanales {
     {     
         System.debug('Consultando precios...');       
         getListaDePreciosMayoristas( false );
-
+        System.debug('Consultando precios...RAMON ' +  mapPrecios);
         if( mapPrecios == null ) {
             System.debug( 'No hay precios disponibles, imposible continuar...' ); noPrices = true;
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, PedidosOtrosCanalesUtils.NO_PRICES_AVAILABLE));
             return;
         }
+        System.debug('PRECIOS=>:' + productos);
         mapDispoResp = new Map<String, Map<String, Map<String, List<PedidosOtrosCanalesUtils.DispoMayoristas>>>>();
 
-      System.debug('MapPrecios: '+mapPrecios);
         for( PedidosOtrosCanalesUtils.Producto p: productos ) {
+        	 System.debug('MapPreciosproductos:=> '+ p );
             if( p == null ) { continue; }
             if( String.isBlank( p.codigo ) ) { continue; }
             if( p.item == null ) { continue; }
             if( p.item.Cantidad__c == null && p.item.Volumen__c == null ) { continue; }
             if( p.item.Cantidad__c == 0 && p.item.Volumen__c == 0 ) { continue; }
-      // Ramon Atondo
+      		
+      		// Ramon Atondo
             if( p.isPrecio == false && !p.showDelete ) { continue; }
-             System.debug( 'Precios()-->>  isPrecio' );
-            
+                        
             List<ListaPreciosWS.Precios> listaPrecios = mapPrecios.get( p.codigo );
-
             if( listaPrecios == null || listaPrecios.size() == 0 ){
                 System.debug( 'No hay precios disponibles, imposible continuar...' ); noPrices = true;
                 ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, PedidosOtrosCanalesUtils.NO_PRICES_AVAILABLE));
                 return;
             }
 
+			System.debug('LISTAPRECIOS:=> '+ listaPrecios);
             for( ListaPreciosWS.Precios precioWS: listaPrecios ) {
                 p.item.Tipo_de_Precio__c = precioWS.pve_tipprec;
                 //p.item.Unidad__c = pedido.Unidad__c;
@@ -1228,7 +1224,7 @@ public class ctrlrPedidoOtrosCanales {
               for( ListaPreciosWS.Precios precioWS: listaPrecios ) {
                 System.debug('listaPrecios-precioWS:'+precioWS.precio+' cantidad: ['+ csTemp+'] --- '+precioWS.pve_volini + ' -- ' +  precioWS.pve_volfin );
                 if( csTemp >= precioWS.pve_volini && csTemp <= precioWS.pve_volfin ){ 
-                  System.debug('Entro  con el precio de escala:: ' + precioWS.precio);
+                  System.debug('PRECIOSWS: ' + precioWS.precio);
                       if( precioWS.precio == 0 ) {
                           p.item.UnitPrice.addError(PedidosOtrosCanalesUtils.NO_PRODUCT_PRICE);
                           return;
@@ -1243,8 +1239,7 @@ public class ctrlrPedidoOtrosCanales {
               }
           }
 
-
-        System.debug('Sociedad::'+pedido.Cliente__r.Sociedad__c.right(3)+' Canal: '+pedido.Cliente__r.Canal_Distribucion__c.right(2)+' IdPlanta: '+pedido.Canal_Factura__r.IdPlanta__c);
+        System.debug('SOCIEDAD:: '+pedido.Cliente__r.Sociedad__c.right(3)+' Canal: '+pedido.Cliente__r.Canal_Distribucion__c.right(2)+' IdPlanta: '+pedido.Canal_Factura__r.IdPlanta__c);
         if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' 
             && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) 
               && pedido.Cliente__r.Sociedad__c.right(3) == '303' ) 
@@ -1299,7 +1294,7 @@ public class ctrlrPedidoOtrosCanales {
     // Ramon Atondo 05/06/2018
     public void Disponibilidad()
     {
-   
+     	System.debug('DISPONIBILIDAD: ' + productos  );
       if( !this.validateProductsDispo() ) {
             return;
        }
@@ -1795,6 +1790,7 @@ public class ctrlrPedidoOtrosCanales {
         try {
           system.debug('clientes ------------------------------------>'+clientes +' isViz '+ isViz);
       response = request.RegresaListaPreciosMayoristas( clientes );
+      system.debug('RESPONSE: ' + response);
          
       
         } catch( Exception e ) {
@@ -1887,7 +1883,7 @@ public class ctrlrPedidoOtrosCanales {
             System.debug('Pedido: '+pedido);
             System.debug('Productos: '+productos);
          // pedido = PedidosOtrosCanalesUtils.guardarPedidoSDL( pedido, productos, true );
-         pedido = PedidosOtrosCanalesUtils.guardarPedidoLegados( pedido, productos, true );
+         pedido = PedidosOtrosCanalesUtils.guardarPedidoLegados( pedido, productos, true , new list<ProductosEliminado__c>());
          
           if(pedido == null)
           {
@@ -2050,8 +2046,9 @@ public class ctrlrPedidoOtrosCanales {
                 totPedidoSF = totPedido + totPedidoSF;
               }
               System.debug('totPedidoSF :: '+ totPedidoSF);
-              if(pedido.Canal__c == 'E')
-              {
+              System.debug('pedido.Canal__c :: '+ pedido.Canal__c);
+             // if(pedido.Canal__c == 'E')
+              //{
               	esvalido = PedidosOtrosCanalesUtils.validarCredito( String.valueOf(Integer.valueOf( pedido.Cliente__r.Numero_Cliente_SAP__c )),
                                                               '',
 	                                                    		totPedidoSF,
@@ -2059,12 +2056,12 @@ public class ctrlrPedidoOtrosCanales {
                                                               pedido.Cliente__r.Sociedad__c.right(3),
                                                                 idExterno,
                                                                   '');
-              }
-              else
-              {
-             	esvalido = new PedidosOtrosCanalesUtils.ValidacionCredito();
-             	esvalido.aprobado = true;
-              }
+             // }
+             // else
+             // {
+             //	esvalido = new PedidosOtrosCanalesUtils.ValidacionCredito();
+             //	esvalido.aprobado = true;
+             //}
           } catch( Exception e ) {
               isLocked = false;
               System.debug('ERR:Consultando WS de validación de Crédito: '+e.getMessage());
@@ -2090,16 +2087,16 @@ public class ctrlrPedidoOtrosCanales {
           Boolean ContainsDelete = false;
           if(itemsABorrar != null && itemsABorrar.size() > 0)
           {
-             ContainsDelete = true;
+              ContainsDelete = true;
           }
-          pedido = PedidosOtrosCanalesUtils.ValidarPedidoModificado( pedido, productos, false,pedidoOld,ProductosOld,ContainsDelete );
+          pedido = PedidosOtrosCanalesUtils.ValidarPedidoModificado( pedido, productos, false,pedidoOld,ProductosOld,ContainsDelete, ProductosEliminado);  
 
             if( (String.isNotBlank(pedido.Numero_de_Pedido_NSC__c) && pedido.Numero_de_Pedido_NSC__c != '0') || (string.isNotBlank(pedido.Numero_Pedido_SAP__c ) && pedido.Numero_Pedido_SAP__c != '0'))
             {
                 Integer dias = pedido.Canal_Factura__r.Dias_de_cierre__c == null ? 0 : Integer.valueOf(pedido.Canal_Factura__r.Dias_de_cierre__c);
                 if((pedido.Fecha_de_Embarque__c > Datetime.now().addDays(dias)) && ContainsDelete )
-                {
-                     string areaResp = 'E';
+               {
+                     /*string areaResp = 'E';
                      areaResp = CtrlTrgOppWsActualizaDatosGenerales.ObtenerCanalVenta(pedido);
                      System.debug('pedido act ::' +pedido);
 
@@ -2107,8 +2104,9 @@ public class ctrlrPedidoOtrosCanales {
 
                      if(ResponseNSC  != null && ResponseNSC.EstatusPedido == 1 )
                      {
+                         
+                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));*/
                          isLocked = true;
-                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));
                          for(pedidosOtrosCanalesUtils.producto p : productos)
                          {
                               if(p.item.Estatus__c == 3)
@@ -2116,12 +2114,13 @@ public class ctrlrPedidoOtrosCanales {
                                   p.item.Estatus__c = 1;
                               }
                          }
-                     }
+                     /*}
                       else
                      {
                         isLocked = false;
                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, ResponseNSC.Mensaje));
                      }
+                     */
                 }
             }
         }
@@ -2366,9 +2365,9 @@ public class ctrlrPedidoOtrosCanales {
             if( p.item.UnitPrice == null || p.item.UnitPrice == 0 ) {
                 p.item.UnitPrice.addError('Por favor consulte precios antes de intentar guardar!'); return false;
             }
-            if( p.item.Importe__c == null || p.item.Importe__c == 0 ) {
+          /*  if( p.item.Importe__c == null || p.item.Importe__c == 0 ) {
                 p.item.Importe__c.addError('Por favor asegúrese que las cantidades ingresadas son correctas!'); return false;
-            }
+            }*/
             if( String.isBlank( p.item.Tipo_de_Inventario__c ) ) {
                 p.item.Tipo_de_Inventario__c.addError('Por favor indique el tipo de Inventario!'); return false;
             }
@@ -2379,9 +2378,10 @@ public class ctrlrPedidoOtrosCanales {
                     }
                 }
             }
-            if( p.item.Cantidad__c == 0 || p.item.Quantity == 0 ) {
+          /*  if( p.item.Cantidad__c == 0 || p.item.Quantity == 0 ) {
                 p.item.Cantidad__c.addError('Las cantidades ingresadas NO completan al menos una caja.'); return false;
             }
+            */
         }
 
         return areValids;
@@ -2948,6 +2948,7 @@ public class ctrlrPedidoOtrosCanales {
             PedidosOtrosCanalesUtils.Producto prod = productos.get(index);
             prod.index = String.valueOf(index);
         }
+        system.debug('LISTAELIMINADOS=> '+ ProductosEliminado);
     }
 
     public void addRow() {
@@ -2970,21 +2971,21 @@ public class ctrlrPedidoOtrosCanales {
     }
     public Boolean ValidarDisponibilidad( PedidosOtrosCanalesUtils.Producto temp)
 	{
-	Boolean validaDispo = false;
-	list<PedidosOtrosCanalesUtils.Producto> listaproducto = new list<PedidosOtrosCanalesUtils.Producto>();
-	listaproducto.add(temp);
-	
-	Map<String, Oficina_de_Venta__c> mapOrigenes = PedidosOtrosCanalesUtils.completeOrigenesData( listaproducto );
-	       if( mapOrigenes != null ) {
-	           for( String k: mapOrigenes.keySet() ) {
-	               if( String.isBlank( k ) ) { continue; }
-	               Oficina_de_Venta__c ofi = mapOrigenes.get( k );
-	               if( ofi.Valida_Disponibilidad__c ) {
-	                   validaDispo = true; break;
-	               }
-	           }
-	       }
-	       return validaDispo;
+		Boolean validaDispo = false;
+		list<PedidosOtrosCanalesUtils.Producto> listaproducto = new list<PedidosOtrosCanalesUtils.Producto>();
+		listaproducto.add(temp);
+		
+		Map<String, Oficina_de_Venta__c> mapOrigenes = PedidosOtrosCanalesUtils.completeOrigenesData( listaproducto );
+		       if( mapOrigenes != null ) {
+		           for( String k: mapOrigenes.keySet() ) {
+		               if( String.isBlank( k ) ) { continue; }
+		               Oficina_de_Venta__c ofi = mapOrigenes.get( k );
+		               if( ofi.Valida_Disponibilidad__c ) {
+		                   validaDispo = true; break;
+		               }
+		           }
+		       }
+		       return validaDispo;
 	}
     
     public  void fakeMethod(){
