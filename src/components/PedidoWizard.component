@@ -473,6 +473,9 @@ function setProducto(productCode, index) {
           	 $("#selectUnidadMedida"+index+" option[value=" + unidadMedidaBase + "]").prop("selected", "selected").change();  
             
         }
+        else{
+         row.find("[id$=inputUnidadBase]").val(inputUnidad.val());
+        }
       
         
         row.find("td:nth-child(16) input").css("display", "inline-block");
@@ -791,6 +794,9 @@ function numberToString(value) {
 
 function calculaEnBaseACajas(pedidoItemValues, type) 
 {
+if(!validaContenido(inventarioMap[pedidoItemValues.productCode].Contenido)){
+			return;
+	}
     if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
         pedidoItemValues["Piezas"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
     }
@@ -806,6 +812,9 @@ function calculaEnBaseACajas(pedidoItemValues, type)
 }
 
 function calculaEnBaseAPiezas(pedidoItemValues, type) {
+	if(!validaContenido(inventarioMap[pedidoItemValues.productCode].Contenido)){
+			return;
+	}
     var cantidad;
     if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
         pedidoItemValues["Cajas"+type+"__c"] = pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido;
@@ -820,14 +829,17 @@ function calculaEnBaseAPiezas(pedidoItemValues, type) {
 }
 
 function calculaEnBaseAKilos(pedidoItemValues, type) {
+	if(!validaContenido(inventarioMap[pedidoItemValues.productCode].Contenido)){
+		return;
+	}
     var cantidad = inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 2 ? pedidoItemValues["Kilos"+type+"__c"] : inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 3 ? redondeoSK(pedidoItemValues["Kilos"+type+"__c"]/productMap[pedidoItemValues.productCode].Peso_Promedio__c) : 0;
     if(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 3) {
         if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
             pedidoItemValues["Piezas"+type+"__c"] = cantidad*inventarioMap[pedidoItemValues.productCode].Contenido;
         }
         pedidoItemValues["Piezas"+type+"__c"] = cantidad;//*inventarioMap[pedidoItemValues.productCode].Contenido;
-        pedidoItemValues["Piezas"+type] = cantidad;//*inventarioMap[pedidoItemValues.productCode].Contenido;
-        pedidoItemValues["Cajas"+type+"__c"] = cantidad/inventarioMap[pedidoItemValues.productCode].Contenido;
+       	pedidoItemValues["Piezas"+type] = cantidad;//*inventarioMap[pedidoItemValues.productCode].Contenido; 
+        pedidoItemValues["Cajas"+type+"__c"] = inventarioMap[pedidoItemValues.productCode].Contenido == 0 ?0:cantidad/inventarioMap[pedidoItemValues.productCode].Contenido;
     }
 }
 
@@ -846,7 +858,15 @@ function asignaPrecioEnBaseARango(pedidoItemValues, property) {
         }
     }
 }
-
+function validaContenido(contenido){
+	var resul= true;
+		if(contenido ==0 )
+		{
+		 	alert("Producto no configurado para la unidad de medida seleccionada.");
+		 	resul = false;
+		}
+	return resul;
+}
 function validaInventario(pedidoItemValues) {
     if(!isPreventa && !inventarioMap[pedidoItemValues.productCode].PermiteApartarSinexistencias) {
         var amount, type;

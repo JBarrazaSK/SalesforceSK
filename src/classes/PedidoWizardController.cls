@@ -149,6 +149,7 @@ public with sharing class PedidoWizardController {
     public void submit() {
     	system.debug('SUBMIT():'); 
         pedidoWrapper.setPedidoData();
+        system.debug('PEDIDO=> ' +pedidoWrapper);
         PedidoInsertNSCWS.PedidoRespuesta response = null;
         ApexPages.Message myMsg =  null;   
         WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido responseSAP = null; 

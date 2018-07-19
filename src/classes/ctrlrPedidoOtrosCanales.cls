@@ -103,7 +103,7 @@ public class ctrlrPedidoOtrosCanales {
             }
             PO = pedido.PO_Proveedor__c; OC = pedido.OC__c;
             productos = PedidosOtrosCanalesUtils.getItems(pedido.Id);
-           
+            
             productosOld = new map<string,PedidosOtrosCanalesUtils.Producto>();
             for(PedidosOtrosCanalesUtils.Producto pOld :PedidosOtrosCanalesUtils.getItems(pedido.Id))
             {
@@ -2165,6 +2165,13 @@ public class ctrlrPedidoOtrosCanales {
                   PedidosOtrosCanalesUtils.submitForApprovalCierre(pedido,'Se Envio para su aprobacion (Cierre)','Cierre',productos[0].item);
                   ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.INFO, 'Se envio a flujo de Aprobacion, Fuera de horario o de fecha de cierre'));
               }*/
+              if(!PedidosOtrosCanalesUtils.ValidarCierre(pedido,Integer.valueOf(pedido.Canal_Factura__r.Dias_de_cierre__c), pedido.Canal_Factura__r.Hora_de_cierre__c))
+              {
+                  system.debug('submitForApproval:');
+                  ApexPages.getMessages().clear();
+                  PedidosOtrosCanalesUtils.submitForApproval(pedido,'Se Envio para su aprobacion (Cierre)','Cierre');
+                  ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.INFO, 'Se envio a flujo de Aprobacion, Fuera de horario o de fecha de cierre'));
+              }
             }
             else {
                 System.debug('Actualizando pedido...');
@@ -2347,7 +2354,6 @@ public class ctrlrPedidoOtrosCanales {
 
         mapDispoResp = null;
     }
-
     private boolean validateProducts2Save() {
         boolean areValids = true;
         if( productos == null || productos.size() == 0 ) {

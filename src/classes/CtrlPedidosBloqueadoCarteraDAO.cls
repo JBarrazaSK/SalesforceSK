@@ -6,9 +6,10 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
 	Private static AggregateResult[] ImporteClientes {get; set;}
     public  static list<CtrlPedidosBloqueadoCartera.PedidosWrapper> ObtenerPedidosRetenidos(Date fecha,Id cliente, string pedido,Id canalFactura, id usuario, date FechaFinal)
     {
+    	System.debug('CANALFACTURA:=> '+canalFactura);
       String fieldName = ' ,Name,Folio_Pedido_SDL__c,Fecha_de_Embarque__c,Cliente__r.Name,Cliente__r.Numero_Cliente_SAP__c,Canal__c,Fecha_de_Entrega__c,';
       fieldName +='Account.Name,Motivo_Rechazo_Cartera__c,Cliente__r.Organizacion_de_Ventas__c,Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c,';
-      fieldName +='Cliente__r.Sociedad__c,Cliente__r.Canal_Distribucion__c,Cliente__r.Moneda_Cliente__c,Id_Externo__c,Canal_Factura__r.IdPlanta__c,motiv_aprov_recha__c ';
+      fieldName +='Cliente__r.Sociedad__c,Cliente__r.Canal_Distribucion__c,Cliente__r.Moneda_Cliente__c,Id_Externo__c,Canal_Factura__r.IdPlanta__c,motiv_aprov_recha__c,Numero_de_Pedido_NSC__c,Canal_Factura__r.Codigo__c,Canal_Factura__r.SucursalesViz__c,frontera__c ';
   		String bloqueado = 'N';
   	 	String fechaConsulta = String.valueOf(fecha);
   	 	String dynQuery = 'select Id ' + fieldName + ' From Opportunity ';
@@ -247,91 +248,118 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
    }
     public static Boolean ValidarCarteraWs(list<CtrlPedidosBloqueadoCartera.PedidosWrapper> listaPedidos)
     {
-   		  	
-    	Boolean Valido = false;
-    	PedidosOtrosCanalesUtils.ValidacionCredito esvalido;
-    	map<string,opportunity> mapValidos = new map<string,opportunity>();
-    	for(CtrlPedidosBloqueadoCartera.PedidosWrapper wp :listaPedidos )
-    	{
-    		if(wp.Seleccionado)
-    		{
-    			mapValidos.put(wp.Pedido.Id,wp.Pedido);
-
-    		}
-     	}
-
-    	//WsLiberacionPedidosCarteraPSV.LiberacionPedidosCarteraPSVSoap Services = new WsLiberacionPedidosCarteraPSV.LiberacionPedidosCarteraPSVSoap();
-    	WsLiberacionPedidosCarteraLegados.LiberacionPedidosCarteraPSVSoap Services = new WsLiberacionPedidosCarteraLegados.LiberacionPedidosCarteraPSVSoap();
-    	list<opportunity> listaOpp = new list<opportunity>();
-    	String mensaje ='';
-    	String canal ='';
-    	Boolean isBodega = false;
-    	
-    	for(opportunity opp : mapValidos.values())
-    	{
-    		system.debug('opp.Canal_Factura__r.IdPlanta__c ----------------------------> '+opp.Canal_Factura__r.IdPlanta__c);
-    		if(opp.Canal_Factura__r.IdPlanta__c == null)
-    		{
-    			isBodega = true;
-    		}
-    			canal = opp.Canal__c;
-    			if(canal != 'A')
-				{
-					if(Canal == 'E' && isBodega)
-					{
-						canal = 'B';
-					}
-					else if(isBodega)
-					{
-						canal = 'N';
-					}
-				}
-
-    		opp.fecha_aprov_recha__c = Datetime.Now().Date();
-    		//WsLiberacionPedidosCarteraPSV.RespuestaBase Response = Services.LiberarPedidoCartera(opp.Folio_Pedido_SDL__c,canal,ObtenerUsuario());
-    		WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido DatosLiberacionPedido = new WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido();
-		    if(opp.Cliente__r.Canal_de_Distribucion_NSC__c == null ||opp.Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c == null)
-    		{
-    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning,'El cliente no cuenta con canal de distribucion'));
-    			return null;
-    		}else{		
-	    		DatosLiberacionPedido.FolioPSV = opp.Folio_Pedido_SDL__c;
-	    		DatosLiberacionPedido.FolioNSC = opp.Numero_de_Pedido_NSC__c;
-	    		DatosLiberacionPedido.CanalDistribucion = Integer.valueOf(opp.Cliente__r.Canal_Distribucion__c);
-	    		DatosLiberacionPedido.Tipo =  canal;
-	    		DatosLiberacionPedido.Usuario = ObtenerUsuario();
-	    		System.debug('DatosLiberacionPedido:=> ' + DatosLiberacionPedido);		    		
-	    		WsLiberacionPedidosCarteraLegados.RespuestaBase Response = Services.LiberarPedidoCartera(DatosLiberacionPedido);
-	    		if(Response == null || Response.Tipo !='TerminadoConExito')
+   		 Boolean Valido = false;
+ 	try	{
+	    	PedidosOtrosCanalesUtils.ValidacionCredito esvalido;
+	    	map<string,opportunity> mapValidos = new map<string,opportunity>();
+	    	for(CtrlPedidosBloqueadoCartera.PedidosWrapper wp :listaPedidos )
+	    	{
+	    		if(wp.Seleccionado)
 	    		{
-	    			system.debug('Response ----------------------------> '+Response);
-	    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, Response.Mensaje));
-	    			return Valido;
+	    			mapValidos.put(wp.Pedido.Id,wp.Pedido);	
 	    		}
-	    		else
+	     	}
+	    	WsLiberacionPedidosCarteraLegados.LiberacionPedidosCarteraPSVSoap Services = new WsLiberacionPedidosCarteraLegados.LiberacionPedidosCarteraPSVSoap();
+	    	list<opportunity> listaOpp = new list<opportunity>();
+	    	String mensaje ='';
+	    	String canal ='';
+	    	Boolean isBodega = false;
+	    	
+	    	for(opportunity opp : mapValidos.values())
+	    	{
+	    		system.debug('opp.Canal_Factura__r.IdPlanta__c ----------------------------> '+opp.Canal_Factura__r.IdPlanta__c);
+	    		if(opp.Canal_Factura__r.IdPlanta__c == null)
 	    		{
-	    			for(CtrlPedidosBloqueadoCartera.PedidosWrapper wp: listaPedidos)
-	    			{
-	    				if(wp.seleccionado)
-	    				{
-	    					wp.liberado = true;
-	    				}
-	    			}
-	    			Valido = true;
-	    			mensaje = Response.Mensaje;
-	    			opp.Liberado__c = 'S';
-	    			listaOpp.add(opp);
+	    			isBodega = true;
 	    		}
-		    }
+	    			canal = opp.Canal__c;
+	    			if(canal != 'A')
+					{
+						if(Canal == 'E' && isBodega)
+						{
+							canal = 'B';
+						}
+						else if(isBodega)
+						{
+							canal = 'N';
+						}
+					}
+	
+	    		opp.fecha_aprov_recha__c = Datetime.Now().Date();
+	    		WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido DatosLiberacionPedido = new WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido();
+	    		
+		    		if(opp.Canal_Factura__r.IdPlanta__c  !=null)
+	        		{
+		    			// se obtiene el canal de distribucion si es frontera o no.
+					    	string suc = 'SUC - ';
+				            List<String> ListaSucursalesFrontera = new List<String>();
+				            ListaSucursalesFrontera.addAll(opp.Canal_Factura__r.SucursalesViz__c.split(';'));
+				            System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
+				            String ClienteViz = PedidosOtrosCanalesUtils.ValidarSucursalViz(ListaSucursalesFrontera,opp.frontera__c);
+				            System.debug('ClienteViz: '+ClienteViz);
+				            if(String.isNotBlank(ClienteViz))
+				            {
+				                
+				                Account sucViz = PedidosOtrosCanalesUtils.buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
+				                if(sucViz != null && sucViz.Canal_de_Distribucion_NSC__c != null)
+				                {
+				                    DatosLiberacionPedido.CanalDistribucion = Integer.ValueOf(sucViz.Canal_de_Distribucion_NSC__r.Codigo__c);
+				                    
+				                }
+				            }
+				        }else
+				        {
+				          DatosLiberacionPedido.CanalDistribucion = Integer.ValueOf(opp.Canal_Factura__r.Codigo__c);
+				        }
+				        
+			    if(DatosLiberacionPedido.CanalDistribucion == null || DatosLiberacionPedido.CanalDistribucion == 0)
+	    		{
+	    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning,'El cliente no cuenta con canal de distribucion'));
+	    			return null;
+	    		}else
+	    		{	    			
+	    			
+	    			    			
+	    			System.debug('DatosLiberacionPedido:=> Canal_Distribucion__c: ' + DatosLiberacionPedido.CanalDistribucion  + ' opp.Folio_Pedido_SDL__c ' + opp.Folio_Pedido_SDL__c +' opp.Numero_de_Pedido_NSC__c '+opp.Numero_de_Pedido_NSC__c);		
+		    		DatosLiberacionPedido.FolioPSV = opp.Folio_Pedido_SDL__c;
+		    		DatosLiberacionPedido.FolioNSC = opp.Numero_de_Pedido_NSC__c == null ? '0' :opp.Numero_de_Pedido_NSC__c;
+		    		DatosLiberacionPedido.Tipo =  canal;
+		    		DatosLiberacionPedido.Usuario = ObtenerUsuario();
+		    		System.debug('DatosLiberacionPedido:=> ' + DatosLiberacionPedido);		    		
+		    		WsLiberacionPedidosCarteraLegados.RespuestaBase Response = Services.LiberarPedidoCartera(DatosLiberacionPedido);
+		    		system.debug('Response ----------------------------> '+Response);
+		    		if(Response == null || Response.Tipo !='TerminadoConExito')
+		    		{
+		    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, Response.Mensaje));
+		    			return Valido;
+		    		}
+		    		else
+		    		{
+		    			for(CtrlPedidosBloqueadoCartera.PedidosWrapper wp: listaPedidos)
+		    			{
+		    				if(wp.seleccionado)
+		    				{
+		    					wp.liberado = true;
+		    				}
+		    			}
+		    			Valido = true;
+		    			mensaje = 'Se liberó con éxito el pedido.';
+		    			opp.Liberado__c = 'S';
+		    			listaOpp.add(opp);
+		    		}    			 
+	    		}		    
+	    	}
+	    	if(listaOpp.size() > 0)
+	    	{
+	    		upsert listaOpp;
+	    		ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, mensaje));
+	    	}
 
-    	}
-    	if(listaOpp.size() > 0)
-    	{
-    		upsert listaOpp;
-    		ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, mensaje));
-    	}
-
-    	 return Valido;
+    	}catch(Exception e) 
+		{                
+		   ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, 'Ocurrió un problema al liberar el pedido. Favor de intentar de nuevo.'));                
+		}
+    	return Valido;
 
     }
     public static string ObtenerUsuario()

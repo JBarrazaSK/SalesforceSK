@@ -65,7 +65,20 @@ public list<PedidosWrapper> listaPedidos{get;set;}
           ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'El pedido se encuentra en un proceso de aprobación no se puede Liberar.'));
           return;
       }
-  	 else if(!CtrlPedidosBloqueadoCarteraDAO.ValidarCarteraWs(listaPedidos))
-  	   ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning,'Debe de seleccionar el pedido a validar'));
+  	 else{  
+  	 		integer contador = 0;
+  	 		for(CtrlPedidosBloqueadoCartera.PedidosWrapper wp :listaPedidos )
+	    	{
+	    		if(wp.Seleccionado)
+	    			contador++;	
+	     	}	 		
+  	 		if(contador == 0){
+  	 		  	   ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning,'Debe de seleccionar el pedido a validar'));
+  	 		}else
+  	 		{
+  	 			CtrlPedidosBloqueadoCarteraDAO.ValidarCarteraWs(listaPedidos);
+  	 		}
+  	 } 
+
   }
 }

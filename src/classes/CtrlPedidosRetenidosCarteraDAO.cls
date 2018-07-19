@@ -9,7 +9,7 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
     {
 		    String fieldName = ',Name,Folio_Pedido_SDL__c,Fecha_de_Embarque__c,Cliente__r.Name,Cliente__r.Numero_Cliente_SAP__c,Canal__c,Fecha_de_Entrega__c,';
 		    fieldName +='Motivo_Rechazo_Cartera__c,Cliente__r.Organizacion_de_Ventas__c,Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c,';
-		    fieldName +='Cliente__r.Sociedad__c,Cliente__r.Canal_Distribucion__c,Cliente__r.Moneda_Cliente__c,Id_Externo__c,Canal_Factura__r.IdPlanta__c,Account.Name, Numero_Pedido_SAP__c	,Id_Externo__c';
+		    fieldName +='Cliente__r.Sociedad__c,Cliente__r.Canal_Distribucion__c,Cliente__r.Moneda_Cliente__c,Id_Externo__c,Canal_Factura__r.IdPlanta__c,Account.Name, Numero_Pedido_SAP__c';
 				String bloqueado = 'N';
 			 	String fechaInicial = String.valueOf(fecha);
 				String fechaEmbFinal   = String.valueOf(fechaFinal);
@@ -40,6 +40,7 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
 
 		set<Id> setOpp = new set<Id>();
 		set<Id> setClienteId = new set<Id>();
+		system.debug('QUERY=> '+ dynQuery);
 		list<opportunity> listaOportunidades = Database.query(dynQuery);
 		for(Opportunity opp :listaOportunidades)
 		{
@@ -259,7 +260,7 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
 						}
 					}
 		
-		    		opp.fecha_aprov_recha__c = Datetime.Now().Date();
+		    		opp.fecha_aprov_recha__c = Datetime.Now().Date();		    		
 		    		if(opp.Cliente__r.Canal_de_Distribucion_NSC__c == null ||opp.Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c == null)
 		    		{
 		    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning,'El cliente no cuenta con canal de distribucion'));

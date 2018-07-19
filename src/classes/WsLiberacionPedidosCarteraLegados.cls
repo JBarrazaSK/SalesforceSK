@@ -19,11 +19,11 @@ public class WsLiberacionPedidosCarteraLegados {
         public Integer CanalDistribucion;
         public String Tipo;
         public String Usuario;
-        private String[] FolioPSV_type_info = new String[]{'FolioPSV','http://sukarne.com/ServiciosExternos/LiberacionPedidos',null,'0','1','false'};
-        private String[] FolioNSC_type_info = new String[]{'FolioNSC','http://sukarne.com/ServiciosExternos/LiberacionPedidos',null,'0','1','false'};
-        private String[] CanalDistribucion_type_info = new String[]{'CanalDistribucion','http://sukarne.com/ServiciosExternos/LiberacionPedidos',null,'1','1','false'};
-        private String[] Tipo_type_info = new String[]{'Tipo','http://sukarne.com/ServiciosExternos/LiberacionPedidos',null,'0','1','false'};
-        private String[] Usuario_type_info = new String[]{'Usuario','http://sukarne.com/ServiciosExternos/LiberacionPedidos',null,'0','1','false'};
+        private String[] FolioPSV_type_info = new String[]{'FolioPSV','',null,'0','1','false'};
+        private String[] FolioNSC_type_info = new String[]{'FolioNSC','',null,'0','1','false'};
+        private String[] CanalDistribucion_type_info = new String[]{'CanalDistribucion','',null,'1','1','false'};
+        private String[] Tipo_type_info = new String[]{'Tipo','',null,'0','1','false'};
+        private String[] Usuario_type_info = new String[]{'Usuario','',null,'0','1','false'};
         private String[] apex_schema_type_info = new String[]{'http://sukarne.com/ServiciosExternos/LiberacionPedidos','true','false'};
         private String[] field_order_type_info = new String[]{'FolioPSV','FolioNSC','CanalDistribucion','Tipo','Usuario'};
     }
@@ -36,7 +36,15 @@ public class WsLiberacionPedidosCarteraLegados {
         private String[] field_order_type_info = new String[]{'Mensaje','Tipo'};
     }
     public class LiberacionPedidosCarteraPSVSoap {
+    	
+    	
         public String endpoint_x = 'http://192.168.216.11:2562/SKServiciosExternos/SalesForce/LiberacionPedidosCarteraPSV.asmx';
+        public LiberacionPedidosCarteraPSVSoap()
+       {
+           endpoints__c ep = endpoints__c.getInstance();
+           this.endpoint_x = ep.LiberacionPedidosCarteraPSV__c;
+           this.timeout_x = 120000;
+       }
         public Map<String,String> inputHttpHeaders_x;
         public Map<String,String> outputHttpHeaders_x;
         public String clientCertName_x;

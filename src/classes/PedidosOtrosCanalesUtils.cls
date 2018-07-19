@@ -2804,8 +2804,8 @@ pedido.StageName = '11 - Bloqueado Cierre';
     }
     public static void submitForApproval(Opportunity opp, string Comment, string tipo)
     {
-        // Create an approval request for the Opportunity
-        String canalDistribucion = opp.Cliente__r.Canal_Distribucion__c.right(2);
+          // Create an approval request for the Opportunity
+        String canalDistribucion = tipo =='Cierre'?opp.Canal_Factura__r.Codigo__c: opp.Cliente__r.Canal_Distribucion__c.right(2);
         String aprobadorID ='';
         map<string,String> mapAprobadores = ObtenerAprobadores();
         Approval.ProcessSubmitRequest req1 = new Approval.ProcessSubmitRequest();
@@ -2817,6 +2817,13 @@ pedido.StageName = '11 - Bloqueado Cierre';
         if(string.isNotBlank(mapAprobadores.get(canalDistribucion+tipo)))
         {
             aprobadorID = mapAprobadores.get(canalDistribucion+tipo);
+        }
+        else{
+        	canalDistribucion = opp.Cliente__r.Canal_Distribucion__c.right(2);
+        	if(string.isNotBlank(mapAprobadores.get(canalDistribucion+tipo)))
+	        {
+	            aprobadorID = mapAprobadores.get(canalDistribucion+tipo);
+	        }
         }
         if(Test.isRunningTest())
         {
@@ -4675,7 +4682,7 @@ else*/
                             mapEstrategiasMod.put(adminSaldos.Id,adminSaldos);
                         }
                         else
-                        {
+                        { 
                             mapEstrategiasMod.put(adminSaldos.Id,adminSaldos);
                         }
                     }
@@ -4929,7 +4936,9 @@ else*/
         String areaResp;
         ActualizaNSC= false;
         ActualizaSAP = false;
-        ActualizaPSV = true;
+        
+        ParametrosOtrosCanales__c ep = ParametrosOtrosCanales__c.getInstance();
+      	 ActualizaPSV = Boolean.ValueOf(ep.Opera_PSV__c);
         try{
             sociedad = pedido.Account.Sociedad__c.right(3);
         }catch(Exception e){

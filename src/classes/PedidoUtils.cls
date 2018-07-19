@@ -196,7 +196,7 @@ public with sharing class PedidoUtils {
         }else{
             valContinuarPrecios = externalSources.setIsClosedPlaza(accountWrapper.cliente, accountWrapper.sucursal, accountWrapper.canal, pedidoWrapper.pedido.OficinaVentas__r!=null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c):null) &&
                 externalSources.setInventarioXProductCodeMap(accountWrapper.cliente, accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c) &&
-                externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc);
+                externalSources.(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc);
         }
 
 
@@ -884,6 +884,7 @@ public with sharing class PedidoUtils {
                 for(ListaPreciosQueryNSCWS.Precios precio : response.Datos.Precios) {
                     if(String.isNotBlank(precio.pve_cveprod) && precio.pve_cveprod.isNumeric()) {
                         String productCode = String.valueOf(Integer.valueOf(precio.pve_cveprod));
+                        system.debug('RESPONSEPRODUCTCODE=> '+ inventarioXProductCodeMap.containsKey(productCode));
                         if(inventarioXProductCodeMap.containsKey(productCode)) {
                             if(!precioListXProductCodeMap.containsKey(productCode)) {
                                 precioListXProductCodeMap.put(productCode, new List<ListaPreciosQueryNSCWS.Precios> { precio });
@@ -893,6 +894,7 @@ public with sharing class PedidoUtils {
                         }
                     }
                 }
+                
                 if(precioListXProductCodeMap.isEmpty()) {
                     ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, PedidoUtils.LISTAPRECIOS_WEB_SERVICE_NO_DATA_ERROR));
                 }
@@ -948,11 +950,16 @@ public with sharing class PedidoUtils {
         		ABCPedidos_SF_to_ECC.SCHEDULES_Linea_element 	elem5 = new ABCPedidos_SF_to_ECC.SCHEDULES_Linea_element();
         		elem1.Producto 				= pedidoWrapper.pedidoItemList[i].Producto__r.ProductCode;
         		
-        		if(pedidoWrapper.pedidoItemList[i].Cajas__c != null)
+        		System.debug('DEBUGUNIDAD__C=> '+String.valueOf(pedidoWrapper.pedidoItemList[i].Cajas__c)+' -- '+ mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c));
+        		
+        		if(pedidoWrapper.pedidoItemList[i].Cajas__c != null && mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c) == 'CS')
         			elem1.Cajas 			= String.valueOf(pedidoWrapper.pedidoItemList[i].Cajas__c);
         		
         		if(mapaUnidadMedida.containsKey(pedidoWrapper.pedidoItemList[i].Unidad__c) && mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c) == 'PI')
         			elem1.Cajas = String.valueOf(pedidoWrapper.pedidoItemList[i].Piezas__c);
+        		else if(mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c) == 'KG')
+        			elem1.Cajas = String.valueOf(pedidoWrapper.pedidoItemList[i].Kilos__c);
+        			
         		
         		if(mapaUnidadMedida.containsKey(pedidoWrapper.pedidoItemList[i].Unidad__c))
         			elem1.TipoSurtido 	= mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c);	
@@ -971,7 +978,7 @@ public with sharing class PedidoUtils {
         		elem2.TipoCliente 			= 'AG';
         		elem2.Cliente 				= accountWrapper.clienteSAP;
         		result.SALES_PARTNERS.PARTNERS_Linea.add(elem2);
-        		if(!pedidoWrapper.pedido.Factura_No_Fiscal__c && pedidoWrapper.pedido.Prospecto__c != null)
+        		if(pedidoWrapper.pedido.Factura_No_Fiscal__c)
         		{
         			elem2 = new ABCPedidos_SF_to_ECC.PARTNERS_Linea_element();
         			elem2.TipoCliente 			= 'RE';
@@ -986,23 +993,26 @@ public with sharing class PedidoUtils {
         		if(mapaUnidadMedida.containsKey(pedidoWrapper.pedidoItemList[i].Unidad__c))
         			elem3.Unidad 	= mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].TipoPrecio__c);
         		result.SALES_CONDITIONS_IN.CONDITIONS_Linea.add(elem3);        		
-        		
-        		system.debug('UNIDNAD__C: ' + elem3.Unidad);
-        		
+        		        		
         		/*if(pedidoWrapper.pedidoItemList[i].Cajas_Balanceadas__c != null)
         			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].Cajas_Balanceadas__c);*/
-        			
         			
         		if(pedidoWrapper.pedidoItemList[i].Cajas_Conf__c != null)
         			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].Cajas_Conf__c);	
         		// Si es  pedido nuevo o modificacion y es diferente de Piezas  se mandas las cajas confirmadas 
-        		if((result.SALES_HEADER_IN.Estatus == 'I' || result.SALES_HEADER_IN.Estatus == 'U') && mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c) != 'PI' )
+        		if((result.SALES_HEADER_IN.Estatus == 'I' || result.SALES_HEADER_IN.Estatus == 'U') 
+        				&& mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c) == 'CS' )
         		{
         			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].Cajas_Conf__c);        				
         		}
+        		else if((result.SALES_HEADER_IN.Estatus == 'I' || result.SALES_HEADER_IN.Estatus == 'U') 
+        				&& mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c) == 'KG' )
+        		{
+        			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].Kilos_Conf__c);        				
+        		}
         		else
         		{
-        			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].piezas_Conf__c);
+        			elem5.CantidadBalanceada = String.valueOf(pedidoWrapper.pedidoItemList[i].piezas_Conf__c);
         		}
         		if(Balanceo && mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c) == 'PI' )
         		{
@@ -1155,9 +1165,25 @@ public with sharing class PedidoUtils {
                 pedidoDetalleWS.nRenglon = i+1;
                 pedidoDetalleWS.nProducto = Integer.valueOf(pedidoWrapper.pedidoItemList[i].Producto__r.ProductCode);
                 pedidoDetalleWS.nMarca = 0;
-                if( unidades == null ) {
+            
+                system.debug('UNIDADES=> '+ unidades);
+                if( unidades == null ) 
+                {             	
                 	
-                	pedidoDetalleWS.nUnidad = pedidoWrapper.pedidoItemList[i].Unidad__c == 'P' ? 1 : pedidoWrapper.pedidoItemList[i].Unidad__c == 'C' ? 3 : pedidoWrapper.pedidoItemList[i].Unidad__c == 'K' ? 4 : 5;
+	                if( pedidoWrapper.pedidoItemList[i].Unidad__c == 'P')
+	                {
+	                	pedidoDetalleWS.nUnidad = 1;
+	                } else if( pedidoWrapper.pedidoItemList[i].Unidad__c == 'C'){
+	                	pedidoDetalleWS.nUnidad = 3;
+	                }
+	                else if(pedidoWrapper.pedidoItemList[i].Unidad__c == 'K'){
+	                	pedidoDetalleWS.nUnidad = 4;
+	                }
+	                else{
+	                		pedidoDetalleWS.nUnidad = 5;
+	                }
+                	
+                	//pedidoDetalleWS.nUnidad =  pedidoWrapper.pedidoItemList[i].Unidad__c == 'P' ? 1 : pedidoWrapper.pedidoItemList[i].Unidad__c == 'C' ? 3 : pedidoWrapper.pedidoItemList[i].Unidad__c == 'K' ? 4 : 5;
                 }
                 else {
                     for( Unidades__c u: unidades ) {
@@ -1168,6 +1194,7 @@ public with sharing class PedidoUtils {
                         }
                     }
                 }
+                system.debug('UNIDAD__C=> '+ pedidoDetalleWS.nUnidad );
                 pedidoDetalleWS.nTipoGanado = 0;
                 pedidoDetalleWS.nCalidadCanal = 0;
                 pedidoDetalleWS.nCondicionCajaCanal = 0;
@@ -1421,6 +1448,7 @@ public with sharing class PedidoUtils {
             system.debug('PEDIDO WRAPER: '+pedidoWrapper);
             system.debug('ACCOUNT WRAPER: '+accountWrapper);
             PedidoInsertNSCWS.Pedido pedidoWS = setPedidoWS(pedidoWrapper,accountWrapper);
+            system.debug('PEDIDOWS: '+pedidoWS);
             PedidoInsertNSCWS.RespuestaOfPedidoRespuesta response = sendPedido(pedidoWS);
             if(response != null) {
                 return response.Datos;
