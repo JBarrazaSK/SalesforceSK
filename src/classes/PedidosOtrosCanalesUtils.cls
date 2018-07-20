@@ -1492,15 +1492,16 @@ public class PedidosOtrosCanalesUtils {
             if(string.isNotBlank(pedido.Numero_de_Pedido_NSC__c) && pedido.Numero_de_Pedido_NSC__c != '0')
                 pedidoWS.estatusPedido = 10; //10-Bloqueado
         }
-        /*if(!cancelado && String.isBlank(pedido.Folio_Pedido_SDL__c))
-{
-if(!ValidarCierre(pedido,Integer.valueOf(pedido.Canal_Factura__r.Dias_de_cierre__c), pedido.Canal_Factura__r.Hora_de_cierre__c))
-{
-pedidoWS.estatusPedido = 11; //10-Bloqueado
-pedido.StageName = '11 - Bloqueado Cierre';
-}
-}*/
-        
+        if(!cancelado && String.isBlank(pedido.Folio_Pedido_SDL__c))
+		{
+			if(!ValidarCierre(pedido,Integer.valueOf(pedido.Canal_Factura__r.Dias_de_cierre__c), pedido.Canal_Factura__r.Hora_de_cierre__c))
+			{
+				pedidoWS.estatusPedido = 11; //10-Bloqueado
+				pedido.StageName = '11 - Bloqueado Cierre';
+				PedidoBloqueado = true;
+			}
+		}
+         
         pedidoWS.tipoSurtido = 3;
         pedidoWS.tipoVenta = 1;
         String sociedad = '';
@@ -4668,7 +4669,7 @@ else*/
                 SaldoActual = 0;
                 SaldoSemPasada = 0;
                 Integer semana = 0;
-                if(productosSinModificar.ContainsKey(primerProd.Codigo))
+                if( productosSinModificar != null && productosSinModificar.ContainsKey(primerProd.Codigo))
                 {
                     SaldoSemPasada = productosSinModificar.get(primerProd.Codigo).item.Saldo_Semana_Ant__c == null ? 0 : Integer.valueOf(productosSinModificar.get(primerProd.Codigo).item.Saldo_Semana_Ant__c);
                     SaldoActual = productosSinModificar.get(primerProd.Codigo).item.Saldo__c == null ? 0 : Integer.valueOf(productosSinModificar.get(primerProd.Codigo).item.Saldo__c);
@@ -4699,7 +4700,7 @@ else*/
                         {
                             mapEstrategiasMod.put(adminSaldos.Id,adminSaldos);
                         }
-                    }
+                    }  
                 }
                 // Disminuir inventario Semana Actual
                 if(primerProd.inventario != null )

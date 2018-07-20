@@ -413,11 +413,11 @@ public without sharing class AccountTrigger {
         
         String error;
         try {
-            clienteInsertSAPPIWS.DT_SF_CreacionClientes_return response = request.SI_OS_SalesForce_CreacionClientes_2(c);
-             error = String.isBlank(response.Msg_1) ? response.Msg_2 : null;
+            //clienteInsertSAPPIWS.DT_SF_CreacionClientes_return response = request.SI_OS_SalesForce_CreacionClientes_2(c);
+             //error = String.isBlank(response.Msg_1) ? response.Msg_2 : null;
             if(String.isBlank(error)) {
-                account.Numero_cliente_SAP__c = response.Msg_1;
-                update account;  
+               // account.Numero_cliente_SAP__c = response.Msg_1;
+               // update account;  
                 Account accountSucursal = account.clone(false, true);
                 accountSucursal.Name = 'SUC - '+accountSucursal.Name;
                 accountSucursal.Numero_cliente_SAP__c = 'SUC - '+account.Numero_cliente_SAP__c;
