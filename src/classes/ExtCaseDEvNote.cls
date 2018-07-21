@@ -33,7 +33,7 @@ public void ConsultarFactura()
 		{
 			if(response.TipoMensaje == 'S')
 			{
-				LlenarEntidadFactura(response.Datos);
+				LlenarEntidadFactura(response.Datos);				
 			}
 			else
 			{
@@ -124,10 +124,19 @@ public EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req Gen
 }
 public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[] Datos)
 {
-		factura = new Factura(); 
+	
+		factura = new Factura();		
   		factura.CodigoCliente = String.ValueOf(Datos[0].Cabecero.CodigoCliente).leftpad(10,'0');
+  		system.debug('CLIENTE=> '+ factura.CodigoCliente);
   		this.caso.AccountId = TraerCuenta(String.ValueOf(Datos[0].Cabecero.CodigoCliente)).id;
-  		this.Caso.ContactId = TraerContacto(this.caso.AccountId).Id;
+  		system.debug('CUENTA=> '+ this.caso.AccountId);
+  		String contacto = TraerContacto(this.caso.AccountId).Id;
+  		if(contacto == null)
+		{
+	  		showPageMessage('WARNING','No se encuentro un contacto asiciado a la cuenta.');
+	  		return;
+	  	}
+  		this.Caso.ContactId = contacto; 
   		factura.NombreCliente = String.ValueOf(Datos[0].Cabecero.CodigoCliente)+' - '+Datos[0].Cabecero.DescripcionCliente;
   		factura.OficinaVentas = Datos[0].Cabecero.OficinaVentas;
   		setPicklist(Datos[0].Cabecero.OficinaVentas);
@@ -138,7 +147,7 @@ public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[]
   		factura.Abonos = String.ValueOf(Datos[0].Cabecero.Abonos);
   		factura.Saldo = String.ValueOf(Datos[0].Cabecero.Saldo);
   		factura.Moneda = Datos[0].Cabecero.Moneda;
-  		factura.FechaFactura = Datos[0].Cabecero.FechaFactura;
+  		factura.FechaFactura = Datos[0].Cabecero.FechaFactura; 		
   		
   		factura.ListaProductos = new list<DetalleFactura>();
   		for(EntityConsultaFactura_SF_to_ECC.Detalle_element dt :Datos[0].Detalle)
@@ -191,7 +200,16 @@ public Account TraerCuenta(string NumeroCliente)
 } 
 public Contact TraerContacto (string IdCuenta)
 {
-	return [select id,Name  from Contact where AccountId =: IdCuenta]; 
+	Contact contacto = new Contact();
+	try{
+		contacto = [select id,Name  from Contact where AccountId =: IdCuenta Limit 1];
+	}
+	catch(Exception e)
+	{
+		
+	}
+	
+	return contacto;
 }
 public class Factura
 {
