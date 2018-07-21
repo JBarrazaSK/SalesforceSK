@@ -56,7 +56,7 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 		                DatosPedidos.DatosSAP = PedidosOtrosCanalesUtils.CrearPedidoSap(opp,listaProductos,false);
 		           }
         		  
-        		   	PedidoWs  =  responseWS(opp,DatosPedidos);
+        		   	PedidoWs  =  responseWS(opp,DatosPedidos); 
  
         		  if(DatosPedidos.ActualizaNSC && string.isnotblank(PedidoWs.Numero_de_Pedido_NSC__c))
 		           {

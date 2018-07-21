@@ -527,7 +527,7 @@ textarea {
                     <apex:column headerValue="Precio" >
                         <!--<apex:inputField value="{!p.item.UnitPrice}" style="width:50px" />-->
                         <apex:outputText value="{0, number, ###,###,##0.00}" style="width:50px">
-                        	<apex:param value="{!p.item.UnitPrice}" />
+                        	<apex:param value="{!p.precioConFlete}" />
                         </apex:outputText>
                         <!--<apex:inputText value="{!p.item.UnitPrice}"  />  onkeypress="floatInputOnly(event, this)" onchange="processPrecioUnitario({!p.index})"/> -->
                     </apex:column>

@@ -10,9 +10,9 @@ public class ctrlrPedidoOtrosCanales {
     public Opportunity pedido                   {get; set;}
     public Opportunity pedidoOld                {get; set;}
     public String codigoCliente                 {get; set;}
-    public String codigoSucursal                 {get; set;}
-    public String ofiCodigo                    {get; set;}
-    public String row                       {get; set;}
+    public String codigoSucursal                {get; set;}
+    public String ofiCodigo                    	{get; set;}
+    public String row                       	{get; set;}
     public list<ProductosEliminado__c> ProductosEliminado {get; set;}
     public List<OpportunityLineItem> itemsABorrar        {get; set;}
     public List<PedidosOtrosCanalesUtils.Producto> productos   {get; set;}
@@ -250,8 +250,7 @@ public class ctrlrPedidoOtrosCanales {
         	if( p == null ) { continue; } if( String.isBlank( p.codigo ) ) { continue; }  
         	 if(!Test.isRunningTest()){
               // Ramon Atondo
-              Precios();
-              
+              Precios();              
 	          if(ValidarDisponibilidad(p))
 	             {
 	             	Disponibilidad();
@@ -2973,6 +2972,7 @@ public class ctrlrPedidoOtrosCanales {
              prod.item.UnitPrice = prod.item.Precio_Unitario_Original__c +pedido.Flete__c;
     
         }
+        system.debug('PRODUCTO=> '+prod.codigo+' PrecioOriginal=>'+prod.item.Precio_Unitario_Original__c + ' PRECIOUNIT=> '+ prod.item.UnitPrice);
       prod.precioConFlete =  prod.item.UnitPrice;
     }
     public Boolean ValidarDisponibilidad( PedidosOtrosCanalesUtils.Producto temp)
