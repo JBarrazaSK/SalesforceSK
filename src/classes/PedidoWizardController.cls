@@ -116,10 +116,8 @@ public with sharing class PedidoWizardController {
             }*/
         }
         pedidoWrapper.tipoSurtido = Integer.valueOf(pedidoWrapper.pedido.TipoSurtido__c.left(1));
-        System.debug('Entro:'+pedidoWrapper.pedido.FechaSurtidoProgramada__c);
         if(pedidoWrapper.pedido.FechaSurtidoProgramada__c != null)
         {
-          System.debug('Entro:');
           if(pedidoWrapper.pedido.FechaSurtidoProgramada__c.format('EEEE') == 'Saturday') pedidoWrapper.pedido.FechaSurtidoProgramada__c = pedidoWrapper.pedido.FechaSurtidoProgramada__c.addDays(1);
           if(pedidoWrapper.pedido.FechaSurtidoProgramada__c.format('EEEE') == 'Sunday') pedidoWrapper.pedido.FechaSurtidoProgramada__c = pedidoWrapper.pedido.FechaSurtidoProgramada__c.addDays(1);
 

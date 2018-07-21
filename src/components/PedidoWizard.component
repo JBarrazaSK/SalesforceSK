@@ -794,26 +794,30 @@ function numberToString(value) {
 
 function calculaEnBaseACajas(pedidoItemValues, type) 
 {
-if(!validaContenido(inventarioMap[pedidoItemValues.productCode].Contenido)){
-			return;
+	var resultado = true;
+	if(!validaContenido(inventarioMap[pedidoItemValues.productCode].Contenido)){
+			return false;
 	}
     if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
         pedidoItemValues["Piezas"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
     }
-    /// Ramon Atondo 28/05/2018
+    
 	pedidoItemValues["Piezas"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
 	pedidoItemValues["Piezas"+type] =pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
  		
-    //pedidoItemValues["Kilos"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
-    pedidoItemValues["Kilos"+type+"__c"] = inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar ? pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido*productMap[pedidoItemValues.productCode].Peso_Promedio__c : pedidoItemValues["Piezas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
+    pedidoItemValues["Kilos"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
     pedidoItemValues["kilos"+type] = pedidoItemValues.unit == "L" ? pedidoItemValues["Kilos"+type+"__c"]*conversionKiloPound : pedidoItemValues["Kilos"+type+"__c"];
     
-  
+    //pedidoItemValues["Kilos"+type+"__c"] = inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar ? pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido*productMap[pedidoItemValues.productCode].Peso_Promedio__c : pedidoItemValues["Piezas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
+    //pedidoItemValues["kilos"+type] = pedidoItemValues.unit == "L" ? pedidoItemValues["Kilos"+type+"__c"]*conversionKiloPound : pedidoItemValues["Kilos"+type+"__c"];
+    
+    return resultado;
 }
 
 function calculaEnBaseAPiezas(pedidoItemValues, type) {
+var resultado = true;
 	if(!validaContenido(inventarioMap[pedidoItemValues.productCode].Contenido)){
-			return;
+			return false;
 	}
     var cantidad;
     if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
@@ -823,24 +827,27 @@ function calculaEnBaseAPiezas(pedidoItemValues, type) {
     	  		
 		pedidoItemValues["Cajas"+type+"__c"] = pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido;
  		pedidoItemValues["Cajas"+type] = pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido;
-        pedidoItemValues["Kilos"+type+"__c"] = inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar ? pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido*productMap[pedidoItemValues.productCode].Peso_Promedio__c : pedidoItemValues["Piezas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
+        pedidoItemValues["Kilos"+type+"__c"] = inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar ? (/*pedidoItemValues["Piezas"+type+"__c"]*/pedidoItemValues["Cajas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido)*productMap[pedidoItemValues.productCode].Peso_Promedio__c : pedidoItemValues["Cajas"+type+"__c"]/*pedidoItemValues["Piezas"+type+"__c"]*/*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
         pedidoItemValues["kilos"+type] = pedidoItemValues.unit == "L" ? pedidoItemValues["Kilos"+type+"__c"]*conversionKiloPound : pedidoItemValues["Kilos"+type+"__c"];
     }
+      return resultado;
 }
 
 function calculaEnBaseAKilos(pedidoItemValues, type) {
+var resultado = true;
 	if(!validaContenido(inventarioMap[pedidoItemValues.productCode].Contenido)){
-		return;
+		return false;
 	}
     var cantidad = inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 2 ? pedidoItemValues["Kilos"+type+"__c"] : inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 3 ? redondeoSK(pedidoItemValues["Kilos"+type+"__c"]/productMap[pedidoItemValues.productCode].Peso_Promedio__c) : 0;
     if(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 3) {
         if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
             pedidoItemValues["Piezas"+type+"__c"] = cantidad*inventarioMap[pedidoItemValues.productCode].Contenido;
         }
-        pedidoItemValues["Piezas"+type+"__c"] = cantidad;//*inventarioMap[pedidoItemValues.productCode].Contenido;
-       	pedidoItemValues["Piezas"+type] = cantidad;//*inventarioMap[pedidoItemValues.productCode].Contenido; 
-        pedidoItemValues["Cajas"+type+"__c"] = inventarioMap[pedidoItemValues.productCode].Contenido == 0 ?0:cantidad/inventarioMap[pedidoItemValues.productCode].Contenido;
+        pedidoItemValues["Piezas"+type+"__c"] = cantidad*inventarioMap[pedidoItemValues.productCode].Contenido;
+       	pedidoItemValues["Piezas"+type] = cantidad*inventarioMap[pedidoItemValues.productCode].Contenido; 
+        pedidoItemValues["Cajas"+type+"__c"] = cantidad;//inventarioMap[pedidoItemValues.productCode].Contenido == 0 ?0:cantidad/inventarioMap[pedidoItemValues.productCode].Contenido;
     }
+    return resultado;
 }
 
 function redondeoSK(value) {
@@ -917,6 +924,7 @@ function calculaImporte(pedidoItemValues, isPreset) {
         pedidoItemValues.Importe__c = pedidoItemValues.PiezasConf__c*pedidoItemValues.precioUnitarioOtorgadoPesos;
     } else if(!(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 1 || (inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar))) {
         pedidoItemValues.Importe__c = pedidoItemValues.KilosConf__c*pedidoItemValues.precioUnitarioOtorgadoPesos;
+        //pedidoItemValues.Importe__c =pedidoItemValues.pesoPromedioKg*pedidoItemValues.precioUnitarioOtorgadoPesos;
     } else {
         pedidoItemValues.Importe__c = pedidoItemValues.pesoPromedioKg*pedidoItemValues.CajasConf__c*pedidoItemValues.precioUnitarioOtorgadoPesos;
     }
@@ -934,13 +942,14 @@ function processCajasSolicitadas(index) {
             hasError = !alert("El producto solicitado debe ser mayor o igual al producto confirmado.");
         }
         if(!hasError) {
-            calculaEnBaseACajas(pedidoItem.values, "");
-            console.log("- KILOS -"+pedidoItem.values.Kilos__c +" -KILOsCONF- "+ pedidoItem.values.KilosConf__c);
-            if(!$.isNumeric(pedidoItem.values.CajasConf__c)) {
-                copySolicitadoToConfirmado(pedidoItem.values);
-            } else if(pedidoItem.values.Kilos__c < pedidoItem.values.KilosConf__c) {
-                hasError = !alert("El producto solicitado debe ser mayor o igual al producto confirmado.");
-            }
+            if(calculaEnBaseACajas(pedidoItem.values, ""))
+            {
+	            if(!$.isNumeric(pedidoItem.values.CajasConf__c)) {
+	                copySolicitadoToConfirmado(pedidoItem.values);
+	            } else if(pedidoItem.values.Kilos__c < pedidoItem.values.KilosConf__c) {
+	                hasError = !alert("El producto solicitado debe ser mayor o igual al producto confirmado.");
+	            }
+	       }
         }
         if(hasError) {
             pedidoItem.objects.Cajas__c.focus();
@@ -988,10 +997,12 @@ function processKilosSolicitados(index) {
             hasError = !alert("El producto solicitado debe ser mayor o igual al producto confirmado.");
         }
         if(!hasError) {
-            calculaEnBaseAKilos(pedidoItem.values, "");
-            if(!$.isNumeric(pedidoItem.values.KilosConf__c)) {
-                copySolicitadoToConfirmado(pedidoItem.values);
-            }
+            if(calculaEnBaseAKilos(pedidoItem.values, ""))
+            {
+	            if(!$.isNumeric(pedidoItem.values.KilosConf__c)) {
+	                copySolicitadoToConfirmado(pedidoItem.values);
+	            }
+	        }
         } else {
             pedidoItem.objects.kilos.focus();
             restoreData(pedidoItem);
@@ -1010,9 +1021,10 @@ function processCajasConfirmadas(index) {
             pedidoItem.objects.CajasConf__c.focus();
             restoreData(pedidoItem);
         } else {
-            calculaEnBaseACajas(pedidoItem.values, "Conf");
+            if(calculaEnBaseACajas(pedidoItem.values, "Conf")){
             calculaImporte(pedidoItem.values, true);
             validaInventario(pedidoItem.values);
+            }
         }
     }
     setPedidoItemValues(pedidoItem);
@@ -1030,9 +1042,10 @@ function processPiezasConfirmadas(index) {
             hasError = !alert("La cantidad confirmada no forma por lo menos una caja.");
         }
         if(!hasError) {
-            calculaEnBaseAPiezas(pedidoItem.values, "Conf");
+            if(calculaEnBaseAPiezas(pedidoItem.values, "Conf")){
             calculaImporte(pedidoItem.values, true);
             validaInventario(pedidoItem.values);
+            }
         } else {
             pedidoItem.objects.PiezasConf__c.focus();
             restoreData(pedidoItem);
@@ -1055,9 +1068,11 @@ function processKilosConfirmados(index) {
             hasError = !alert("La cantidad solicitada no forma por lo menos una caja.");
         }
         if(!hasError) {
-            calculaEnBaseAKilos(pedidoItem.values, "Conf");
+            if(calculaEnBaseAKilos(pedidoItem.values, "Conf")){
+            console.log('ENTRO CAL');
             calculaImporte(pedidoItem.values, true);
             validaInventario(pedidoItem.values);
+            }
         } else {
             pedidoItem.objects.kilosConf.focus();
             restoreData(pedidoItem);

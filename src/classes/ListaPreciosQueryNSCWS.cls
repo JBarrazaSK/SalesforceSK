@@ -185,8 +185,9 @@ public class ListaPreciosQueryNSCWS {
         public Integer timeout_x;
         private String[] ns_map_type_info = new String[]{'http://www.sukarne.com/ws/salesforce', 'ListaPreciosQueryNSCWS'};
         public ListaPreciosSoap(){
-            PedidoParameters__c pp = PedidoParameters__c.getInstance();
-            this.endpoint_x = pp.EndpointPedidos__c + '/SKServiciosExternos/SAP/ListaPrecios.asmx';
+        	endpoints__c ep = endpoints__c.getInstance();
+           	this.endpoint_x = ep.Listaprecios__c;
+           	this.timeout_x = 120000;
         }
         public ListaPreciosQueryNSCWS.RespuestaOfListOfPrecios RegresaListaPrecios(String cliente,String gpoVendedores,String ofiVentas,String orgVentas,String canal,String destinatario,String cluster,String cadena,String fecDoc) {
             ListaPreciosQueryNSCWS.RegresaListaPrecios_element request_x = new ListaPreciosQueryNSCWS.RegresaListaPrecios_element();

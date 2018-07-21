@@ -8,22 +8,25 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 
 	public CtrlTrgOppWsActualizaDatosGenerales() {
 		String areaResp = 'E';
-	}
+	}   
 	@future(callout=true)
 	public static void handleAfterUpdateCierres(set<id> setOpp)
 	{
 			system.debug('Inicio handleAfterUpdate Cierre:: ');
 			map<String,opportunity> mapOpportunitys = new map<String,opportunity>();
 			productos = getItems(setOpp);
-	    string areaResp;
-			List<PedidosMayoreoWS.PedidoMayoreo> listPedidos = new List<PedidosMayoreoWS.PedidoMayoreo>();
+	   		List<PedidosMayoreoWS.PedidoMayoreo> listPedidos = new List<PedidosMayoreoWS.PedidoMayoreo>();
 			PedidosMayoreoWS.ArrayOfPedidoMayoreo request = null;
 			list<PedidosMayoreoWS.ArrayOfPedidoMayoreo> listaRequest = new list<PedidosMayoreoWS.ArrayOfPedidoMayoreo>();
-
+			list<opportunity> listaAGrabar = new list<opportunity>();
+			WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos = new WsPedidosMayoreoLegados.DatosPedidoLegado();
+			opportunity PedidoWs = new opportunity();
 	    for(opportunity opp : getOppById(setOpp))
 	    {
+	    	PedidoWs = new opportunity();
+	    	DatosPedidos = new WsPedidosMayoreoLegados.DatosPedidoLegado();
 	    	listaProductos = new list<PedidosOtrosCanalesUtils.Producto>();
-				mapOpportunitys.put(opp.Folio_Pedido_SDL__c,opp);
+			mapOpportunitys.put(opp.Folio_Pedido_SDL__c,opp);
 	    	for(PedidosOtrosCanalesUtils.Producto oppl : productos)
 	    	{
 			    		if(oppl.item.OpportunityId == opp.id)
@@ -31,77 +34,76 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 			    				listaProductos.add(oppl);
 			    		}
 	    	}
-			    	areaResp = ObtenerCanalVenta(opp);
-            try{
-									system.debug('estatus' + opp.Estatus_Cierre_Pedido__c);
-									PedidosMayoreoWS.PedidoMayoreo CabezeropedidoMayoreo = CrearCabezeroPedido(opp,listaProductos);
-									if(CabezeropedidoMayoreo != null)
-									{
-											system.debug('CabezeropedidoMayoreo' + CabezeropedidoMayoreo);
-											request = new PedidosMayoreoWS.ArrayOfPedidoMayoreo();
-											listPedidos.add(CabezeropedidoMayoreo);
-											request.PedidoMayoreo = listPedidos;
-											listaRequest.add(request);
-									}
+			try{
+				 
+				  PedidosOtrosCanalesUtils.ObtenerActalizaLegados(opp);
+				  DatosPedidos = new WsPedidosMayoreoLegados.DatosPedidoLegado();
+				  DatosPedidos.ActualizaPSV = PedidosOtrosCanalesUtils.ActualizaPSV;
+				  DatosPedidos.ActualizaSAP = PedidosOtrosCanalesUtils.ActualizaSAP;
+		          DatosPedidos.ActualizaNSC = PedidosOtrosCanalesUtils.ActualizaNSC;
+
+				  if(DatosPedidos.ActualizaPSV)
+		           {
+		                DatosPedidos.DatosPedidoPSV = PedidosOtrosCanalesUtils.CrearPedidoMayoreoLegados(opp,listaProductos,false); 
+		           }
+		           if(DatosPedidos.ActualizaNSC)
+		           {
+		               DatosPedidos.DatosPedidoNSC = PedidosOtrosCanalesUtils.CrearPedidoNSC(opp,listaProductos,false); 
+		           }
+		           if(DatosPedidos.ActualizaSAP)
+		           {
+		                PedidosOtrosCanalesUtils.mapTipoPedido =  PedidosOtrosCanalesUtils.FillTipoPedido();
+		                DatosPedidos.DatosSAP = PedidosOtrosCanalesUtils.CrearPedidoSap(opp,listaProductos,false);
+		           }
+        		  
+        		   	PedidoWs  =  responseWS(opp,DatosPedidos);
+ 
+        		  if(DatosPedidos.ActualizaNSC && string.isnotblank(PedidoWs.Numero_de_Pedido_NSC__c))
+		           {
+		               DatosPedidos.ActualizaNSC = false; 
+		           }
+		           if(DatosPedidos.ActualizaSAP && string.isnotblank(PedidoWs.Numero_Pedido_SAP__c))
+		           {
+		               
+		                DatosPedidos.ActualizaSAP = false;
+		           }	
+            	   mapOpportunitys.put(opp.Folio_Pedido_SDL__c,responseWS(PedidoWs,DatosPedidos)); 
 
              }
             catch(Exception e)
             {
                 system.debug('Response Fallo:: '+e.getMessage()+ '-- '+e.getStackTraceString());
             }
+            system.debug('mapOpportunitys:: '+mapOpportunitys);
 
-	    }
-			PedidosMayoreoWS.ArrayOfPedidosMayoreoRespuesta response =  null;
-			for(PedidosMayoreoWS.ArrayOfPedidoMayoreo r : listaRequest )
+	    	if(mapOpportunitys != null && mapOpportunitys.size() > 0)
 			{
-					response = PedidosOtrosCanalesUtils.executeGuardar(r);
-					if(response != null)
+				for(opportunity pedido : mapOpportunitys.values())
+				{
+					if(pedido.Estatus_Cierre_Pedido__c != 'Rejected')
 					{
-							  PedidosMayoreoWS.PedidosMayoreoRespuesta[] respuestas = response.PedidosMayoreoRespuesta;
-								if(respuestas != null)
-								{
-										for(PedidosMayoreoWS.PedidosMayoreoRespuesta respuesta:respuestas){
-												if(respuesta==null){continue;}
-
-												if(respuesta.estatus)
-												{
-														if(mapOpportunitys != null && mapOpportunitys.size() > 0)
-														{
-																	if(mapOpportunitys.get(respuesta.FolioPedidoSDL).Estatus_Cierre_Pedido__c != 'Rejected')
-																	{
-																		mapOpportunitys.get(respuesta.FolioPedidoSDL).Observacion__c = 'Pedido desbloqueado con éxito.';
-																		mapOpportunitys.get(respuesta.FolioPedidoSDL).StageName = '1 - Pedido Colocado';
-																		mapOpportunitys.get(respuesta.FolioPedidoSDL).Estatus_Cierre_Pedido__c = null;
-																	}
-																	else
-																	{
-																			mapOpportunitys.get(respuesta.FolioPedidoSDL).Observacion__c = 'Pedido rechazado con éxito.';
-																			mapOpportunitys.get(respuesta.FolioPedidoSDL).StageName = '1 - Pedido Colocado';
-																			mapOpportunitys.get(respuesta.FolioPedidoSDL).Pedido_Cancelado__c = true;
-												              mapOpportunitys.get(respuesta.FolioPedidoSDL).Cancelado_en_SAP__c = true;
-																			mapOpportunitys.get(respuesta.FolioPedidoSDL).Estatus_Cierre_Pedido__c = null;
-																	}
-
-														}
-												}
-												else
-												{
-														if(mapOpportunitys != null && mapOpportunitys.size() > 0)
-														{
-																 mapOpportunitys.get(respuesta.FolioPedidoSDL).Observacion__c = respuesta.mensaje;
-																 //PedidosOtrosCanalesUtils.SendMail(1, respuesta.mensaje,mapOpportunitys.get(respuesta.FolioPedidoSDL).OwnerId);
-														}
-												}
-										}
-								}
+						pedido.Observacion__c = 'Pedido desbloqueado con éxito.';
+						pedido.StageName = '1 - Pedido Colocado';
+						pedido.Estatus_Cierre_Pedido__c = null;
 					}
 					else
 					{
-							system.debug('Response Fallo');
+						pedido.Observacion__c = 'Pedido desbloqueado con éxito.';
+						pedido.StageName = '1 - Pedido Colocado';
+						pedido.Estatus_Cierre_Pedido__c = null;
+						pedido.Pedido_Cancelado__c = true;
+						pedido.Cancelado_en_SAP__c = true;
 					}
+					listaAGrabar.add(pedido);
+				}
+				update listaAGrabar;
 			}
-			update mapOpportunitys.values();
-	}
+		
+		}
+            
+	  }
+	    
+	
 	@future(callout=true)
 	public static void handleAfterUpdate(set<id> setOpp)
 	{
@@ -263,6 +265,7 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
                                            FolioPrecioSAP__c,FolioPrecioSAPViz__c,NEW_Quantity__c,NEW_UnitPrice__c,NEW_TotalPrice__c,NEW_Cajas__c,NEW_Cantidad__c,NEW_Importe__c,NEW_Importe_Total_Viz__c,
 																					 NEW_Kilos__c,NEW_Observaciones__c,NEW_Pallets__c,NEW_Piezas__c,NEW_Precio_Lista_Precios__c,NEW_PrecioSAP__c,NEW_Precio_Unitario_Viz__c,NEW_Tipo_de_Inventario__c,
 																					 	NEW_UOM_LB__c,NEW_Volumen__c,Saldo__c,Product2.Producto_Master__c,Product2.Producto_Master__r.MasterID__c,Saldo_Semana_Ant__c,Estatus__c,UOM__c,Product2.Piezas_por_caja__c
+																					 	,Opportunity.Folio_SAP__c
                                            From OpportunityLineItem
                                            Where OpportunityId IN : opps];
         for(Integer index=0;index<items.size();index++){
@@ -1253,4 +1256,74 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 		    return !system.isFuture() && !system.isBatch() &&
 		        Limits.getLimitFutureCalls() > Limits.getFutureCalls();
 		}
+		 public static Opportunity responseWS(Opportunity pedido,WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
+	    {    			
+			WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap services = new WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap();
+			WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados Response = services.GenerarPedidoMayoreo(DatosPedidos);
+			
+			system.debug('DEBUG::'+ Response.Mensaje);
+			if(Response != null && Response.Resultado =='TerminadoConExito')
+	        {
+	        	if(DatosPedidos.ActualizaPSV)
+	            {
+	                 pedido.Folio_Pedido_SDL__c = Response.SdlFolioPedidoSDL;
+	                 pedido.Folio_Embarque__c = Response.SdlFolioEmbarqueSDL;                          
+	            }
+	            if(DatosPedidos.ActualizaNSC && Response.NscNumeroPedido != null)
+	            {
+	            	pedido.Numero_de_Pedido_NSC__c = string.ValueOf(integer.ValueOf(Response.NscNumeroPedido));
+	            }
+	            if(DatosPedidos.ActualizaSAP)
+	            {
+	            	pedido.Numero_Pedido_SAP__c = Response.SapShip_To;
+	            }
+	            pedido.Observacion__c = Response.Mensaje;
+	            ActualizaEnvioPedidos(pedido,DatosPedidos);
+	           
+	        }
+	        else
+	        {
+	        	pedido.Observacion__c = Response.Mensaje;
+	        }
+	        return pedido;
+	    }
+	    public static void ActualizaEnvioPedidos(opportunity pedido,WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
+	    {
+	    	string Fecha = PedidosOtrosCanalesUtils.dateToString(pedido.Fecha_de_Embarque__c,'yyyyMMdd'); 
+            WsActualizaPSVPedidos.PedidosPSV actualizaPedido;
+            list<WsActualizaPSVPedidos.PedidosPSV> listaActualizaPedidos = new list<WsActualizaPSVPedidos.PedidosPSV>();
+            WsActualizaPSVPedidos servicesActualiza = new WsActualizaPSVPedidos();
+            WsActualizaPSVPedidos.RespuestaOfBoolean ResponseActualiza; 
+            if(PedidosOtrosCanalesUtils.IsVizcatle(pedido) &&  pedido.StageName != '11 - Bloqueado Cierre')
+            {
+                actualizaPedido = PedidosOtrosCanalesUtils.CrearPedidoPsvActualiza(pedido.Numero_Pedido_SAP__c,pedido.Id_Externo__c,'E', true,pedido.Folio_Pedido_SDL__c,Fecha);
+                listaActualizaPedidos.add(actualizaPedido);
+                
+                actualizaPedido = new WsActualizaPSVPedidos.PedidosPSV();
+                Fecha = PedidosOtrosCanalesUtils.dateToString(pedido.Fecha_Embarque_Bodega__c,'yyyyMMdd'); 
+                actualizaPedido = PedidosOtrosCanalesUtils.CrearPedidoPsvActualiza(string.ValueOf(integer.ValueOf(pedido.Numero_de_Pedido_NSC__c)),pedido.Id_Externo__c,'V', false,pedido.Folio_Pedido_SDL__c,Fecha);
+                listaActualizaPedidos.add(actualizaPedido);  
+                
+            }
+            else if(pedido.StageName != '11 - Bloqueado Cierre')
+            {
+                actualizaPedido = new WsActualizaPSVPedidos.PedidosPSV();
+                string pedidoAct = DatosPedidos.ActualizaNSC == true?pedido.Numero_de_Pedido_NSC__c:pedido.Numero_Pedido_SAP__c;
+                actualizaPedido = PedidosOtrosCanalesUtils.CrearPedidoPsvActualiza(pedidoAct,pedido.Id_Externo__c,ObtenerCanalVenta(pedido), DatosPedidos.ActualizaSAP,pedido.Folio_Pedido_SDL__c,Fecha);
+                listaActualizaPedidos.add(actualizaPedido);
+                
+            }
+            for(WsActualizaPSVPedidos.PedidosPSV psv : listaActualizaPedidos)
+            {
+                servicesActualiza = new WsActualizaPSVPedidos();
+                ResponseActualiza = new WsActualizaPSVPedidos.RespuestaOfBoolean();
+                ResponseActualiza = servicesActualiza.ActualizaPSVPedidos(psv);
+                if(ResponseActualiza != null)
+                {
+                    system.debug('Respuesta: '+ResponseActualiza.Mensaje);
+                    
+                }
+                
+            }
+	    }
 }

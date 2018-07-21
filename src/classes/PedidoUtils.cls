@@ -159,7 +159,6 @@ public with sharing class PedidoUtils {
             //queryAccount(accRef);
         }
         pedidoWrapper.pedido.TipoSurtido__c = tipoSurtido;
-        system.debug('stepForth');
         if(ApexPages.hasMessages() || !accountWrapper.isValidAccountWrapper()) {
             accountWrapper.oficinaVentasName = oficinaVentasName;
             return;
@@ -173,14 +172,11 @@ public with sharing class PedidoUtils {
         }
         pedidoWrapper.tipoSurtido = Integer.valueOf(accountWrapper.account.Tipo_Surtido__c.left(1));
         pedidoWrapper.fecDoc = String.valueOf(pedidoWrapper.pedido.FechaSurtidoProgramada__c).left(10).replaceAll('-', '');
-        System.debug('fecha documentos: '+pedidoWrapper.fecDoc);
         externalSources = new ExternalSources();
-
         boolean valContinuarPrecios = false;
         if(pedidoMultiple){
             setProductos = new Set<String>(productos.values());
             product2XproductCodeMap.size();
-            System.debug(product2XproductCodeMap);
             externalSources.inventarioXProductCodeMap = new Map<String, ProductoInventarioQueryNSCWS.Inventario>();
 			if(inventario != null){
 	            for(BalanceoNSCWS.BalanceoProductos bp : inventario.values()){
@@ -194,9 +190,9 @@ public with sharing class PedidoUtils {
             valContinuarPrecios = !cierrePlazas &&
                 externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc,lPrecios);
         }else{
-            valContinuarPrecios = externalSources.setIsClosedPlaza(accountWrapper.cliente, accountWrapper.sucursal, accountWrapper.canal, pedidoWrapper.pedido.OficinaVentas__r!=null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c):null) &&
+            	valContinuarPrecios = externalSources.setIsClosedPlaza(accountWrapper.cliente, accountWrapper.sucursal, accountWrapper.canal, pedidoWrapper.pedido.OficinaVentas__r!=null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c):null) &&
                 externalSources.setInventarioXProductCodeMap(accountWrapper.cliente, accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c) &&
-                externalSources.(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc);
+                externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc);
         }
 
 
@@ -582,7 +578,6 @@ public with sharing class PedidoUtils {
                     ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, MULTIPLE_ACCOUNT_QUERY_RESULTS_FOUND_WARNING));
                 }
             } else {
-            	system.debug('stepForth1');
                 isValidAccount();
             }
         }
@@ -833,7 +828,8 @@ public with sharing class PedidoUtils {
             	system.debug('sucursal: -------------------> '+ sucursal.leftPad(10, ''));
             	DisponibilidadInventarioSAP.DT_SE_DisponibilidadInventario_Resp response = 	retrieveInventarioSap(cliente,sucursal,tipoSurtido,canal,ordenCompra);
             	system.debug('response: -------------------> '+ response);
-            	if(response != null && response.TipoMensaje =='S') {
+            	if(response != null && response.TipoMensaje =='S') 
+            	{
             		ProductoInventarioQueryNSCWS.Inventario invt = null;
 	                for(DisponibilidadInventarioSAP.Informacion_element inventario : response.Informacion) {
 	                    if(inventario.NumeroProducto != null) {
@@ -853,6 +849,7 @@ public with sharing class PedidoUtils {
             }
             else
             {
+            	system.debug('CLIENTE=> '+ cliente +' SUCURSAL=>' +sucursal);
 	            ProductoInventarioQueryNSCWS.RespuestaOfListOfInventario response = retrieveInventario(cliente, sucursal, tipoSurtido, canal, ordenCompra);
 	            if(response != null) {
 	                for(ProductoInventarioQueryNSCWS.Inventario inventario : response.Datos.Inventario) {
@@ -879,13 +876,14 @@ public with sharing class PedidoUtils {
                 response = retrieveListaPrecios(cliente, gpoVendedores, ofiVentas, orgVentas, canal, destinatario, cluster, cadena, fecDoc);
             }
             
-            
             if(response != null) {
+            	system.debug('RESPONSEPRODUCTCODE=>inventarioXProductCodeMap '+ inventarioXProductCodeMap );
                 for(ListaPreciosQueryNSCWS.Precios precio : response.Datos.Precios) {
                     if(String.isNotBlank(precio.pve_cveprod) && precio.pve_cveprod.isNumeric()) {
                         String productCode = String.valueOf(Integer.valueOf(precio.pve_cveprod));
-                        system.debug('RESPONSEPRODUCTCODE=> '+ inventarioXProductCodeMap.containsKey(productCode));
-                        if(inventarioXProductCodeMap.containsKey(productCode)) {
+                        system.debug('RESPONSEPRODUCTCODE=>1 '+ productCode +' pve_cveprod '+precio.pve_cveprod);
+                        if(inventarioXProductCodeMap.containsKey(productCode)) 
+                        {
                             if(!precioListXProductCodeMap.containsKey(productCode)) {
                                 precioListXProductCodeMap.put(productCode, new List<ListaPreciosQueryNSCWS.Precios> { precio });
                             } else if(cluster != '36') {
@@ -1596,10 +1594,13 @@ public with sharing class PedidoUtils {
         private ListaPreciosQueryNSCWS.RespuestaOfListOfPrecios retrieveListaPrecios(String cliente, String gpoVendedores, String ofiVentas, String orgVentas, String canal, String destinatario, String cluster, String cadena, String fecDoc) {
             ListaPreciosQueryNSCWS.ListaPreciosSoap request = new ListaPreciosQueryNSCWS.ListaPreciosSoap();
             request.timeout_x = PedidoUtils.WEB_SERVICE_TIMEOUT;
+            system.debug('REQUEST=> '+  PedidoUtils.WEB_SERVICE_TIMEOUT);
             for(Integer i=1; i<=PedidoUtils.MAX_CALLOUT_RETRIES; i++) {
                 try {
+                	system.debug('CLIENTE=> '+cliente);
                     return validateListaPreciosResponse(request.RegresaListaPrecios(cliente, gpoVendedores, ofiVentas, orgVentas, canal, destinatario, cluster, cadena, fecDoc));
                 } catch(Exception e) {
+                	system.debug('CLIENTE=>CATCH '+cliente);
                     if(i == PedidoUtils.MAX_CALLOUT_RETRIES) {
                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, PedidoUtils.LISTAPRECIOS_WEB_SERVICE_ERROR+e.getMessage()));
                     }

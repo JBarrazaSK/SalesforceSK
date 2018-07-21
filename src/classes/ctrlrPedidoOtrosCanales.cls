@@ -2,7 +2,7 @@
   * @Description : Controller class for Otros Canales VF page
   * @Created Date: 29 September 2016
   * @Author: Jorge Terán - jorge.teran@lynx9.com
-  * @Company: LYNX9 Soluciones
+  * @Company: LYNX9 Soluciones 
  */
 public class ctrlrPedidoOtrosCanales {
 

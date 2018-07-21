@@ -93,8 +93,9 @@ public class ProductoInventarioQueryNSCWS {
         private String[] ns_map_type_info = new String[]{'http://www.sukarne.com/ws/salesforce', 'ProductoInventarioQueryNSCWS'};
         public DisponibilidadInventarioSoap(){
             PedidoParameters__c pp = PedidoParameters__c.getInstance();
-            //FIXME Prod SKServiciosExternos QA ServiciosExternos
-            this.endpoint_x = pp.EndpointPedidos__c + '/ServiciosExternos/SalesForce/DisponibilidadInventario.asmx';
+            endpoints__c ep = endpoints__c.getInstance();
+           	this.endpoint_x = ep.DispInventario__c;
+           	this.timeout_x = 120000;
         }
         public ProductoInventarioQueryNSCWS.RespuestaOfListOfInventario RegresaDisponibilidad(Integer cliente,String sucursal,Integer tipoSurtido,Integer canal,String oc) {
             ProductoInventarioQueryNSCWS.RegresaDisponibilidad_element request_x = new ProductoInventarioQueryNSCWS.RegresaDisponibilidad_element();
