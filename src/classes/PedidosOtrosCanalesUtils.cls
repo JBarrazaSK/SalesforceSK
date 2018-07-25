@@ -1133,11 +1133,17 @@ public class PedidosOtrosCanalesUtils {
             system.debug('NUEVOPEDIDOS=>');
             WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos = new WsPedidosMayoreoLegados.DatosPedidoLegado();
             ObtenerActalizaLegados(pedido);
-            DatosPedidos.IdTransaccion = pedido.Id_Externo__c;
+            DatosPedidos.IdTransaccion = pedido.id_externo__c;
+             if(pedido.Pedido_SDL__c != 'Reintento' && pedido.Reenviar__c)
+		       {
+		       	  system.debug('pedido.Pedido_SDL__c '+ pedido.Pedido_SDL__c);
+		       		 DatosPedidos.IdTransaccion = generateIdPedidoSF();
+		       }
+
+           
             if(pedido.Reenviar__c)  
             {
                 ReenviarPedido(pedido); 
-                
             }
             
           
@@ -1180,30 +1186,27 @@ public class PedidosOtrosCanalesUtils {
                     return pedido;
                 }
             }
-            
-            //WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap services = new WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap();
             try
             {
-                // Se ejecuta 3 veces en caso de error
                 mensaje  = 'Pedido registrado con éxito.';   
-                //for(Integer x= 0; x<= 2; x++)
-            //  {
-                    pedido = PedidosOtrosCanalesUtils.responseWS(pedido,DatosPedidos);
-            //  }                   
+                pedido = PedidosOtrosCanalesUtils.responseWS(pedido,DatosPedidos);
+                if(pedido == null) return null;
+                system.debug('reenviar pedido :: '+ pedido.reenviar__c +'');
             }
             catch(Exception e)
             {
                 //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, e.getmessage()));
                // ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,'Ocurrió un problema al guardar en sistemas legados.'));
                 system.debug('Error Pedido :: '+ e.getStackTraceString() );
-                pedido.Reenviar__c = true;
+                pedido.Pedido_SDL__c = 'Reintento';
+                pedido.reenviar__c = true;
                 return pedido;
             }
         }
         mensaje = '';   
         return pedido;
     }
-    public static Boolean validaDatosPedidos(WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
+    /*public static Boolean validaDatosPedidos(WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
     {
         integer contador = 0;
         boolean bandera = false;
@@ -1222,14 +1225,12 @@ public class PedidosOtrosCanalesUtils {
             bandera = true;
     
         return bandera;
-    }
+    }*/
     public static Opportunity responseWS(Opportunity pedido,WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
     {               
         WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap services = new WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap();
         WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados Response = new WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados();
         
-        if(validaDatosPedidos(DatosPedidos))
-        {
             system.debug('Respuesta: ------> '+DatosPedidos);
             Response = services.GenerarPedidoMayoreo(DatosPedidos);
             system.debug('Respuesta: ------>'+Response.Mensaje  +' RESULTADO  '+ Response.Resultado +' FolioSAP: '+ Response.SapShip_To);
@@ -1243,17 +1244,25 @@ public class PedidosOtrosCanalesUtils {
                     upsert mapEstrategiasMod.values();
                 }
                 ActualizarEnvioPedios(pedido,DatosPedidos);
+                pedido.Reenviar__c = false;
                 ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, mensaje));
             }
-         }
+
          else{
                 
                 if(Response == null)
                 {
                     ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'No hubo respuesta de los servicios legados, Favor de reintentar.'));
+                    pedido.Reenviar__c = true;
+                    pedido.Pedido_SDL__c = 'Reintento';
                 }
                 else
                 {
+                	if(Response.Resultado == 'Reintento')
+                	{
+                		pedido.Pedido_SDL__c = 'Reintento';
+                		pedido.Reenviar__c = true;
+                	}
                     if(Response.SapReturn != null)
                     {
                         for(WsPedidosMayoreoLegados.DT_SDL_ResItem item :Response.SapReturn.DT_SDL_ResItem)
@@ -1279,6 +1288,11 @@ public class PedidosOtrosCanalesUtils {
                     else
                     {
                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,Response.Mensaje));
+                        if(Response.Mensaje.contains('Servidor NSC Ocupado, favor de intentar nuevamente mas tarde.'))
+                        {
+                        	pedido.Reenviar__c = true;
+                        	
+                        }else{return null;}
                     }
                     
                 }
@@ -1296,7 +1310,8 @@ public class PedidosOtrosCanalesUtils {
                     
                     if(String.isBlank(pedido.Numero_Pedido_SAP__c))
                     {                       
-                        pedido.Reenviar__c = true;
+                        pedido.Reenviar__c = true;  
+                       
                     }
                     else{mensaje += ' Folio SAP: '+ pedido.Numero_Pedido_SAP__c;}
                     
@@ -1309,6 +1324,7 @@ public class PedidosOtrosCanalesUtils {
                     if(String.isBlank(pedido.Folio_Pedido_SDL__c))
                     {
                         pedido.Reenviar__c = true;
+                       
                     }
                     else{mensaje += ' Folio SDL: '+ pedido.Folio_Pedido_SDL__c;}                                           
                 }
@@ -2427,7 +2443,10 @@ public class PedidosOtrosCanalesUtils {
             pedidoDetalle.Precio_nListaPrecios = 1;
             pedidoDetalle.Precio_nRenglon =0;
             pedidoDetalle.Precio_nFolioOferta=0;
-            if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
+            pedidoDetalle.nPrecioUnitarioOriginal = p.item.UnitPrice;
+            pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
+          
+          /*  if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
             {
                 pedidoDetalle.nPrecioUnitarioOriginal = p.item.Precio_Unitario_Viz__c;
                 pedidoDetalle.nPrecioUnitarioOtorgado = p.item.Precio_Unitario_Viz__c;
@@ -2436,7 +2455,7 @@ public class PedidosOtrosCanalesUtils {
             {
                 pedidoDetalle.nPrecioUnitarioOriginal = p.item.UnitPrice;
                 pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
-            } 
+            } */
             pedidoDetalle.nImporte = p.item.importe__c;
             pedidoDetalle.nMoneda = MapaMonedas.get(pedido.Cliente__r.Moneda_Cliente__c.right(3));
             pedidoDetalle.nTipoCambio = 1;
@@ -2547,7 +2566,7 @@ public class PedidosOtrosCanalesUtils {
     
     public static String buscarPriceBookEntryId( String productId, String pricelistId ) {
         return [SELECT Id FROM PricebookEntry WHERE Product2Id =: productId AND Pricebook2Id =: pricelistId].Id;
-    }
+    }  
     
     public static List<Oficina_de_Venta__c> buscarOfiXCodigo( String codigo ){
         if(String.isBlank(codigo)){
@@ -5012,7 +5031,6 @@ else*/
        if(ActualizaNSC && string.isNotBlank(pedido.Numero_de_Pedido_NSC__c)){ ActualizaNSC = false;}
       
        if(ActualizaSAP && string.isNotBlank(pedido.Numero_Pedido_SAP__c)){ ActualizaSAP = false;}
- 
     }   
     public static Boolean IsVizcatle(opportunity pedido)
     {

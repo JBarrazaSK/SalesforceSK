@@ -69,7 +69,7 @@ var isEditablePedido, productMap, inventarioMap, preciosMap, currentIndex, curre
 $(document).ready(function() {
     setIEStylesheet();
     setViewIfPedidoIsNotEditable();
-
+ 	
 });
 
 (function() {
@@ -121,8 +121,9 @@ function showActionButtons() {
 }
 
 function setTableGenerales2() {
-    setFechaSurtido();
+    setFechaSurtido();     
     setFacturaNoFiscal();
+    
 }
 
 function setFechaSurtido() {
@@ -153,8 +154,18 @@ function setIsPreventa() {
 function setFacturaNoFiscal() {
     if(($("#tdFormaPago select").length ? $("#tdFormaPago select").val() : $("#tdFormaPago").text()).trim() != "1 - Contado") {
         $("[id$=inputFacturaNoFiscal]").attr("disabled", "disabled").prop("checked", false);
-    } else {
-        $("[id$=inputFacturaNoFiscal]").removeAttr("disabled");
+    } else 
+    {
+    	var pedido = $("[id$=inputCheckFiscal]").val();  
+    	if(pedido != null && pedido.length != 0)
+    	{
+    		$("[id$=inputFacturaNoFiscal]").attr("disabled", "disabled");
+    	}
+    	else
+    	{
+    		$("[id$=inputFacturaNoFiscal]").removeAttr("disabled");
+    	}
+        
     }
 }
 
@@ -797,11 +808,15 @@ function numberToString(value) {
 function calculaEnBaseACajas(pedidoItemValues, type) 
 {
 	var resultado = true;
-
+console.log("CONTENIDO=> "+ inventarioMap[pedidoItemValues.productCode].Contenido +" PESOESTANDAR "+ inventarioMap[pedidoItemValues.productCode].EsPesoEstandar);
     if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
         pedidoItemValues["Piezas"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
         pedidoItemValues["Piezas"+type] =pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
     }
+    else{
+    }
+    pedidoItemValues["Piezas"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
+    pedidoItemValues["Piezas"+type] =pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
     
     pedidoItemValues["Kilos"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
     pedidoItemValues["kilos"+type] = pedidoItemValues.unit == "L" ? pedidoItemValues["Kilos"+type+"__c"]*conversionKiloPound : pedidoItemValues["Kilos"+type+"__c"];
@@ -1177,10 +1192,9 @@ function rowOff(element) {
     if(window.hiOff) {
         hiOff(element);
     } 
-}
-      
-            
-        
+
+}     
+           
   </script>
 <apex:form id="form">
     <apex:pageMessages />
@@ -1346,6 +1360,7 @@ function rowOff(element) {
                 <td class="labelCol">Pago de:</td>
                 <td colspan="2" id="tdFormaPago">
                     <apex:variable value="{!IF(isEditablePedido && (accountWrapper.account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3'), true, IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (accountWrapper.account.Parent.RFC__c != null || accountWrapper.account.Parent.RFC_Generico__c != null), false, false))}" var="isEditableFormaPago"/>
+                 
                     <apex:inputField value="{!pedidoWrapper.pedido.Forma_Pago__c}" required="true" onchange="setFacturaNoFiscal()" rendered="{!isEditableFormaPago}"/>
                     <apex:outputField value="{!pedidoWrapper.pedido.Forma_Pago__c}" rendered="{!!isEditableFormaPago}"/>
                 </td>
@@ -1369,7 +1384,11 @@ function rowOff(element) {
                 <td colspan="2">{!IF(NOT(ISBLANK(pedidoWrapper.pedido.OficinaVentas__r.Name)),pedidoWrapper.pedido.OficinaVentas__r.Name,accountWrapper.oficinaVentasName)}</td>
                 <td class="labelCol">Factura NO fiscal:</td>
                 <td>
-                    <apex:inputField value="{!pedidoWrapper.pedido.Factura_No_Fiscal__c}" id="inputFacturaNoFiscal" onkeydown="onInputEnterKeydown(event)"/>
+                   	
+                    <!-- {!IF(pedidoWrapper.pedido.Id == null, 'true', 'false')}-->
+                     <input type="hidden" value="{!pedidoWrapper.pedido.Id}" id = "inputCheckFiscal"/>
+                    <apex:inputField value="{!pedidoWrapper.pedido.Factura_No_Fiscal__c}" 
+                    		id="inputFacturaNoFiscal" onkeydown="onInputEnterKeydown(event)"/>
                 </td>
             </tr>
         </table>

@@ -131,7 +131,7 @@ public class ctrlrPedidoOtrosCanales {
                     p.HabilitaVolumen = false;
                     ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.INFO, 'El pedido ya cuenta con folio de entrega no se puede modificar su detalle.'));
                 }
-                 if(pedido.Reenviar__c)
+                if(pedido.Reenviar__c)
                 {
                 	 p.showDelete = false;
                 	 p.HabilitaCantidad = false;
@@ -1930,12 +1930,12 @@ public class ctrlrPedidoOtrosCanales {
         System.debug('Guardando pedido...');
         if(!Test.isRunningTest()){
             if( pedido.Account.Canal_Distribucion__c.right(2) == 'EX' && (pedido.Account.Sociedad__c.right(3) == '303' || pedido.Account.Sociedad__c.right(3) == '300') ) {
-                if( String.isBlank(pedido.OC__c) && pedido.Fecha_de_Embarque__c <= Datetime.now() ) {
+                if( String.isBlank(pedido.OC__c)) {
                   ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'No puede guardar sin la PO del cliente.'));
                   return;
                 }
             }
-        }
+        } 
       
             if(pedido.Id != null)
             {
@@ -1949,8 +1949,8 @@ public class ctrlrPedidoOtrosCanales {
                             changeProds = true;
                         }
                     }
-                    else
-                        {
+                    else 
+                        { 
                             changeProds= true;
                         }
                 }
@@ -2023,7 +2023,7 @@ public class ctrlrPedidoOtrosCanales {
                 try {
                  idExterno = Integer.valueOf( pedido.Id_Externo__c );
                 }
-                catch( Exception e) {
+                catch( Exception e) { 
                     System.debug('Error transformando Id Externo: '+pedido.Id_Externo__c);
                 }
             }
@@ -2097,7 +2097,10 @@ public class ctrlrPedidoOtrosCanales {
               ContainsDelete = true;
           }
           pedido = PedidosOtrosCanalesUtils.ValidarPedidoModificado( pedido, productos, false,pedidoOld,ProductosOld,ContainsDelete, ProductosEliminado);  
-
+			
+			 if(pedido == null)
+         		return;
+         	
             if( (String.isNotBlank(pedido.Numero_de_Pedido_NSC__c) && pedido.Numero_de_Pedido_NSC__c != '0') || (string.isNotBlank(pedido.Numero_Pedido_SAP__c ) && pedido.Numero_Pedido_SAP__c != '0'))
             {
                 Integer dias = pedido.Canal_Factura__r.Dias_de_cierre__c == null ? 0 : Integer.valueOf(pedido.Canal_Factura__r.Dias_de_cierre__c);
@@ -2133,12 +2136,12 @@ public class ctrlrPedidoOtrosCanales {
         }
         catch( Exception e ) {
             isLocked = false;
-            pedido.Reenviar__c = true;
             System.debug('ERR::Hubo un error al guardar el pedido en SDL: '+e.getStackTraceString());
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, 'Hubo un error al guardar el pedido en SDL. Por favor inténtelo nuevamente!')); return;
         }
       
         System.debug('Fin sistema externo con respuesta:' + pedido);
+       
     /*  if(ApexPages.hasMessages(ApexPages.Severity.ERROR) ||  ApexPages.hasMessages(ApexPages.Severity.WARNING))
          {
              return;
@@ -2176,14 +2179,14 @@ public class ctrlrPedidoOtrosCanales {
                 {
 
                     update pedido;
-                    if(pedido.Fecha_de_Embarque__c != pedidoOld.Fecha_de_Embarque__c )
+                   /* if(pedido.Fecha_de_Embarque__c != pedidoOld.Fecha_de_Embarque__c )
                     {
                         //envioCorreo = true;
-                    }
+                    }*/
                     for(pedidosOtrosCanalesUtils.producto p : productos)
                     {
 
-                        if(productosOld.ContainsKey(p.Codigo))
+                        if( productosOld != null && productosOld.ContainsKey(p.Codigo))
                         {
                             Integer cajas = productosOld.get(p.Codigo).item.Quantity == null ? 0 : Integer.ValueOf(productosOld.get(p.Codigo).item.Quantity);
                             if(p.item.Cantidad__c != cajas )

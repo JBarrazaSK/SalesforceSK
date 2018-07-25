@@ -37,7 +37,7 @@ trigger TrgOppWsActualizaDatosGenerales_NSC_SDL on opportunity (before update,af
                 }
 
       }
-        if(Trigger.isBefore && Trigger.isUpdate) {
+        if(Trigger.isBefore && Trigger.isUpdate) {  
             setIdOpps = new set<Id>();
             setIdOppsCierre = new set<Id>();
             for(opportunity opp: (list<opportunity>)Trigger.new)

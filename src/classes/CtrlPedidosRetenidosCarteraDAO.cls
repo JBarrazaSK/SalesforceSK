@@ -238,7 +238,7 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
 			
 			// Si responde  != null y mensaje sea S y el estatus sea Dif de B. Es Liberado.
 			
-			if (respuesta.DT_SE_ABCPedidos_RespPedido != null)
+			if (respuesta != null && respuesta.DT_SE_ABCPedidos_RespPedido != null)
         	{ 
     			if(respuesta.DT_SE_ABCPedidos_RespPedido[0].TipoMensaje == 'S' 
     						&& respuesta.DT_SE_ABCPedidos_RespPedido[0].Estatus != 'B')

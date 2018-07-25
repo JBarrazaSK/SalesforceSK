@@ -34,17 +34,23 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 			    				listaProductos.add(oppl);
 			    		}
 	    	}
-			try{
+			try{  
 				 
 				  PedidosOtrosCanalesUtils.ObtenerActalizaLegados(opp);
 				  DatosPedidos = new WsPedidosMayoreoLegados.DatosPedidoLegado();
 				  DatosPedidos.ActualizaPSV = PedidosOtrosCanalesUtils.ActualizaPSV;
 				  DatosPedidos.ActualizaSAP = PedidosOtrosCanalesUtils.ActualizaSAP;
 		          DatosPedidos.ActualizaNSC = PedidosOtrosCanalesUtils.ActualizaNSC;
-
+				  Boolean Cancelado = false;
+					if(opp.Estatus_Cierre_Pedido__c == 'Rejected')
+					{
+						DatosPedidos.ActualizaSAP = false;
+			            DatosPedidos.ActualizaNSC = false; 
+			            Cancelado = true;
+					}
 				  if(DatosPedidos.ActualizaPSV)
 		           {
-		                DatosPedidos.DatosPedidoPSV = PedidosOtrosCanalesUtils.CrearPedidoMayoreoLegados(opp,listaProductos,false); 
+		                DatosPedidos.DatosPedidoPSV = PedidosOtrosCanalesUtils.CrearPedidoMayoreoLegados(opp,listaProductos,Cancelado); 
 		           }
 		           if(DatosPedidos.ActualizaNSC)
 		           {
@@ -1259,9 +1265,10 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 		 public static Opportunity responseWS(Opportunity pedido,WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
 	    {    			
 			WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap services = new WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap();
+			 DatosPedidos.IdTransaccion = PedidosOtrosCanalesUtils.generateIdPedidoSF();
 			WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados Response = services.GenerarPedidoMayoreo(DatosPedidos);
 			
-			system.debug('DEBUG::'+ Response.Mensaje);
+			system.debug('DEBUG::'+ Response); 
 			if(Response != null && Response.Resultado =='TerminadoConExito')
 	        {
 	        	if(DatosPedidos.ActualizaPSV)

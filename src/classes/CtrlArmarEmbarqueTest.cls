@@ -540,7 +540,7 @@ public class CtrlArmarEmbarqueTest {
 	        
 	        // Verify response received contains fake values
 	        String contentType = res.getHeader('Content-Type');
-	        System.assert(contentType == 'application/json');
+	        System.assert(contentType == 'text/xml; charset=UTF-8');
 	        String actualValue = res.getBody();
 	        String expectedValue = '{"example":"test"}';
 	        System.assertEquals(actualValue, expectedValue);

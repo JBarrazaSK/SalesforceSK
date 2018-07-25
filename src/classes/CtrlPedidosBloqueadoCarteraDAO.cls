@@ -317,7 +317,7 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
 	    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning,'El cliente no cuenta con canal de distribucion'));
 	    			return null;
 	    		}else
-	    		{	    			
+	    		{	  			
 	    			
 	    			    			
 	    			System.debug('DatosLiberacionPedido:=> Canal_Distribucion__c: ' + DatosLiberacionPedido.CanalDistribucion  + ' opp.Folio_Pedido_SDL__c ' + opp.Folio_Pedido_SDL__c +' opp.Numero_de_Pedido_NSC__c '+opp.Numero_de_Pedido_NSC__c);		
@@ -356,7 +356,9 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
 	    	}
 
     	}catch(Exception e) 
-		{                
+		{
+					   ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, e.getMessage()));                
+			                
 		   ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, 'Ocurrió un problema al liberar el pedido. Favor de intentar de nuevo.'));                
 		}
     	return Valido;

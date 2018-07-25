@@ -953,13 +953,6 @@ public with sharing class CtrlArmarEmbarque {
     public void setHoraPlanta(String data) { HoraPlanta = data; }
     public void setObservaciones2(String data) { Observaciones2 = data; }
     public void setHoraPlanta2(String data) { HoraPlanta2 = data; }
- 	public static HttpResponse getInfoFromExternalService() {
-        HttpRequest req = new HttpRequest();
-        req.setEndpoint('http://example.com/example/test');
-        req.setMethod('GET');
-        Http h = new Http();
-        HttpResponse res = h.send(req);
-        return res;
-    }
+
 
 }

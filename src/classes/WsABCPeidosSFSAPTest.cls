@@ -1,5 +1,5 @@
 @isTest
-private class WsABCPeidosSFSAPTest {
+public class WsABCPeidosSFSAPTest {
     
      static testMethod void inicial(){
          new ABCPedidos_SF_to_ECC.TEXT_Linea_element();
