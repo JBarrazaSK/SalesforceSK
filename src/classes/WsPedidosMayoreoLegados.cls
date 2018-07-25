@@ -482,14 +482,16 @@ public class WsPedidosMayoreoLegados {
         public Boolean ActualizaPSV;
         public Boolean ActualizaNSC;
         public Boolean ActualizaSAP;
+        public string IdTransaccion;   
         private String[] DatosPedidoNSC_type_info = new String[]{'DatosPedidoNSC','http://sukarne.com/sap/PedidosMayoreoLegados',null,'0','1','false'};
         private String[] DatosPedidoPSV_type_info = new String[]{'DatosPedidoPSV','http://sukarne.com/sap/PedidosMayoreoLegados',null,'0','1','false'};
         private String[] DatosSAP_type_info = new String[]{'DatosSAP','http://sukarne.com/sap/PedidosMayoreoLegados',null,'0','1','false'};
         private String[] ActualizaPSV_type_info = new String[]{'ActualizaPSV','http://sukarne.com/sap/PedidosMayoreoLegados',null,'1','1','false'};
         private String[] ActualizaNSC_type_info = new String[]{'ActualizaNSC','http://sukarne.com/sap/PedidosMayoreoLegados',null,'1','1','false'};
         private String[] ActualizaSAP_type_info = new String[]{'ActualizaSAP','http://sukarne.com/sap/PedidosMayoreoLegados',null,'1','1','false'};
+        private String[] IdTransaccion_type_info = new String[]{'IdTransaccion','http://sukarne.com/sap/PedidosMayoreoLegados',null,'1','1','false'};
         private String[] apex_schema_type_info = new String[]{'http://sukarne.com/sap/PedidosMayoreoLegados','true','false'};
-        private String[] field_order_type_info = new String[]{'DatosPedidoNSC','DatosPedidoPSV','DatosSAP','ActualizaPSV','ActualizaNSC','ActualizaSAP'};
+        private String[] field_order_type_info = new String[]{'DatosPedidoNSC','DatosPedidoPSV','DatosSAP','ActualizaPSV','ActualizaNSC','ActualizaSAP','IdTransaccion'};
     }
     public class ActualizaFolioEntregaResponse_element {
         public WsPedidosMayoreoLegados.RespuestaOfBoolean ActualizaFolioEntregaResult;
@@ -691,8 +693,9 @@ public class WsPedidosMayoreoLegados {
         public Boolean NscPedidoRechazado;
         public String SapSalesDocument_EX;
         public String SapShip_To;
-        public WsPedidosMayoreoLegados.ArrayOfDT_SDL_ResItem SapReturn;
+        public WsPedidosMayoreoLegados.ArrayOfDT_SDL_ResItem SapReturn; 
         public WsPedidosMayoreoLegados.ArrayOfDT_SDL_ResItem1 SapIncomplete_Log;
+        
         private String[] Resultado_type_info = new String[]{'Resultado','http://sukarne.com/sap/PedidosMayoreoLegados',null,'1','1','false'};
         private String[] Mensaje_type_info = new String[]{'Mensaje','http://sukarne.com/sap/PedidosMayoreoLegados',null,'0','1','false'};
         private String[] SdlIdPedidoSalesForce_type_info = new String[]{'SdlIdPedidoSalesForce','http://sukarne.com/sap/PedidosMayoreoLegados',null,'1','1','false'};
@@ -907,7 +910,7 @@ public class WsPedidosMayoreoLegados {
               'ActualizaPSVPedidosResponse',
               'WsPedidosMayoreoLegados.ActualizaPSVPedidosResponse_element'}
             );
-           
+            
             response_x = response_map_x.get('response_x');
             return response_x.ActualizaPSVPedidosResult;
         }

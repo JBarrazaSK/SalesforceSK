@@ -1014,13 +1014,14 @@ public with sharing class PedidoUtils {
         		}
         		if(Balanceo && mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c) == 'PI' )
         		{
-        			//elem1.TipoSurtido 	= 'CJ';
+        			system.debug('BALANCEO=> '+ mapaUnidadMedida.get(pedidoWrapper.pedidoItemList[i].Unidad__c));
         			result.SALES_HEADER_IN.Estatus = 'C';
         			Decimal piezasXcaja = [select Piezas_por_caja__c from product2 where id =: pedidoWrapper.pedidoItemList[i].producto__c].Piezas_por_caja__c;
-        			elem5.CantidadBalanceada= String.valueOf(piezasXcaja * pedidoWrapper.pedidoItemList[i].Cajas_Conf__c);
+        			elem5.CantidadBalanceada= String.valueOf(piezasXcaja== null ?0:piezasXcaja * pedidoWrapper.pedidoItemList[i].Cajas_Conf__c);
         			
         		}
         		else if(Balanceo){
+        			result.SALES_HEADER_IN.Estatus = 'C';
         			elem5.CantidadBalanceada= String.valueOf(pedidoWrapper.pedidoItemList[i].Cajas_Conf__c);
         			
         		}
@@ -1471,8 +1472,9 @@ public with sharing class PedidoUtils {
         }
 		public WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido syncPedidoSAP(WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_ReqLista pedidosSAPWS) {
            
+             system.debug('***RESPONSE RAMON=> ' +pedidosSAPWS);
             WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido response = sendPedido(pedidosSAPWS);
-           
+           system.debug('***RESPONSE RAMON=>11 ' +response);
             if(response != null) {
                 return response;
             }
@@ -1713,6 +1715,7 @@ public with sharing class PedidoUtils {
         }
 
         private PedidoInsertNSCWS.RespuestaOfPedidoRespuesta sendPedido(PedidoInsertNSCWS.Pedido pedidoWS) {
+        	System.debug('PEDIDOWS=> '+ pedidoWS);
             PedidoInsertNSCWS.PedidosSoap request = new PedidoInsertNSCWS.PedidosSoap();
             request.timeout_x = 50000;
             for(Integer i=1; i<=PedidoUtils.MAX_CALLOUT_RETRIES; i++) {
@@ -1750,7 +1753,7 @@ public with sharing class PedidoUtils {
            	WsABCPeidosSFSAP.ABCPedidosSF_SAPSoap request = new WsABCPeidosSFSAP.ABCPedidosSF_SAPSoap();
            	//WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_ReqLista pedidoWSArray = new WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_ReqLista();
            	//pedidoWSArray.DT_SE_ABCPedidos_ReqLista = new list<ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_ReqLista>{pedidoWS};
-           	
+           	system.debug('RAMON RESPONSE1RAMOS');
             request.timeout_x = 50000;
             for(Integer i=1; i<=PedidoUtils.MAX_CALLOUT_RETRIES; i++) {
                 try {
@@ -1881,18 +1884,33 @@ public with sharing class PedidoUtils {
         
         private WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido validatePedidoResponse(WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido response) {
             
-            system.debug('response Servicio SAP: '+response);
+            system.debug('RAMON response Servicio SAP: '+response.DT_SE_ABCPedidos_RespPedido);
             if(response == null || response.DT_SE_ABCPedidos_RespPedido == null || response.DT_SE_ABCPedidos_RespPedido.isEmpty())
             	throw new PedidoUtils.CustomException(PedidoUtils.PEDIDO_WEB_SERVICE_NO_DATA_ERROR);
-            for(ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido detRESP: response.DT_SE_ABCPedidos_RespPedido){
-	            if(detRESP == null || String.isBlank(detRESP.TipoMensaje)) {
-	                throw new PedidoUtils.CustomException(PedidoUtils.PEDIDO_WEB_SERVICE_NO_DATA_ERROR);
-	            } else if(detRESP.TipoMensaje.toLowerCase().contains('error') || detRESP.TipoMensaje.toLowerCase().contains('reintento')) {
-	                throw new PedidoUtils.CustomException(detRESP.Mensaje);
-	            } else if(detRESP.FolioPedidoSAP == null) {
-	                throw new PedidoUtils.CustomException(PedidoUtils.PEDIDO_WEB_SERVICE_NO_DATA_ERROR);
-	            }
+            
+            for(ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido detRESP: response.DT_SE_ABCPedidos_RespPedido)
+            {   
+            	if(detRESP != null)
+            	{   
+            		if(detRESP.FolioPedidoSAP != null)
+            		{
+	            		if(detRESP == null || String.isBlank(detRESP.TipoMensaje)) {
+			                throw new PedidoUtils.CustomException(PedidoUtils.PEDIDO_WEB_SERVICE_NO_DATA_ERROR);
+			            } 
+			            else if(detRESP.TipoMensaje.toLowerCase().contains('error') || detRESP.TipoMensaje.toLowerCase().contains('reintento')) {
+			                throw new PedidoUtils.CustomException(detRESP.Mensaje);
+			            } 
+			            /*else if(detRESP.FolioPedidoSAP == null) {
+			            	throw new PedidoUtils.CustomException(PedidoUtils.PEDIDO_WEB_SERVICE_NO_DATA_ERROR);
+			            }*/
+            		}
+            	}
+            	else
+            	{
+            		throw new PedidoUtils.CustomException(PedidoUtils.PEDIDO_WEB_SERVICE_NO_DATA_ERROR);
+            	}
             }
+            system.debug('response Servicio SAP2: '+response);
             return response;
         }
 

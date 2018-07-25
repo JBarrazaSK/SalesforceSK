@@ -169,8 +169,11 @@ public with sharing class PedidoWizardController {
         		for(Integer i = 0; i<responseSAP.DT_SE_ABCPedidos_RespPedido.size();i++ )
         		{      			
 	        		  	 
-					if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null && responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != 'C') 
-		        			&& (responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'S')) 
+					if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null 
+							&& responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != 'C') 
+		        			&& (responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'S') 
+		        				|| (responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'W' // Ocurrio un problema de credito en SAP pero el pedido se ha creado,
+		        						&& responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus == 'A')) // por lo tanto el salesforce tambien se crea.
 		        	{
 		        		pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[i]);
 		        		pedidoWrapper.save();

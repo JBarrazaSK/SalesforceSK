@@ -381,7 +381,7 @@ public with sharing class  CtrlArmarEmbarqueDAO {
 			detalleComp.TipodeMovimiento = 'A';
         	detalleComp.FolioAgrupacion = '';
         	detalleComp.Documentodetransporte = NameEmbarque;
-        	detalleComp.Entrega = mapEntregas.get(DetEmb.Id_Oportunidad__r.Numero_Pedido_SAP__c.leftpad(10,'0'));
+        	detalleComp.Entrega = mapEntregas.get(DetEmb.Id_Oportunidad__r.Numero_Pedido_SAP__c == null ? '': DetEmb.Id_Oportunidad__r.Numero_Pedido_SAP__c.leftpad(10,'0'));
         	detalleComp.Orden = String.valueOf(DetEmb.Orden__c);
         	detalleComp.CondiciondeExpedicion = confPedido == null?'':confPedido.CondiciondeExpedicion__c;
         	detalleComp.ClasedeExpedicion = TipoDFrontera;

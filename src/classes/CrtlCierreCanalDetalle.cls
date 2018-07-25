@@ -93,21 +93,18 @@ public CrtlCierreCanalDetalle()
  
  public static void showPageMessage(string level,string message) 
  {
- 	ApexPages.getMessages().clear();
  	ApexPages.Message mensaje  = null;
-      if(level == 'WARNING') {
-      		mensaje = new ApexPages.Message(ApexPages.Severity.Warning, message);
-         //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning, message));
+      if(level == 'WARNING') 
+      {
+      	mensaje = new ApexPages.Message(ApexPages.Severity.Warning, message);
       }
        if(level == 'CONFIRM') 
        {
        	mensaje = new ApexPages.Message(ApexPages.Severity.CONFIRM, message);
-        //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, message));
       }
       if(level == 'ERROR') 
       {
       	mensaje = new ApexPages.Message(ApexPages.Severity.ERROR, message);
-        //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, message));
       }
        ApexPages.addMessage(mensaje);
   }
@@ -250,8 +247,12 @@ public CrtlCierreCanalDetalle()
  			{
  				if(ArregloMotivo[0] == 'true')
  				{
- 					ofv.oficina.cerrado__c = false;
-	        		ofv.oficina.Reaperturado__c = true;
+ 					ofv.oficina.cerrado__c = true;
+	        		ofv.oficina.Reaperturado__c = false;
+	        		
+ 					//ofv.oficina.cerrado__c = false;
+	        		//ofv.oficina.Reaperturado__c = true;
+	        		
 	        		ofv.oficina.Extension__c = false;
 	        		ofv.oficina.En_aprobacion__c = true;
 	        		oficinasAGuardar.add(ofv.oficina);

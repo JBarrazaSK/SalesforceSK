@@ -921,10 +921,8 @@ public with sharing class CtrlArmarEmbarque {
 		{
 	    	 for(Detalle_de_embarque__c det :ListaDetalleEmb)
 				{
-					if(mapEntregas != null)
+					if(mapEntregas != null && det.Id_Oportunidad__r.Numero_Pedido_SAP__c != null)
 					{
-						system.debug('Folio Pedido' + det.Id_Oportunidad__r.Numero_Pedido_SAP__c.leftpad(10,'0'));
-						system.debug('Folio Pedido map' +  mapEntregas.get(det.Id_Oportunidad__r.Numero_Pedido_SAP__c.leftpad(10,'0')));
 						opp = new opportunity(); 
 						opp.Id = det.Id_Oportunidad__c;
 						opp.Folio_SAP__c  = mapEntregas.get(det.Id_Oportunidad__r.Numero_Pedido_SAP__c.leftpad(10,'0'));
@@ -955,6 +953,13 @@ public with sharing class CtrlArmarEmbarque {
     public void setHoraPlanta(String data) { HoraPlanta = data; }
     public void setObservaciones2(String data) { Observaciones2 = data; }
     public void setHoraPlanta2(String data) { HoraPlanta2 = data; }
-
+ 	public static HttpResponse getInfoFromExternalService() {
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint('http://example.com/example/test');
+        req.setMethod('GET');
+        Http h = new Http();
+        HttpResponse res = h.send(req);
+        return res;
+    }
 
 }

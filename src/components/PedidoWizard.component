@@ -470,7 +470,8 @@ function setProducto(productCode, index) {
                 selectUnidadMedida += '<option value="P">Piezas</option>';    
             selectUnidadMedida += "</select>";
             row.find("td:nth-child(7)").html(selectUnidadMedida);
-          	 $("#selectUnidadMedida"+index+" option[value=" + unidadMedidaBase + "]").prop("selected", "selected").change();  
+          	 $("#selectUnidadMedida"+index+" option[value=" + unidadMedidaBase + "]").prop("selected", "selected").change(); 
+          	 
             
         }
         else{
@@ -515,6 +516,7 @@ function hiddenUnidadMedida(index) {
     var row = getRow(index);
     var unidad = row.find("[id$=selectUnidadMedida"+index+"]").val();  
     row.find("[id$=inputUnidadBase]").val(unidad); 
+    $("#selectUnidadMedida"+index).attr('disabled', 'disabled');  
        
 
     switch(unidad) {
@@ -795,30 +797,21 @@ function numberToString(value) {
 function calculaEnBaseACajas(pedidoItemValues, type) 
 {
 	var resultado = true;
-	if(!validaContenido(inventarioMap[pedidoItemValues.productCode].Contenido)){
-			return false;
-	}
+
     if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
         pedidoItemValues["Piezas"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
+        pedidoItemValues["Piezas"+type] =pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
     }
     
-	pedidoItemValues["Piezas"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
-	pedidoItemValues["Piezas"+type] =pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
- 		
     pedidoItemValues["Kilos"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
     pedidoItemValues["kilos"+type] = pedidoItemValues.unit == "L" ? pedidoItemValues["Kilos"+type+"__c"]*conversionKiloPound : pedidoItemValues["Kilos"+type+"__c"];
     
-    //pedidoItemValues["Kilos"+type+"__c"] = inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar ? pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido*productMap[pedidoItemValues.productCode].Peso_Promedio__c : pedidoItemValues["Piezas"+type+"__c"]*productMap[pedidoItemValues.productCode].Peso_Promedio__c;
-    //pedidoItemValues["kilos"+type] = pedidoItemValues.unit == "L" ? pedidoItemValues["Kilos"+type+"__c"]*conversionKiloPound : pedidoItemValues["Kilos"+type+"__c"];
-    
+  
     return resultado;
 }
 
 function calculaEnBaseAPiezas(pedidoItemValues, type) {
 var resultado = true;
-	if(!validaContenido(inventarioMap[pedidoItemValues.productCode].Contenido)){
-			return false;
-	}
     var cantidad;
     if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
         pedidoItemValues["Cajas"+type+"__c"] = pedidoItemValues["Piezas"+type+"__c"]/inventarioMap[pedidoItemValues.productCode].Contenido;
@@ -835,9 +828,6 @@ var resultado = true;
 
 function calculaEnBaseAKilos(pedidoItemValues, type) {
 var resultado = true;
-	if(!validaContenido(inventarioMap[pedidoItemValues.productCode].Contenido)){
-		return false;
-	}
     var cantidad = inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 2 ? pedidoItemValues["Kilos"+type+"__c"] : inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 3 ? redondeoSK(pedidoItemValues["Kilos"+type+"__c"]/productMap[pedidoItemValues.productCode].Peso_Promedio__c) : 0;
     if(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 3) {
         if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
@@ -864,15 +854,6 @@ function asignaPrecioEnBaseARango(pedidoItemValues, property) {
             break;
         }
     }
-}
-function validaContenido(contenido){
-	var resul= true;
-		if(contenido ==0 )
-		{
-		 	alert("Producto no configurado para la unidad de medida seleccionada.");
-		 	resul = false;
-		}
-	return resul;
 }
 function validaInventario(pedidoItemValues) {
     if(!isPreventa && !inventarioMap[pedidoItemValues.productCode].PermiteApartarSinexistencias) {
@@ -966,7 +947,8 @@ function processPiezasSolicitadas(index) {
     } else {
         var hasError;
         if(pedidoItem.values.Piezas__c % inventarioMap[pedidoItem.values.productCode].Contenido != 0) {
-            hasError = !alert("La cantidad solicitada no forma por lo menos una caja.");
+        	if(pedidoItem.values.Unidad__c !='P')
+            	hasError = !alert("La cantidad solicitada no forma por lo menos una caja.");
         } else if(pedidoItem.values.Piezas__c < pedidoItem.values.PiezasConf__c) {
             hasError = !alert("El producto solicitado debe ser mayor o igual al producto confirmado.");
         }
@@ -992,7 +974,8 @@ function processKilosSolicitados(index) {
         var hasError;
         var cantidad = redondeoSK(pedidoItem.values.Kilos__c/productMap[pedidoItem.values.productCode].Peso_Promedio__c);
         if(inventarioMap[pedidoItem.values.productCode].TipoManejoInventario == 3 && (cantidad < 1 || (inventarioMap[pedidoItem.values.productCode].Contenido > 0 && inventarioMap[pedidoItem.values.productCode].EsPesoEstandar && cantidad % inventarioMap[pedidoItem.values.productMap].Contenido != 0))) {
-            hasError = !alert("La cantidad solicitada no forma por lo menos una caja.");
+            if(pedidoItem.values.Unidad__c !='P')
+            	hasError = !alert("La cantidad solicitada no forma por lo menos una caja.");
         } else if(pedidoItem.values.Kilos__c < pedidoItem.values.KilosConf__c) {
             hasError = !alert("El producto solicitado debe ser mayor o igual al producto confirmado.");
         }
@@ -1039,7 +1022,9 @@ function processPiezasConfirmadas(index) {
         if(pedidoItem.values.PiezasConf__c > pedidoItem.values.Piezas__c) {
             hasError = !alert("El producto confirmado debe ser menor o igual al producto solicitado.");
         } else if(pedidoItem.values.PiezasConf__c % inventarioMap[pedidoItem.values.productCode].Contenido != 0) {
-            hasError = !alert("La cantidad confirmada no forma por lo menos una caja.");
+       
+        	  if(pedidoItem.values.Unidad__c !='P')
+            		hasError = !alert("La cantidad confirmada no forma por lo menos una caja.");
         }
         if(!hasError) {
             if(calculaEnBaseAPiezas(pedidoItem.values, "Conf")){
@@ -1065,11 +1050,11 @@ function processKilosConfirmados(index) {
         if(pedidoItem.values.KilosConf__c > pedidoItem.values.Kilos__c) {
             hasError = !alert("El producto confirmado debe ser menor o igual al producto solicitado.");
         } else if(pedidoItem.values.KilosConf__c != 0 && inventarioMap[pedidoItem.values.productCode].TipoManejoInventario == 3 && (cantidad < 1 || (inventarioMap[pedidoItem.values.productCode].Contenido > 0 && inventarioMap[pedidoItem.values.productCode].EsPesoEstandar && cantidad % inventarioMap[pedidoItem.values.productMap].Contenido != 0))) {
+           if(pedidoItem.values.Unidad__c !='P') 
             hasError = !alert("La cantidad solicitada no forma por lo menos una caja.");
         }
         if(!hasError) {
             if(calculaEnBaseAKilos(pedidoItem.values, "Conf")){
-            console.log('ENTRO CAL');
             calculaImporte(pedidoItem.values, true);
             validaInventario(pedidoItem.values);
             }

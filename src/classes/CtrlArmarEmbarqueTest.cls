@@ -523,7 +523,7 @@ public class CtrlArmarEmbarqueTest {
 	    	CrearOpportunityLineItem(pedido,ListaPrecios);
 	    	list<Opportunity> listaPedidos = new list<Opportunity>();
 	    	listaPedidos.add(pedido);
-	      	CtrlArmarEmbarque Ext = new CtrlArmarEmbarque();
+	      	CtrlArmarEmbarque Ext = new CtrlArmarEmbarque();	      	
 	    	Ext.Canal = 'A';
 	    	Ext.CodigoAlmacen = '64';
 	       	Ext.Fecha_embarque =  Date.today().addDays(2);
@@ -533,6 +533,20 @@ public class CtrlArmarEmbarqueTest {
 	       	Ext.ListaEmbarques= Ext.ObtenerEmbarques();
 	       	Test.startTest();
 	       	Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock());
+	       	//Test.setMock(WebServiceMock.class, new WsComposicionEmbarqueMock());
+	       	
+	       	Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
+	        HttpResponse res = CtrlArmarEmbarque.getInfoFromExternalService();
+	        
+	        // Verify response received contains fake values
+	        String contentType = res.getHeader('Content-Type');
+	        System.assert(contentType == 'application/json');
+	        String actualValue = res.getBody();
+	        String expectedValue = '{"example":"test"}';
+	        System.assertEquals(actualValue, expectedValue);
+	        System.assertEquals(200, res.getStatusCode());
+        
+	       	Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());	       	
 	       	Ext.ListaEmbarques[0].Seleccionado = false;
 	       	Ext.CerrarEmbarque();
 	       	Ext.ListaEmbarques[0].Seleccionado = true;
@@ -543,6 +557,7 @@ public class CtrlArmarEmbarqueTest {
 	       	Ext.CerrarEmbarque();
 	       	Ext.ListaEmbarques = null;
 	       	Ext.CerrarEmbarque();
+	      
        		Test.stopTest();
        }
   
@@ -593,6 +608,8 @@ public class CtrlArmarEmbarqueTest {
 	       	Ext.ListaEmbarques= Ext.ObtenerEmbarques();
 	       	Test.startTest();
 	       	Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock.WsArmarEmbarqueSDLWebServiceMockFail());
+	       	//Test.setMock(WebServiceMock.class, new WsComposicionEmbarqueMock.WsComposicionEmbarqueMockFail());
+	       	Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock.WsPedidosMayoreoLegadosMockFail());	
 	       	Ext.ListaEmbarques[0].Seleccionado = true;
 	      	Ext.CerrarEmbarque();
        		Test.stopTest();
@@ -618,6 +635,8 @@ public class CtrlArmarEmbarqueTest {
 	       	Ext.ListaEmbarques= Ext.ObtenerEmbarques();
 	       	Test.startTest();
 	       	Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock.UnauthorizedEndpointResponse());
+	     
+	       //	Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());	
 	       	Ext.ListaEmbarques[0].Seleccionado = true;
 	      	Ext.CerrarEmbarque();
        		Test.stopTest();
@@ -916,7 +935,7 @@ public class CtrlArmarEmbarqueTest {
 	    	Ext.Frontera = '';
 	    	Ext.CodigoAlmacen = '64';
 	       	Ext.Fecha_embarque =  Date.today().addDays(2);
-	       	Ext.AlmacenId = Ofiv.Id;
+	       	Ext.AlmacenId = Ofiv.Id == null ? '' : Ofiv.Id;
 	       	Ext.getPedidos();
 	       	embarque__c embarque = 	CtrlArmarEmbarqueDAO.GenerarEmbarquesConPedidoConFolio(listaPedidos,'A',Ofiv.Id,Date.today().addDays(2));
 	       	embarque.Embarque_cerrado__c =false;
@@ -1109,12 +1128,14 @@ public class CtrlArmarEmbarqueTest {
   public  static testMethod Oficina_de_Venta__c CrearOficinaVentas()
     {
     	Oficina_de_Venta__c oFiv =  new Oficina_de_Venta__c(
+    															Id='a0k2C000000Hpyu',
     															name = 'PLANTA CULIACAN - 64',
     															Codigo__c = '64',
     															Descripcion__c =  'PLANTA CULIACAN',
     															IdPlanta__c = '1',
     															IdClienteViz__c = '90000303',
     															Surte_Otros_Canales__c = false,
+    															Opera_en_SAP__c = true,
     															Sucursal_Viz__c = 803287
 
     														);
@@ -1274,7 +1295,7 @@ public class CtrlArmarEmbarqueTest {
 
         Oficina_de_Venta__c canalF;
         try{
-	        canalF = [SELECT Id, Name, Codigo__c, IdPlanta__c, IdClienteViz__c, Descripcion__c, Surte_Otros_Canales__c, Sucursal_Viz__c
+	        canalF = [SELECT Id, Name, Codigo__c, IdPlanta__c, IdClienteViz__c, Descripcion__c, Surte_Otros_Canales__c, Sucursal_Viz__c,Opera_en_SAP__c
                                       FROM Oficina_de_Venta__c
                                       WHERE ID =: ofiVtaId LIMIT 1];
         } catch( Exception e ) {

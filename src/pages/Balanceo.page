@@ -396,7 +396,7 @@
         BalanceoController.guardaBalanceRemoto(idsPedidos,prodItems, 
             function(result, event){
                 if (event.status) {
-                    console.log(result);
+                    console.log('RESULTADO=> '+result);
                     if(result=="ok"){
                         alert('Se guardo correctamente');
                         getRemotePedidos();
@@ -405,10 +405,10 @@
                         alert(result);
                     }
                 } else if (event.type === 'exception') {
-                    console.log(event);
+                    //console.log(event);
                     alert(event.message);
                 } else {
-                    console.log(event.message);
+                    //console.log(event.message);
                     alert(event.message);
                 }
                 if(result!="ok"){

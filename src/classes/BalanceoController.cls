@@ -363,11 +363,9 @@ public with sharing class BalanceoController {
             Set<Id> pedidosIds = new Set<Id>();
             System.debug(pedidosIdsText);
             for(String v : pedidosIdsText){
-            	System.debug(v);
             	pedidosIds.add(v);
             }
             Map<Id,Decimal> mapNuevos = new Map<Id,Decimal>();
-            System.debug(nuevosValores);
             for(String v : nuevosValores){
             	System.debug('Valores javascript: '+v);
             	String[] item = v.split('@');
@@ -422,7 +420,7 @@ public with sharing class BalanceoController {
 	                }
 	            }
             }
-
+			System.debug('PEDIDOS2=> '+pedidos2Send );
             if(pedidos2Send.size()>0){
 
 				Map<Id,PedidoUtils> pwcMap = new Map<Id,PedidoUtils>();
@@ -459,7 +457,6 @@ public with sharing class BalanceoController {
                         pwcMap.put(p.Id, pu);
                     }
                 }
-
 
                 //throw new BalanceoException('Prueba guardar throw');
                 BalanceoNSCWS.ArrayOfPedido pedidosWS = new BalanceoNSCWS.ArrayOfPedido();
@@ -503,17 +500,16 @@ public with sharing class BalanceoController {
                     ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_ReqLista pedidoSAP = pu.externalSources.setPedidoSAPWS(pu.pedidoWrapper,pu.accountWrapper,true);
                     pedidosSAPWS.DT_SE_ABCPedidos_ReqLista.add(pedidoSAP);
                 }
-               
                 
                 if(!operaEnSap)
                 	resp = externalSources.syncPedido(pedidosWS, codigoOficinaVenta); 
                 else
-                {
-                	
+                {                	
                 	resp2 = externalSources.syncPedidoSAP(pedidosSAPWS);  
                 }
-              
-                if(resp !=null || (resp2 != null ) ){
+             
+                if(resp !=null || (resp2 != null ) )
+                {
                     //Parse Resp
                     //Guardar Cambios
                      List<Pedido__c> updPedidos = new List<Pedido__c>();
@@ -530,17 +526,16 @@ public with sharing class BalanceoController {
 	                    }
                     }
                     else{
-                    	
                     	Map<string,PedidoUtils> pedidosAGrabar = new Map<string,PedidoUtils>();
 	                    for(PedidoUtils pu : pwcMap.values()){
 	                    	pedidosAGrabar.put(pu.pedidoWrapper.pedido.Numero_Pedido_SAP__c,pu);
 	                    }
-	                    //system.debug('respuesta '+ resp2.DT_SE_ABCPedidos_RespPedido);
+	                    system.debug('respuesta:=> '+ resp2.DT_SE_ABCPedidos_RespPedido.size());
 	                    for( ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido r : resp2.DT_SE_ABCPedidos_RespPedido)
 	                 	{
+	                 		system.debug('TIPO DE MENSAJE '+ r.TipoMensaje +' FOLIOSAP=>  ' +r.FolioPedidoSAP);    
 	                 		if(r.TipoMensaje == 'S')
-	                 		 {
-                 		 	
+	                 		 {	                 		 	             		 	
 	                 		 	updPedidos.add(pedidosAGrabar.get(r.FolioPedidoSAP).pedidoWrapper.Pedido);
 		                        for(PedidoItem__c pi : pedidosAGrabar.get(r.FolioPedidoSAP).pedidoWrapper.pedidoItemList){
 		                            if(mapItemBalanceo.containsKey(pi.Id)){
@@ -548,9 +543,9 @@ public with sharing class BalanceoController {
 		                            }
 		                        }
 	                 		 }
-	                 		 else{
+	                 		else{
 	                 		 	   //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, r.mensaje));
-	                 		 	   return respuesta = r.mensaje;
+	                 		 	  return respuesta = r.mensaje;
 	                 		 	   
 	                 		 }
 	                 	}
@@ -559,6 +554,7 @@ public with sharing class BalanceoController {
                     }
                     Savepoint savepoint = Database.setSavepoint();
                     try{
+                    	system.debug('GUARDAR PEDIDO');
                     	if(updPedidos.size() > 0){
 	                        update updPedidos;
 	                        update updPedidoItems;
@@ -571,18 +567,19 @@ public with sharing class BalanceoController {
                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, respuesta));
                         Database.rollback(savepoint);
                     }
-                }
-                 else{ 
-	                 	 if(operaEnSap){
-	                 		for( ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido r : resp2.DT_SE_ABCPedidos_RespPedido)
-	                 		{
-	                 			 respuesta += r.Mensaje+' ';
-	                 		}
-	                 		 system.debug('tizoc resp2 --------------------> '+ respuesta);
-	                 	 }
-                     }
-            }
-            else{
+                }else
+	            { 
+	             	 if(operaEnSap){
+	             	 	if(resp2 != null)
+	             	 	{
+	             			for( ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido r : resp2.DT_SE_ABCPedidos_RespPedido)
+	             			{
+	             				 respuesta += r.Mensaje+' ';
+	             			}
+	             	 	}
+	             	 }
+                 }
+            }else{
             	// ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, respuesta));
             	 system.debug('tizoc resp2 --------------------> '+ resp2);
             	 respuesta = 'No se guardo el balanceo, Message: ' + resp !=null ?resp.Mensaje : resp2.DT_SE_ABCPedidos_RespPedido[0].Mensaje;

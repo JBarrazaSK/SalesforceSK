@@ -56,7 +56,7 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 		                DatosPedidos.DatosSAP = PedidosOtrosCanalesUtils.CrearPedidoSap(opp,listaProductos,false);
 		           }
         		  
-        		   	PedidoWs  =  responseWS(opp,DatosPedidos); 
+        		   	PedidoWs  =  responseWS(opp,DatosPedidos);
  
         		  if(DatosPedidos.ActualizaNSC && string.isnotblank(PedidoWs.Numero_de_Pedido_NSC__c))
 		           {
@@ -82,13 +82,13 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 				{
 					if(pedido.Estatus_Cierre_Pedido__c != 'Rejected')
 					{
-						pedido.Observacion__c = 'Pedido desbloqueado con éxito.';
+						//pedido.Observacion__c = 'Pedido desbloqueado con éxito.';
 						pedido.StageName = '1 - Pedido Colocado';
 						pedido.Estatus_Cierre_Pedido__c = null;
 					}
 					else
 					{
-						pedido.Observacion__c = 'Pedido desbloqueado con éxito.';
+						//pedido.Observacion__c = 'Pedido desbloqueado con éxito.';
 						pedido.StageName = '1 - Pedido Colocado';
 						pedido.Estatus_Cierre_Pedido__c = null;
 						pedido.Pedido_Cancelado__c = true;
@@ -283,7 +283,7 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
                 Fecha_de_Embarque__c, Fecha_de_Entrega__c, Flete__c, Fecha_de_Cruce__c, Liberado__c, Motivo_Rechazo_Cartera__c, Motivo_de_Cancelacion__c,
                 Fecha_de_Inspeccion__c, Fecha_Embarque_Bodega__c, Hora_de_Embarque__c, OC__c, Pedido_Cancelado__c,
                 PO_Proveedor__c, Name, Description, Amount, Id_Externo__c, CreatedDate, MotivoRechazo__c,
-                CreatedById, CreatedBy.FirstName, CreatedBy.LastName, CreatedBy.Username,Account.Cadena__c,
+                CreatedById, CreatedBy.FirstName, CreatedBy.LastName, CreatedBy.Username,Account.Cadena__c,Account.Sociedad__c,
                 CreatedBy.UserRole.Name,Numero_de_Pedido_NSC__c,Canal__c,Canal_Factura__r.Dias_consolidacion__c,Canal_Factura__r.Dias_Consolidacion_Prod__c,Account.Organizacion_de_Ventas__c
                 ,Cliente__r.Organizacion_de_Ventas__c,Observacion__c,Motivo__c,Cliente__r.Moneda_Cliente__c,Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c,Account.Canal_de_Distribucion_NSC__r.Codigo__c
 								,NEW_TotalOpportunityQuantity__c,NEW_Amount__c,NEW_Costo_de_Flete__c,NEW_Fecha_de_Cruce__c,NEW_Fecha_de_Embarque__c,NEW_Fecha_de_Entrega__c,NEW_Fecha_de_Inspeccion__c,NEW_Fecha_Embarque_Bodega__c
@@ -1298,7 +1298,7 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
             {
                 actualizaPedido = PedidosOtrosCanalesUtils.CrearPedidoPsvActualiza(pedido.Numero_Pedido_SAP__c,pedido.Id_Externo__c,'E', true,pedido.Folio_Pedido_SDL__c,Fecha);
                 listaActualizaPedidos.add(actualizaPedido);
-                
+                    
                 actualizaPedido = new WsActualizaPSVPedidos.PedidosPSV();
                 Fecha = PedidosOtrosCanalesUtils.dateToString(pedido.Fecha_Embarque_Bodega__c,'yyyyMMdd'); 
                 actualizaPedido = PedidosOtrosCanalesUtils.CrearPedidoPsvActualiza(string.ValueOf(integer.ValueOf(pedido.Numero_de_Pedido_NSC__c)),pedido.Id_Externo__c,'V', false,pedido.Folio_Pedido_SDL__c,Fecha);
