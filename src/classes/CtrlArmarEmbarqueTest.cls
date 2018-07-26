@@ -535,7 +535,7 @@ public class CtrlArmarEmbarqueTest {
 	       	Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock());
 	       	//Test.setMock(WebServiceMock.class, new WsComposicionEmbarqueMock());
 	       	
-	       	Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
+	       /*	Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
 	        HttpResponse res = CtrlArmarEmbarque.getInfoFromExternalService();
 	        
 	        // Verify response received contains fake values
@@ -544,7 +544,7 @@ public class CtrlArmarEmbarqueTest {
 	        String actualValue = res.getBody();
 	        String expectedValue = '{"example":"test"}';
 	        System.assertEquals(actualValue, expectedValue);
-	        System.assertEquals(200, res.getStatusCode());
+	        System.assertEquals(200, res.getStatusCode());*/
         
 	       	Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());	       	
 	       	Ext.ListaEmbarques[0].Seleccionado = false;

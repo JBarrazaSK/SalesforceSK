@@ -16,10 +16,11 @@ private class CtrlPedidosBloqueadoCarteraTest {
         CtrlPedidosBloqueadoCartera clase = new CtrlPedidosBloqueadoCartera();
         Test.setMock(WebServiceMock.class, new CarteraClienteQueryNSCWSTest());
         CrearOpportunityLineItem(Pedido,CrearPricebookEntry(CrearProducto()));
-         Opportunity Pedido2 =CrearPedido2('P20160214','A');
-         CrearOpportunityLineItem(Pedido2,CrearPricebookEntry(CrearProducto2()));
+        Opportunity Pedido2 =CrearPedido2('P20160214','A');
+        CrearOpportunityLineItem(Pedido2,CrearPricebookEntry(CrearProducto2()));
 
         Test.startTest();
+        CtrlPedidosBloqueadoCarteraDAO.IsLocked(clase.listaPedidos);
         clase.opp = new opportunity();
         clase.opp.Fecha_de_Embarque__c = Date.today().addDays(6);
         clase.opp.Folio_Pedido_SDL__c = null;
@@ -30,14 +31,36 @@ private class CtrlPedidosBloqueadoCarteraTest {
         clase.ObtenerPedidosRetenidos();
         clase.opp.Folio_Pedido_SDL__c = '0000041716';
         clase.ObtenerPedidosRetenidos();
-         clase.opp.Fecha_de_Embarque__c = null;
-        clase.ObtenerPedidosRetenidos();
-         clase.opp.Fecha_de_Embarque__c = Date.today().addDays(6);
-         clase.opp.Folio_Pedido_SDL__c = null;
-          clase.ObtenerPedidosRetenidos();
+		clase.opp.Fecha_de_Embarque__c = null;
+		clase.ObtenerPedidosRetenidos();
+		clase.opp.Fecha_de_Embarque__c = Date.today().addDays(6);
+		clase.opp.Folio_Pedido_SDL__c = null;
+		clase.ObtenerPedidosRetenidos();
+		clase.listaPedidos =  null;
         Test.stopTest();
-
-
+    }
+    static testMethod void RecharzarPedido() {
+    	Oficina_de_Venta__c Ofiv = CrearOficinaVentas();
+    	Opportunity Pedido = CrearPedido('P20160120','A');
+        CtrlPedidosBloqueadoCartera clase = new CtrlPedidosBloqueadoCartera();
+        CrearOpportunityLineItem(Pedido,CrearPricebookEntry(CrearProducto()));
+        CtrlPedidosBloqueadoCartera.PedidosWrapper wp = new CtrlPedidosBloqueadoCartera.PedidosWrapper();
+        wp.Seleccionado = false;
+    	wp.Pedido = pedido;
+    	wp.Importe = 1000;
+    	clase.listaPedidos = new list<CtrlPedidosBloqueadoCartera.PedidosWrapper>();
+    	clase.listaPedidos.add(wp);
+    	CtrlPedidosBloqueadoCarteraDAO.IsLocked(clase.listaPedidos);
+        Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraPSVMockImpl());
+        Test.startTest();
+        clase.listaPedidos[0].Seleccionado = true;
+        clase.RecharzarPedido();
+        clase.listaPedidos[0].Seleccionado = false;
+        clase.RecharzarPedido();
+        clase.RecharzarPedido();
+        clase.listaPedidos =  null;
+        clase.RecharzarPedido();
+        Test.stopTest();
 
     }
     static testMethod void ValidarCartera() {
@@ -51,12 +74,16 @@ private class CtrlPedidosBloqueadoCarteraTest {
     	wp.Importe = 1000;
     	clase.listaPedidos = new list<CtrlPedidosBloqueadoCartera.PedidosWrapper>();
     	clase.listaPedidos.add(wp);
+    	CtrlPedidosBloqueadoCarteraDAO.IsLocked(clase.listaPedidos);
         Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraPSVMockImpl());
         Test.startTest();
         clase.listaPedidos[0].Seleccionado = true;
         clase.ValidarCartera();
         clase.listaPedidos[0].Seleccionado = false;
         clase.ValidarCartera();
+        clase.RecharzarPedido();
+        clase.listaPedidos =  null;
+         clase.ValidarCartera();
         Test.stopTest();
 
     }

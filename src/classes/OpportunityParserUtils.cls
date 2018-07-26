@@ -20,6 +20,7 @@ public class OpportunityParserUtils {
 	    
     	for(WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos :listaPedidos)
     	{
+     		
     		WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados Response = services.GenerarPedidoMayoreo(DatosPedidos);
     		if(Response != null && Response.Resultado =='TerminadoConExito')
 	        {

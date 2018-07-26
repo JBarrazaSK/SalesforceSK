@@ -48,14 +48,14 @@ public static Boolean ActualizaPSV {get;set;}
 
                 precioCte.cliente = idClienteViz;
                 if(String.isNotBlank(pedido.Canal_Factura__r.SucursalesViz__c))
-	        	{
+                {
 
-	        		List<String> ListaSucursalesFrontera = new List<String>();
-	        		ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
-	        		precioCte.destinatario =  ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
-	        		system.debug('precioCte.destinatario: '+precioCte.destinatario);
-	        		//precioCte.destinatario = String.valueOf( pedido.Canal_Factura__r.Sucursal_Viz__c );//'103574';
-	        	}
+                    List<String> ListaSucursalesFrontera = new List<String>();
+                    ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
+                    precioCte.destinatario =  ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
+                    system.debug('precioCte.destinatario: '+precioCte.destinatario);
+                    //precioCte.destinatario = String.valueOf( pedido.Canal_Factura__r.Sucursal_Viz__c );//'103574';
+                }
 
 
                 precioCte.gpoVendedores = clienteViz.Grupo_de_Vendedores__r.Codigo__c;//'404';
@@ -224,6 +224,8 @@ public static Boolean ActualizaPSV {get;set;}
         	DatosPedidos.ActualizaPSV = ActualizaPSV;
         	DatosPedidos.ActualizaSAP = ActualizaSAP;
         	DatosPedidos.ActualizaNSC = ActualizaNSC;
+        	DatosPedidos.IdTransaccion = pedido.id_externo__c;
+        	
         	if(DatosPedidos.ActualizaPSV)
         	{
         		DatosPedidos.DatosPedidoPSV = PedidosOtrosCanalesUtils.CrearPedidoMayoreoLegados(pedido,productos,false); 
@@ -236,6 +238,11 @@ public static Boolean ActualizaPSV {get;set;}
         	{
         		DatosPedidos.DatosSAP = PedidosOtrosCanalesUtils.CrearPedidoSap(pedido,productos,false);
 		    }
+		    if(pedido.StageName == '11 - Bloqueado Cierre')
+    		{
+    			DatosPedidos.ActualizaSAP = false;
+        		DatosPedidos.ActualizaNSC = false;
+    		}
 		    mapPedidos.put(pedido.Id_Externo__c,pedido);
 		    listaPedidos.add(DatosPedidos);
 		}
@@ -382,7 +389,7 @@ public static Boolean ActualizaPSV {get;set;}
         }
 
         Datetime fechaRegistro = System.now();
-        /*if(string.isNotBlank(pedido.Canal_Factura__r.Hora_de_cierre__c))
+        if(string.isNotBlank(pedido.Canal_Factura__r.Hora_de_cierre__c))
         {
             String HoraMov = String.valueOf(Datetime.now().hour()).leftPad(2, '0')+String.valueOf(Datetime.now().minute()).leftPad(2, '0');
             Integer HoraActual = Integer.valueOf(HoraMov);
@@ -398,14 +405,14 @@ public static Boolean ActualizaPSV {get;set;}
                 System.debug('fechaRegistro.addDays(1);'+fechaRegistro.addDays(1));
                 fechaRegistro = fechaRegistro.addDays(1);
             }
-        }*/
+        }
         pedidoWS.idPedidoSF = Integer.valueOf(pedido.Id_Externo__c);
         if(cancelar){
             pedidoWS.motivoCancelacion = 'Error en guardado en Salesforce.com';
             pedidoWS.estatusPedido = 8;
             pedidoWS.folioPedidoSDL = pedido.Folio_Pedido_SDL__c;
             if(String.isNotBlank(pedido.Folio_Embarque__c)){
-	            pedidoWS.folioEmbarqueSDL = pedido.Folio_Embarque__c;
+                pedidoWS.folioEmbarqueSDL = pedido.Folio_Embarque__c;
             }
             // DATOS PARA ESPECIFICAR LA CANCELACIÓN/ELIMINACIÓN
             pedidoWS.vendedorElimino = atendio;
@@ -600,14 +607,14 @@ public static Boolean ActualizaPSV {get;set;}
             if( semana == 1 ) { semana = 52; anio = anio - 1; }
             else { semana = semana - 1; }
         }
-        pedidoWS.semana 	= String.valueOf( semana ); //fechaHoraEmbarque.format('w');
-        pedidoWS.diaSemana 	= String.valueOf( dof);
-        pedidoWS.anio 		= String.valueOf( anio );
+        pedidoWS.semana     = String.valueOf( semana ); //fechaHoraEmbarque.format('w');
+        pedidoWS.diaSemana  = String.valueOf( dof);
+        pedidoWS.anio       = String.valueOf( anio );
         /*
         pedidoWS.semana = String.valueOf(Integer.valueOf(fechaHoraEmbarque.format('w'))-1);
         pedidoWS.diaSemana = getDOF( pedido.Fecha_de_Embarque__c );
         pedidoWS.anio = String.valueOf(fechaHoraEmbarque.year());
-		*/
+        */
 
         // FECHA ENTREGA
         String sFechaEntrega = dateToString(pedido.Fecha_de_Entrega__c);

@@ -954,5 +954,5 @@ public with sharing class CtrlArmarEmbarque {
     public void setObservaciones2(String data) { Observaciones2 = data; }
     public void setHoraPlanta2(String data) { HoraPlanta2 = data; }
 
-
+ 
 }

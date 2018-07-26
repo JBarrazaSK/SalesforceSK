@@ -2842,7 +2842,7 @@ public class PedidosOtrosCanalesUtils {
     public static void submitForApproval(Opportunity opp, string Comment, string tipo)
     {
           // Create an approval request for the Opportunity
-        String canalDistribucion = tipo =='Cierre'?opp.Canal_Factura__r.Codigo__c: opp.Cliente__r.Canal_Distribucion__c.right(2);
+        String canalDistribucion = opp.Canal_Factura__r.Codigo__c+opp.Cliente__r.Canal_Distribucion__c.right(2);
         String aprobadorID ='';
         map<string,String> mapAprobadores = ObtenerAprobadores();
         Approval.ProcessSubmitRequest req1 = new Approval.ProcessSubmitRequest();
@@ -2870,7 +2870,6 @@ public class PedidosOtrosCanalesUtils {
         if(aprobadorID == null || String.isblank(aprobadorID))
         {
             ApexPages.getMessages().clear();
-            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, 'No se encontro aprobador para el canal seleccionado.'));
             return;
         }
         user u = new user(id=aprobadorID);
@@ -3326,6 +3325,7 @@ else*/
             detalle.DiasConsolidacion  =  Integer.ValueOf(ep.Dias_Embarque__c);
             
         }
+      
         return detalle;
     }
     private static AggregateResult[] CalcularImportes(Opportunity Opp )

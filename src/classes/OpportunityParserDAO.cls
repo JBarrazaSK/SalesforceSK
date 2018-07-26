@@ -95,8 +95,11 @@ public class OpportunityParserDAO {
 
             if (result.isSuccess()) {
                 saveResult.idRecord = result.getId();
+                
+                system.debug('pedido result '+ pedido +' result'+result );
                 if(objectName == 'Opportunity' && pedido.StageName == '11 - Bloqueado Cierre')
                 {
+                	system.debug('Envio Aprobacion');
                     PedidosOtrosCanalesUtils.submitForApproval(pedido,'Se Envio para su aprobacion (Cierre)','Cierre');
                 }
                 saveResult.isSuccess = true;

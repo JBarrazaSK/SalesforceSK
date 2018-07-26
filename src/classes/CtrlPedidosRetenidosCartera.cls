@@ -57,7 +57,9 @@ private string MsgValidDate = 'la fecha de embarque final no puede ser menor a l
   }
   public void ValidarCartera()
   {
+  	if(listaPedidos != null){
   	  if(!CtrlPedidosRetenidosCarteraDAO.ValidarCarteraWs(listaPedidos))
   	   ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning,MsgNotSelected));
+  	}
   }
 }

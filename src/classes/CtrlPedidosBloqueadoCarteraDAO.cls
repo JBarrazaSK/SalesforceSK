@@ -204,6 +204,10 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
    {
    		Boolean Valido = false;
    		map<string,opportunity> mapValidos = new map<string,opportunity>();
+   		if(listaPedidos == null)
+   		{
+   			return Valido;
+   		}
     	for(CtrlPedidosBloqueadoCartera.PedidosWrapper wp :listaPedidos )
     	{
     		if(wp.Seleccionado)
@@ -233,17 +237,20 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
    public static Boolean IsLocked(list<CtrlPedidosBloqueadoCartera.PedidosWrapper> listaPedidos)
    {
         Boolean Valido = false;
-       for(CtrlPedidosBloqueadoCartera.PedidosWrapper wp :listaPedidos )
-       {
-         if(wp.Seleccionado)
-         {
-             if(Approval.isLocked(wp.Pedido.Id))
-             {
-                 Valido = true;
-             }
-
-         }
-       }
+        if(listaPedidos != null)
+        {
+	       for(CtrlPedidosBloqueadoCartera.PedidosWrapper wp :listaPedidos )
+	       {
+	         if(wp.Seleccionado)
+	         {
+	             if(Approval.isLocked(wp.Pedido.Id))
+	             {
+	                 Valido = true;
+	             }
+	
+	         }
+	       }
+        }
        return valido;
    }
     public static Boolean ValidarCarteraWs(list<CtrlPedidosBloqueadoCartera.PedidosWrapper> listaPedidos)
