@@ -885,7 +885,7 @@ public class ctrlrPedidoOtrosCanales {
         if( temp.item.Importe__c == null ) { temp.item.Importe__c = 0; }
         
         // Ramon Atondo
-        if( temp.isPrecio == false && pedido.id != null) { return temp; }
+        if( temp.isPrecio == false && pedido.id != null && temp.item.id !=  null) { return temp; }
 
         System.debug('MapPrecios validatePrecios: '+ mapPrecios);
         if( mapPrecios == null || mapPrecios.size() == 0 ) {
@@ -1160,7 +1160,7 @@ public class ctrlrPedidoOtrosCanales {
             
             // Ramon Atondo
             system.debug('PRoducto=>> ' +p.isPrecio + ' peiddo=>> '+ pedido.id);
-           if( p.isPrecio == false && pedido.id != null ) { continue; }
+           if( p.isPrecio == false && pedido.id != null && p.item.id != null ) { continue; }
                         
             System.debug('ENTROAPRECIOS=>');
             List<ListaPreciosWS.Precios> listaPrecios = mapPrecios.get( p.codigo );
@@ -1224,8 +1224,8 @@ public class ctrlrPedidoOtrosCanales {
               if( p.item == null ) { continue; }              
                // Ramon Atondo
                
-             if( p.isPrecio == false && pedido.id != null ) { continue; }
-           	System.debug('ENTROPRECIOS=>>>>:');
+              if( p.isPrecio == false && pedido.id != null && p.item.id != null ) { continue; }
+           	
             List<ListaPreciosWS.Precios> listaPrecios = mapPrecios.get( p.codigo );
            
               System.debug('GetKey: '+p.codigo+'-'+p.item.Origen_Surtido__c);
@@ -1272,7 +1272,7 @@ public class ctrlrPedidoOtrosCanales {
                 if( p.item.Cantidad__c == null && p.item.Volumen__c == null ) { continue; }
                 if( p.item.Cantidad__c == 0 && p.item.Volumen__c == 0 ) { continue; }
                // Ramon Atondo
-               if( p.isPrecio == false && pedido.id != null ) { continue; }
+                if( p.isPrecio == false && pedido.id != null && p.item.id != null ) { continue; }
                                    
                 List<ListaPreciosWS.Precios> listaPreciosViz = mapPreciosViz.get( p.codigo );
                 if( listaPreciosViz == null || listaPreciosViz.size() == 0 ){

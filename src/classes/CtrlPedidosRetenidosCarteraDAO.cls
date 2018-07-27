@@ -279,7 +279,7 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
 						    				    		
 						    		System.debug('DatosLiberacionPedido:=> ' + DatosLiberacionPedido);
 						    		WsLiberacionPedidosCarteraLegados.RespuestaBase Response = Services.LiberarPedidoCartera(DatosLiberacionPedido);
-					    		
+					    			system.debug('RESPONSE>> '+  Response);
 						    		if(Response == null || Response.Tipo !='TerminadoConExito')
 						    		{
 						    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, Response.Mensaje));
@@ -290,14 +290,14 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
 						    			mensaje = Response.Mensaje;
 						    			opp.Liberado__c = 'S';
 						    			listaOpp.add(opp);
+						    			system.debug('ListaOPP==>> ' +listaOpp  +' Mensjae '+ mensaje);
 						    		}
 					    		}
 			    				
 			    			}else{
-			    				 myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,respuesta.DT_SE_ABCPedidos_RespPedido[0].Mensaje);
+			    				ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, respuesta.DT_SE_ABCPedidos_RespPedido[0].Mensaje));			    			
 			    			
 			    			}
-			    			ApexPages.addMessage(myMsg);
 			        	}
 	    		} // if sap
 	    		else{
@@ -344,19 +344,16 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
 				    		{
 				    			mensaje = Response.Mensaje;
 				    			opp.Liberado__c = 'S';
-				    			listaOpp.add(opp);
-				    			system.debug('MENSAJE?> '+ mensaje +' LISTAOPP '+ listaOpp );
-				    			
+				    			listaOpp.add(opp);				    			
 				    			
 				    		}
-				    		ApexPages.addMessage(myMsg);
 				    	}
 	    		} // else
 	    	} // for
 	    	if(listaOpp.size() > 0)
 	    	{
 	    		upsert listaOpp;
-	    		ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, mensaje));
+	    		ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, 'El pedido se liberó correctamente.'));
 	    	}
     	}catch(Exception e){
     		//ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, e.getMessage()));

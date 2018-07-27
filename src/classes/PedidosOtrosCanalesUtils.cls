@@ -2123,7 +2123,7 @@ public class PedidosOtrosCanalesUtils {
             
             productosSap.put(string.ValueOf(consecutivo),p);    
             item = new WsPedidosMayoreoLegados.SALES_ITEMS_IN();
-            item.ITM_NUMBER= string.ValueOf(consecutivo);
+            item.ITM_NUMBER= string.ValueOf(consecutivo * 10);
             item.MATERIAL=    p.codigo;
             if(p.item.Unidad__c =='C' || p.item.Unidad__c =='P')
             {
@@ -2221,8 +2221,8 @@ public class PedidosOtrosCanalesUtils {
                 continue;
             schedules.LOAD_DATE =  dateToString(pedido.Fecha_de_Embarque__c,'yyyyMMdd');
             schedules.GI_DATE = dateToString(pedido.Fecha_de_Entrega__c,'yyyyMMdd');
-            schedules.ITM_NUMBER = string.ValueOf(consecutivo);
-            ln.POS_NR = string.ValueOf(consecutivo);
+            schedules.ITM_NUMBER = string.ValueOf(consecutivo * 10); // Se modifica por 10 yaque en SAP el estadar 1 = 10 posicion.
+            ln.POS_NR = string.ValueOf(consecutivo * 10);
             ln.TEXT_LINE = p.item.Observaciones__c;
             pedidoSap.Text.SALES_TEXT.add(ln);
             pedidoSap.SchedulesIn.SALES_SCHEDULES_IN.add(schedules);
@@ -2842,40 +2842,42 @@ public class PedidosOtrosCanalesUtils {
     public static void submitForApproval(Opportunity opp, string Comment, string tipo)
     {
           // Create an approval request for the Opportunity
-        String canalDistribucion = opp.Canal_Factura__r.Codigo__c+opp.Cliente__r.Canal_Distribucion__c.right(2);
-        String aprobadorID ='';
-        map<string,String> mapAprobadores = ObtenerAprobadores();
-        Approval.ProcessSubmitRequest req1 = new Approval.ProcessSubmitRequest();
-        req1.setComments(Comment);
-        req1.setObjectId(opp.id);
-        System.debug('opp.id: '+opp.id);
-        System.debug('canalDistribucion: '+canalDistribucion);
-        System.debug('tipo: '+tipo);
-        if(string.isNotBlank(mapAprobadores.get(canalDistribucion+tipo)))
-        {
-            aprobadorID = mapAprobadores.get(canalDistribucion+tipo);
-        }
-        else{
-            canalDistribucion = opp.Cliente__r.Canal_Distribucion__c.right(2);
-            if(string.isNotBlank(mapAprobadores.get(canalDistribucion+tipo)))
-            {
-                aprobadorID = mapAprobadores.get(canalDistribucion+tipo);
-            }
-        }
-        if(Test.isRunningTest())
-        {
-            aprobadorID = [select id from user where Email ='jose.barraza@sukarne.com' limit 1 ].id;
-        }
-        System.debug('aprobadorID: '+aprobadorID);
-        if(aprobadorID == null || String.isblank(aprobadorID))
-        {
-            ApexPages.getMessages().clear();
-            return;
-        }
-        user u = new user(id=aprobadorID);
-        req1.setNextApproverIds(new Id[] {u.Id});
-        // Submit the approval request for the Opportunity
-        Approval.ProcessResult result = Approval.process(req1);
+       String canalDistribucion = opp.Canal_Factura__r.Codigo__c+opp.Cliente__r.Canal_Distribucion__c.right(2);
+       String aprobadorID ='';
+       map<string,String> mapAprobadores = ObtenerAprobadores();
+       Approval.ProcessSubmitRequest req1 = new Approval.ProcessSubmitRequest();
+       req1.setComments(Comment);
+       req1.setObjectId(opp.id);
+       System.debug('opp.id: '+opp.id);
+       System.debug('canalDistribucion: '+canalDistribucion);
+       System.debug('tipo: '+tipo);
+       
+       if(string.isNotBlank(mapAprobadores.get(canalDistribucion+tipo)))
+       {
+           aprobadorID = mapAprobadores.get(canalDistribucion+tipo);
+       }
+       else{
+           canalDistribucion = opp.Cliente__r.Canal_Distribucion__c.right(2);
+           if(string.isNotBlank(mapAprobadores.get(canalDistribucion+tipo)))
+           {
+               aprobadorID = mapAprobadores.get(canalDistribucion+tipo);
+           }
+       }
+       if(Test.isRunningTest())
+       {
+           aprobadorID = [select id from user where Email ='jose.barraza@sukarne.com' limit 1 ].id;
+       }
+       System.debug('aprobadorID: '+aprobadorID);
+       if(aprobadorID == null || String.isblank(aprobadorID))
+       {
+           ApexPages.getMessages().clear();
+           ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, 'No se encontro aprobador para el canal seleccionado.'));
+           return;
+       }
+       user u = new user(id=aprobadorID);
+       req1.setNextApproverIds(new Id[] {u.Id});
+       // Submit the approval request for the Opportunity
+       Approval.ProcessResult result = Approval.process(req1);
     }
     public static WsActualizaDatosGenerales_NSC_SDL.RespuestaModificacionPedidos EnviarModificacionPedido(opportunity pedido,string areaResp,list<PedidosOtrosCanalesUtils.producto> productos,list<ProductosEliminado__c> ProductosEliminado)
     {
