@@ -24,8 +24,10 @@
                 fecha = fecha.substring(fecha.indexOf("/")+1, fecha.lastIndexOf("/"))+"/"+fecha.substring(0, fecha.indexOf("/"))+"/"+fecha.substring(fecha.lastIndexOf("/")+1, fecha.length);
                 var fechaDefault = fechaSurtidoDefault.substring(fechaSurtidoDefault.indexOf("/")+1, fechaSurtidoDefault.lastIndexOf("/"))+"/"+fechaSurtidoDefault.substring(0, fechaSurtidoDefault.indexOf("/"))+"/"+fechaSurtidoDefault.substring(fechaSurtidoDefault.lastIndexOf("/")+1, fechaSurtidoDefault.length);
                 var date = new Date(fecha);
+                
                 if( createdDate ) {
-                    defaultDate = new Date(createdDate);
+                   // defaultDate = new Date(createdDate);
+                   defaultDate = new Date(fechaDefault);
                     //defaultDate.setDate( defaultDate.getDate() - 1 );
                     today = new Date(createdDate);
                         today.setDate( today.getDate() + 1 );
@@ -36,12 +38,22 @@
                     defaultDate = new Date(fechaDefault);
                     today = new Date(nowD);
                 }
+                var fechaD = new Date(defaultDate.setDate(defaultDate.getDate()+ maxPresaleDays));
                 today.setDate(today.getDate()-(today.getDay() == 1 ? 2 : 1));
+               	var dias =  cuentaDomingo(date,fechaD) == 0 ? maxPresaleDays+2: maxPresaleDays;
+                var fechaDef = new Date(defaultDate.setDate((defaultDate.getDate() - maxPresaleDays) + dias));
+                console.log(dias);
+                console.log(fechaDef);
+                console.log('fecha < fechaDefault => ' + date < defaultDate);
+                console.log(date + " -- "+ defaultDate);
+                
                 if(!(Object.prototype.toString.call(date) === "[object Date]") || isNaN(date.getTime())) {
                     hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
-                } else if(date.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0)) {
-                    hasError = !alert("La fecha de surtido programada no puede ser menor a la fecha de mañana.\nSe reasigna el valor por defecto.");
-                } else if(date > defaultDate.setDate(defaultDate.getDate()+maxPresaleDays)) {
+                } else if(date < defaultDate) {
+                    //hasError = !alert("La fecha de surtido programada no puede ser menor a la fecha de mañana.\nSe reasigna el valor por defecto.");
+                    hasError = !alert("La fecha de surtido seleccionada no puede ser menor a la fecha de surtido programada.\nSe reasigna el valor por defecto.");
+                //} else if(fecha > defaultDate.setDate(defaultDate.getDate()+maxPresaleDays)) {
+                }else if(date > fechaDef) {
                     hasError = !alert("El máximo de días de preventa permitidos es de "+maxPresaleDays+".\nSe reasigna el valor por defecto.");
                 } else if(date.getDay() == 0) {
                     hasError = !alert("Los domingos no se surten pedidos.\nSe reasigna el valor por defecto.");
@@ -56,6 +68,24 @@
             validateOnPreventa();
    
         }
+        
+    function cuentaDomingo(dat, fecha){
+    var inicio = new Date(dat); //Fecha inicial
+    var fin = new Date(fecha); //Fecha final
+    var timeDiff = Math.abs(fin.getTime() - inicio.getTime());
+    var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); //Días entre las dos fechas
+    var cuentaFinde = 0; //Número de Sábados y Domingos
+    var array = new Array(diffDays);
+    for (var i=0; i < diffDays; i++) 
+    {
+        if (inicio.getDay() == 0) {
+            cuentaFinde++;
+        }
+        inicio.setDate(inicio.getDate() + 1);
+    }
+
+   return cuentaFinde;
+}
     
    ///// PedidoWizard.zip
    /**

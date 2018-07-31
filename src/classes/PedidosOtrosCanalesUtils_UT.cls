@@ -8,8 +8,6 @@ public class PedidosOtrosCanalesUtils_UT {
         Account  cliente = crearCliente();
         Oficina_de_Venta__c ofiv =  crearOficina();
            
-        
-  
       
         Pricebook2 precios = new Pricebook2();
         precios.Id = '01s50000000W12tAAC';
@@ -121,7 +119,7 @@ public class PedidosOtrosCanalesUtils_UT {
             ofiv.Codigo__c = '105';   
             ofiv.IdClienteViz__c = '90000303';
             //ofiv.SucursalesViz__c = '1 Calexico - 803284; 2 Laredo - 803287; 8 Houston - 807186';
-            upsert ofiv;
+            insert ofiv;
         return ofiv;
     }
     
@@ -135,7 +133,7 @@ public class PedidosOtrosCanalesUtils_UT {
             pedido.Fecha_de_Embarque__c =  date.today();
             pedido.Folio_Pedido_SDL__c = '62177';
             pedido.Numero_de_Pedido_NSC__c = '137437';
-            pedido.Numero_Pedido_SAP__c = '';
+            pedido.Numero_Pedido_SAP__c = '90000303';
             pedido.AccountId = '0012C000002XoGQQA0';
             pedido.Cliente__c = '0012C000006l2cv';
         upsert pedido;
@@ -146,7 +144,7 @@ public class PedidosOtrosCanalesUtils_UT {
         Account cliente = new Account();	            
             cliente.Id = '0012C000002XoGQQA0';
             cliente.Name ='SUC - JON CINA';
-            cliente.Numero_Cliente_SAP__c = '';
+            cliente.Numero_Cliente_SAP__c = '90000303';
             cliente.Canal_Distribucion__c = 'a072C000000CqIF';
             cliente.Sociedad__c = 'VIZCATTLE - 303';
             cliente.Estatus_Cliente__c = 'Activo';
@@ -162,6 +160,7 @@ public class PedidosOtrosCanalesUtils_UT {
     {
     
         ListaPreciosWS.RespuestaOfListOfPrecioClienteSF response  = new ListaPreciosWS.RespuestaOfListOfPrecioClienteSF();
+        system.debug('PRECIOSCLIENTE==>> '+ pedido.Canal_Factura__r.IdClienteViz__c);
         PedidosOtrosCanalesUtils.DispoMayoristas.fillPreciosCliente(pedido,productos, true );
         PedidosOtrosCanalesUtils.DispoMayoristas.getPrices(response);
     }
@@ -265,6 +264,27 @@ public class PedidosOtrosCanalesUtils_UT {
                 FROM Account
                 WHERE Id = :idCliente
                 LIMIT 1];
+    }
+    public static Account buscarSucViz( String code ) {
+    	system.debug('CODE==> '+  code);
+        if( String.isBlank( code ) ) {
+            return null;
+        }
+        if( code.length() < 10 ) {
+            code = code.leftPad(10, '0');
+        }
+        Account accViz = new Account();
+        try {
+            accViz = [SELECT Id, Sociedad__c, Oficina_de_Ventas__r.Codigo__c, Organizacion_de_Ventas__c, Grupo_de_Vendedores__r.Codigo__c,
+                      Canal_Distribucion__c, Ramo__c, Canal_de_Distribucion_NSC__r.Codigo__c,Cadena__c
+                      FROM Account
+                      WHERE Numero_Cliente_SAP__c =: code];
+        }
+        catch( Exception e ) {
+            System.debug('ERR::'+e.getMessage());
+            return null;
+        }
+       return accViz;
     }
    public static Opportunity getOppById(String id){
         return [Select Id, AccountId, Account.Name, Account.Numero_Cliente_SAP__c, Account.Estatus_Cliente__c, Account.Canal_Distribucion__c,

@@ -1065,13 +1065,17 @@ public class PedidosOtrosCanalesUtils {
         {
             system.debug('MODIFICACION=>');         
             WsActualizaDatosGenerales_NSC_SDL.RespuestaModificacionPedidos ResponseNSC = null;
+            system.debug('ENVIARPEDIDOMODIFICACION ' +  pedido.Id);
              if(string.isNotBlank(pedido.Id))
              {
+             	system.debug('ENVIARPEDIDOMODIFICACION=>' +  pedido.Id);
                      if(productoEliminado != null && productoEliminado.size() > 0)
                      {
+                     	
                          ResponseNSC = EnviarModificacionPedido(pedido,areaResp,productos, productoEliminado);                         
                          
                      }else{
+                     	system.debug('ENVIARPEDIDOMODIFICACION ' +  pedido);
                         ResponseNSC = WsActualizarDatosGenerales(pedido,areaResp, productos,2,'1');
                         
                      }
@@ -3242,9 +3246,9 @@ public class PedidosOtrosCanalesUtils {
         
         if(string.isNotBlank(pedido.Numero_Pedido_SAP__c) && pedido.Numero_Pedido_SAP__c != ' ')
         {     
-            PedidoDatosGenerales.TipoModificacionSAP = '2';
+            PedidoDatosGenerales.TipoModificacionSAP = '1'; //2
         }
-        else{ PedidoDatosGenerales.TipoModificacionSAP = '1';}
+        else{ PedidoDatosGenerales.TipoModificacionSAP = '1';}//1 si es un modificacion parcial = 2
         
         if(pedido.Fecha_Embarque_Bodega__c != null)
             PedidoDatosGenerales.FechaEntregaBodega  = dateToString(pedido.Fecha_Embarque_Bodega__c,'yyyyMMdd');
