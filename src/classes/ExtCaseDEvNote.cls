@@ -9,12 +9,14 @@ public class ExtCaseDEvNote {
         this.Caso = (Case)stdController.getRecord();
         this.Caso.RecordType = rt;
         this.show  = true;
+        
         if(this.caso.Id == null)
         {
         	Group Grupo = [select Id from Group where Type = 'Queue' and Name = 'SK-Quejas Portal Interno'];
         	this.caso.OwnerId = grupo.Id;
         	this.caso.Origin ='Portal Interno';
         	this.caso.Status = 'Nuevo';
+        	this.Caso.Repartidor__c =  new Contact().Id;
         }
     }  
   
@@ -124,13 +126,15 @@ public EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req Gen
 }
 public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[] Datos)
 {
-	
-		factura = new Factura();		
+		factura = new Factura();
   		factura.CodigoCliente = String.ValueOf(Datos[0].Cabecero.CodigoCliente).leftpad(10,'0');
   		system.debug('CLIENTE=> '+ factura.CodigoCliente);
   		this.caso.AccountId = TraerCuenta(String.ValueOf(Datos[0].Cabecero.CodigoCliente)).id;
-  		system.debug('CUENTA=> '+ this.caso.AccountId);
+  		system.debug('CUENTA=> '+ this.caso.AccountId);  		
   		String contacto = TraerContacto(this.caso.AccountId).Id;
+  		//this.Caso.Repartidor__c =  contacto;
+  		system.debug('REPARTIDOR__C ' + this.Caso.Repartidor__c);
+  		
   		if(contacto == null)
 		{
 	  		showPageMessage('WARNING','No se encuentro un contacto asiciado a la cuenta.');

@@ -654,11 +654,32 @@ public static Boolean ActualizaPSV {get;set;}
         }
 		Integer codigoVizCDSucursal = null;
         try{
-            codigoVizCDSucursal = Integer.valueOf( clienteViz.Canal_de_Distribucion_NSC__r.Codigo__c );
+            //codigoVizCDSucursal = Integer.valueOf( clienteViz.Canal_de_Distribucion_NSC__r.Codigo__c );
+            if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
+	        {
+	            string suc = 'SUC - ';
+	            List<String> ListaSucursalesFrontera = new List<String>();
+	            ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
+	            System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
+	            System.debug('pedido.frontera__c: '+pedido.frontera__c);
+	            String ClienteVizNew = PedidosOtrosCanalesUtils.ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
+	            System.debug('ClienteViz: '+ClienteVizNew);
+	            if(String.isNotBlank(ClienteVizNew))
+	            {
+	                string codigo  ='0';
+	                Account sucVizNew = PedidosOtrosCanalesUtils.buscarSucViz(suc+ClienteVizNew.leftPad(10, '0'));
+	                if(sucVizNew != null && sucVizNew .Canal_de_Distribucion_NSC__c != null)
+	                {
+	                    codigo = sucVizNew .Canal_de_Distribucion_NSC__r.Codigo__c;
+	                     codigoVizCDSucursal = Integer.valueOf(codigo);
+	                     
+	                }
+	            }
+	        }
         }catch(Exception e){
             System.debug('Error en conversión del codigo viz del canal de distribución de la sucursal');
         }
-
+		
         pedidoWS.tipoPedidoViz = 0;
         pedidoWS.areaRespViz = '';
         pedidoWS.clienteInterViz = 0;

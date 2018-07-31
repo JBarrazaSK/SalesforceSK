@@ -298,7 +298,7 @@ public CrtlCierreCanalDetalle()
 		 		system.debug('Response --->'+ rc);
 	 		}
 	 		update oficinasAGuardar;
-	 		showPageMessage('CONFIRM','se ha reaperturado con éxito las oficinas de ventas seleccionadas');
+	 		showPageMessage('CONFIRM','Se ha reaperturado con éxito las oficinas de ventas seleccionadas');
 	 		consultar();
 
  	}

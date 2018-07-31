@@ -1135,10 +1135,10 @@ public class PedidosOtrosCanalesUtils {
             ObtenerActalizaLegados(pedido);
             DatosPedidos.IdTransaccion = pedido.id_externo__c;
              if(pedido.Pedido_SDL__c != 'Reintento' && pedido.Reenviar__c)
-		       {
-		       	  system.debug('pedido.Pedido_SDL__c '+ pedido.Pedido_SDL__c);
-		       		 DatosPedidos.IdTransaccion = generateIdPedidoSF();
-		       }
+               {
+                  system.debug('pedido.Pedido_SDL__c '+ pedido.Pedido_SDL__c);
+                     DatosPedidos.IdTransaccion = generateIdPedidoSF();
+               }
 
            
             if(pedido.Reenviar__c)  
@@ -1258,11 +1258,11 @@ public class PedidosOtrosCanalesUtils {
                 }
                 else
                 {
-                	if(Response.Resultado == 'Reintento')
-                	{
-                		pedido.Pedido_SDL__c = 'Reintento';
-                		pedido.Reenviar__c = true;
-                	}
+                    if(Response.Resultado == 'Reintento')
+                    {
+                        pedido.Pedido_SDL__c = 'Reintento';
+                        pedido.Reenviar__c = true;
+                    }
                     if(Response.SapReturn != null)
                     {
                         for(WsPedidosMayoreoLegados.DT_SDL_ResItem item :Response.SapReturn.DT_SDL_ResItem)
@@ -1290,8 +1290,8 @@ public class PedidosOtrosCanalesUtils {
                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,Response.Mensaje));
                         if(Response.Mensaje.contains('Servidor NSC Ocupado, favor de intentar nuevamente mas tarde.'))
                         {
-                        	pedido.Reenviar__c = true;
-                        	
+                            pedido.Reenviar__c = true;
+                            
                         }else{return null;}
                     }
                     
@@ -1776,7 +1776,27 @@ public class PedidosOtrosCanalesUtils {
         // CODIGO VIZ DEL CANAL DE DISTRIBUCIÓN DE LA SUCURSAL
         Integer codigoVizCDSucursal = null;
         try{
-            codigoVizCDSucursal = Integer.valueOf( sucViz.Canal_de_Distribucion_NSC__r.Codigo__c );
+             if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
+                {
+                    string suc = 'SUC - ';
+                    List<String> ListaSucursalesFrontera = new List<String>();
+                    ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
+                    System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
+                    System.debug('pedido.frontera__c: '+pedido.frontera__c);
+                    String ClienteViz = ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
+                    System.debug('ClienteViz: '+ClienteViz);
+                    if(String.isNotBlank(ClienteViz))
+                    {
+                        string codigo  ='0';
+                        Account sucVizNew = buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
+                        if(sucVizNew != null && sucVizNew.Canal_de_Distribucion_NSC__c != null)
+                        {
+                            codigo = sucViz.Canal_de_Distribucion_NSC__r.Codigo__c;
+                            codigoVizCDSucursal =  Integer.valueOf(codigo);
+                        }
+                    }
+                }     
+           
         }catch(Exception e){
             System.debug('Error en conversión del codigo viz del canal de distribución de la sucursal');
         }
@@ -2071,6 +2091,7 @@ public class PedidosOtrosCanalesUtils {
         pedidoSap.SALES_HEADER_IN = new WsPedidosMayoreoLegados.SALES_HEADER_IN();
         pedidoSap.SALES_HEADER_IN.DOC_TYPE= mapTipoPedido.get(pedido.Canal__c).ClaseDocto__c;
         pedidoSap.SALES_HEADER_IN.COLLECT_NO='X'; // siempre va vacio
+       
         if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
         {
             string suc = 'SUC - ';
@@ -2221,8 +2242,8 @@ public class PedidosOtrosCanalesUtils {
                 continue;
             schedules.LOAD_DATE =  dateToString(pedido.Fecha_de_Embarque__c,'yyyyMMdd');
             schedules.GI_DATE = dateToString(pedido.Fecha_de_Entrega__c,'yyyyMMdd');
-            schedules.ITM_NUMBER = string.ValueOf(consecutivo * 10); // Se modifica por 10 yaque en SAP el estadar 1 = 10 posicion.
-            ln.POS_NR = string.ValueOf(consecutivo * 10);
+            schedules.ITM_NUMBER = string.ValueOf(consecutivo*10);
+            ln.POS_NR = string.ValueOf(consecutivo*10);
             ln.TEXT_LINE = p.item.Observaciones__c;
             pedidoSap.Text.SALES_TEXT.add(ln);
             pedidoSap.SchedulesIn.SALES_SCHEDULES_IN.add(schedules);
@@ -2842,42 +2863,41 @@ public class PedidosOtrosCanalesUtils {
     public static void submitForApproval(Opportunity opp, string Comment, string tipo)
     {
           // Create an approval request for the Opportunity
-       String canalDistribucion = opp.Canal_Factura__r.Codigo__c+opp.Cliente__r.Canal_Distribucion__c.right(2);
-       String aprobadorID ='';
-       map<string,String> mapAprobadores = ObtenerAprobadores();
-       Approval.ProcessSubmitRequest req1 = new Approval.ProcessSubmitRequest();
-       req1.setComments(Comment);
-       req1.setObjectId(opp.id);
-       System.debug('opp.id: '+opp.id);
-       System.debug('canalDistribucion: '+canalDistribucion);
-       System.debug('tipo: '+tipo);
-       
-       if(string.isNotBlank(mapAprobadores.get(canalDistribucion+tipo)))
-       {
-           aprobadorID = mapAprobadores.get(canalDistribucion+tipo);
-       }
-       else{
-           canalDistribucion = opp.Cliente__r.Canal_Distribucion__c.right(2);
-           if(string.isNotBlank(mapAprobadores.get(canalDistribucion+tipo)))
-           {
-               aprobadorID = mapAprobadores.get(canalDistribucion+tipo);
-           }
-       }
-       if(Test.isRunningTest())
-       {
-           aprobadorID = [select id from user where Email ='jose.barraza@sukarne.com' limit 1 ].id;
-       }
-       System.debug('aprobadorID: '+aprobadorID);
-       if(aprobadorID == null || String.isblank(aprobadorID))
-       {
-           ApexPages.getMessages().clear();
-           ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, 'No se encontro aprobador para el canal seleccionado.'));
-           return;
-       }
-       user u = new user(id=aprobadorID);
-       req1.setNextApproverIds(new Id[] {u.Id});
-       // Submit the approval request for the Opportunity
-       Approval.ProcessResult result = Approval.process(req1);
+        String canalDistribucion = tipo =='Cierre'?opp.Canal_Factura__r.Codigo__c: opp.Cliente__r.Canal_Distribucion__c.right(2);
+        String aprobadorID ='';
+        map<string,String> mapAprobadores = ObtenerAprobadores();
+        Approval.ProcessSubmitRequest req1 = new Approval.ProcessSubmitRequest();
+        req1.setComments(Comment);
+        req1.setObjectId(opp.id);
+        System.debug('opp.id: '+opp.id);
+        System.debug('canalDistribucion: '+canalDistribucion);
+        System.debug('tipo: '+tipo);
+        if(string.isNotBlank(mapAprobadores.get(canalDistribucion+tipo)))
+        {
+            aprobadorID = mapAprobadores.get(canalDistribucion+tipo);
+        }
+        else{
+            canalDistribucion = opp.Cliente__r.Canal_Distribucion__c.right(2);
+            if(string.isNotBlank(mapAprobadores.get(canalDistribucion+tipo)))
+            {
+                aprobadorID = mapAprobadores.get(canalDistribucion+tipo);
+            }
+        }
+        if(Test.isRunningTest())
+        {
+            aprobadorID = [select id from user where Email ='jose.barraza@sukarne.com' limit 1 ].id;
+        }
+        System.debug('aprobadorID: '+aprobadorID);
+        if(aprobadorID == null || String.isblank(aprobadorID))
+        {
+            ApexPages.getMessages().clear();
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, 'No se encontro aprobador para el canal seleccionado.'));
+            return;
+        }
+        user u = new user(id=aprobadorID);
+        req1.setNextApproverIds(new Id[] {u.Id});
+        // Submit the approval request for the Opportunity
+        Approval.ProcessResult result = Approval.process(req1);
     }
     public static WsActualizaDatosGenerales_NSC_SDL.RespuestaModificacionPedidos EnviarModificacionPedido(opportunity pedido,string areaResp,list<PedidosOtrosCanalesUtils.producto> productos,list<ProductosEliminado__c> ProductosEliminado)
     {
@@ -3219,11 +3239,13 @@ public class PedidosOtrosCanalesUtils {
         {
             PedidoDatosGenerales.CanalDistribucion = integer.ValueOf(pedido.Canal_Factura__r.Codigo__c);
         }
-        if(string.isNotBlank(pedido.Folio_SAP__c) && pedido.Folio_SAP__c != ' ')
+        
+        if(string.isNotBlank(pedido.Numero_Pedido_SAP__c) && pedido.Numero_Pedido_SAP__c != ' ')
         {     
             PedidoDatosGenerales.TipoModificacionSAP = '2';
         }
         else{ PedidoDatosGenerales.TipoModificacionSAP = '1';}
+        
         if(pedido.Fecha_Embarque_Bodega__c != null)
             PedidoDatosGenerales.FechaEntregaBodega  = dateToString(pedido.Fecha_Embarque_Bodega__c,'yyyyMMdd');
         else
@@ -3290,8 +3312,8 @@ public class PedidosOtrosCanalesUtils {
         map<string,Integer> MapaUnidadMedida = crearUnidadMedida();
         detalle.UnidadMedida  = MapaUnidadMedida.get(producto.Tipo_de_Precio__c);
         /* if(producto.Tipo_de_Precio__c =='DL')
-detalle.KgsPedidos  = producto.Volumen__c /CONVERSION_KILO_POUND;
-else*/
+                detalle.KgsPedidos  = producto.Volumen__c /CONVERSION_KILO_POUND;
+        else*/
         detalle.KgsPedidos  = producto.kilos__c;
         
         detalle.LibrasPedidas  = producto.Volumen__c == null?0:producto.Volumen__c;
@@ -4281,13 +4303,33 @@ else*/
             canalDistribucionSucursal = pedido.Account.Canal_Distribucion__c.right(2) == 'AS'?'S':' '; //S para AS
         }catch(Exception e){
             System.debug('Error leyendo canal de distribución de la sucursal');
-            canalDistribucionSucursal = ' ';
+            canalDistribucionSucursal = ' '; 
         }
         pedidoWS.autorizado = canalDistribucionSucursal;
         // CODIGO VIZ DEL CANAL DE DISTRIBUCIÓN DE LA SUCURSAL
         Integer codigoVizCDSucursal = null;
         try{
-            codigoVizCDSucursal = Integer.valueOf( sucViz.Canal_de_Distribucion_NSC__r.Codigo__c );
+            if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
+                {
+                    string suc = 'SUC - ';
+                    List<String> ListaSucursalesFrontera = new List<String>();
+                    ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
+                    System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
+                    System.debug('pedido.frontera__c: '+pedido.frontera__c);
+                    String ClienteViz = ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
+                    System.debug('ClienteViz: '+ClienteViz);
+                    if(String.isNotBlank(ClienteViz))
+                    {
+                        string codigo  ='0';
+                        Account sucVizNew = buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
+                        if(sucVizNew != null && sucVizNew.Canal_de_Distribucion_NSC__c != null)
+                        {
+                            codigo = sucViz.Canal_de_Distribucion_NSC__r.Codigo__c;
+                            codigoVizCDSucursal =  Integer.valueOf(codigo);
+                        }  
+                    }
+                }
+            //codigoVizCDSucursal = Integer.valueOf( sucViz.Canal_de_Distribucion_NSC__r.Codigo__c );
         }catch(Exception e){
             System.debug('Error en conversión del codigo viz del canal de distribución de la sucursal');
         }

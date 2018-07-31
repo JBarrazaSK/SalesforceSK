@@ -25,7 +25,7 @@
           </apex:pageBlockSectionItem>
             <apex:inputtext label="Número de caso" value="{!NumCaso}" disabled="true"/>
             
-        </apex:pageBlockSection>
+        </apex:pageBlockSection> 
         <apex:pageBlockSection title="Datos Generales" columns="2" rendered="{!factura.ListaProductos != null}">
             <apex:inputField label="Cliente" value="{!case.ContactId}"  required="true" html-disabled="true"/>
             <apex:outputText label="Tipo Registro" value="{!case.RecordType.Name}"/> 

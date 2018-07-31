@@ -29,10 +29,10 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 			mapOpportunitys.put(opp.Folio_Pedido_SDL__c,opp);
 	    	for(PedidosOtrosCanalesUtils.Producto oppl : productos)
 	    	{
-			    		if(oppl.item.OpportunityId == opp.id)
-			    		{
-			    				listaProductos.add(oppl);
-			    		}
+			   		if(oppl.item.OpportunityId == opp.id)
+			   		{
+			   			listaProductos.add(oppl);
+			   		}
 	    	}
 			try{  
 				 
@@ -42,12 +42,13 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 				  DatosPedidos.ActualizaSAP = PedidosOtrosCanalesUtils.ActualizaSAP;
 		          DatosPedidos.ActualizaNSC = PedidosOtrosCanalesUtils.ActualizaNSC;
 				  Boolean Cancelado = false;
-					if(opp.Estatus_Cierre_Pedido__c == 'Rejected')
-					{
+				 
+				  if(opp.Estatus_Cierre_Pedido__c == 'Rejected')
+				  {
 						DatosPedidos.ActualizaSAP = false;
 			            DatosPedidos.ActualizaNSC = false; 
 			            Cancelado = true;
-					}
+				  }
 				  if(DatosPedidos.ActualizaPSV)
 		           {
 		                DatosPedidos.DatosPedidoPSV = PedidosOtrosCanalesUtils.CrearPedidoMayoreoLegados(opp,listaProductos,Cancelado); 
@@ -62,19 +63,7 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 		                DatosPedidos.DatosSAP = PedidosOtrosCanalesUtils.CrearPedidoSap(opp,listaProductos,false);
 		           }
         		  
-        		   	PedidoWs  =  responseWS(opp,DatosPedidos);
- 
-        		  if(DatosPedidos.ActualizaNSC && string.isnotblank(PedidoWs.Numero_de_Pedido_NSC__c))
-		           {
-		               DatosPedidos.ActualizaNSC = false; 
-		           }
-		           if(DatosPedidos.ActualizaSAP && string.isnotblank(PedidoWs.Numero_Pedido_SAP__c))
-		           {
-		               
-		                DatosPedidos.ActualizaSAP = false;
-		           }	
-            	   mapOpportunitys.put(opp.Folio_Pedido_SDL__c,responseWS(PedidoWs,DatosPedidos)); 
-
+        		   	mapOpportunitys.put(opp.Folio_Pedido_SDL__c ,responseWS(opp,DatosPedidos));
              }
             catch(Exception e)
             {
@@ -82,30 +71,11 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
             }
             system.debug('mapOpportunitys:: '+mapOpportunitys);
 
-	    	if(mapOpportunitys != null && mapOpportunitys.size() > 0)
+		} //termina for
+		if(mapOpportunitys != null && mapOpportunitys.size() > 0)
 			{
-				for(opportunity pedido : mapOpportunitys.values())
-				{
-					if(pedido.Estatus_Cierre_Pedido__c != 'Rejected')
-					{
-						//pedido.Observacion__c = 'Pedido desbloqueado con éxito.';
-						pedido.StageName = '1 - Pedido Colocado';
-						pedido.Estatus_Cierre_Pedido__c = null;
-					}
-					else
-					{
-						//pedido.Observacion__c = 'Pedido desbloqueado con éxito.';
-						pedido.StageName = '1 - Pedido Colocado';
-						pedido.Estatus_Cierre_Pedido__c = null;
-						pedido.Pedido_Cancelado__c = true;
-						pedido.Cancelado_en_SAP__c = true;
-					}
-					listaAGrabar.add(pedido);
-				}
-				update listaAGrabar;
+				update mapOpportunitys.values();
 			}
-		
-		}
             
 	  }
 	    
@@ -388,7 +358,7 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
         String idPlanta;
         pedido.Cliente__r   = PedidosOtrosCanalesUtils.retrieveCteInfo( pedido.Cliente__c );
         pedido.Account     = PedidosOtrosCanalesUtils.retrieveCteInfo( pedido.AccountId );
-				pedidoWS.NumeroPedidoNSC = pedido.Numero_de_Pedido_NSC__c== '0'?null:pedido.Numero_de_Pedido_NSC__c;
+		pedidoWS.NumeroPedidoNSC = pedido.Numero_de_Pedido_NSC__c== '0'?null:pedido.Numero_de_Pedido_NSC__c;
         pedidoWS.NumeroPedidoSAP = pedido.Numero_Pedido_SAP__c == '0'?null:pedido.Numero_Pedido_SAP__c;
         if(pedido.Canal_Factura__r.IdPlanta__c != null)
         {
@@ -634,7 +604,30 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
         // CODIGO VIZ DEL CANAL DE DISTRIBUCIÓN DE LA SUCURSAL
         Integer codigoVizCDSucursal = null;
         try{
-            codigoVizCDSucursal = Integer.valueOf( sucViz.Canal_de_Distribucion_NSC__r.Codigo__c );
+            //codigoVizCDSucursal = Integer.valueOf( sucViz.Canal_de_Distribucion_NSC__r.Codigo__c );
+            if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
+	        {
+	            string suc = 'SUC - ';
+	            List<String> ListaSucursalesFrontera = new List<String>();
+	            ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
+	            System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
+	            System.debug('pedido.frontera__c: '+pedido.frontera__c);
+	            String ClienteVizNew = PedidosOtrosCanalesUtils.ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
+	            System.debug('ClienteViz: '+ClienteVizNew);
+	            if(String.isNotBlank(ClienteVizNew))
+	            {
+	                string codigo  ='0';
+	                Account sucVizNew = PedidosOtrosCanalesUtils.buscarSucViz(suc+ClienteVizNew.leftPad(10, '0'));
+	                if(sucVizNew != null && sucVizNew .Canal_de_Distribucion_NSC__c != null)
+	                {
+	                    codigo = sucVizNew .Canal_de_Distribucion_NSC__r.Codigo__c;
+	                      System.debug('Canal NSC INTER: '+codigo);
+	                     codigoVizCDSucursal = Integer.valueOf(codigo);
+	                        System.debug('ClienteViz: '+ClienteVizNew);
+	                     
+	                }
+	            }
+	        }
         }catch(Exception e){
             System.debug('Error en conversión del codigo viz del canal de distribución de la sucursal');
         }
@@ -1262,13 +1255,14 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 		    return !system.isFuture() && !system.isBatch() &&
 		        Limits.getLimitFutureCalls() > Limits.getFutureCalls();
 		}
-		 public static Opportunity responseWS(Opportunity pedido,WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
-	    {    			
+		 public static 	opportunity  responseWS (Opportunity pedido,WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
+	    {  
+	    	//map<String,opportunity> mapOpportunitys = new map<String,opportunity>();		
 			WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap services = new WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap();
-			 DatosPedidos.IdTransaccion = PedidosOtrosCanalesUtils.generateIdPedidoSF();
+			DatosPedidos.IdTransaccion = PedidosOtrosCanalesUtils.generateIdPedidoSF();
 			WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados Response = services.GenerarPedidoMayoreo(DatosPedidos);
-			
 			system.debug('DEBUG::'+ Response); 
+
 			if(Response != null && Response.Resultado =='TerminadoConExito')
 	        {
 	        	if(DatosPedidos.ActualizaPSV)
@@ -1285,14 +1279,28 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 	            	pedido.Numero_Pedido_SAP__c = Response.SapShip_To;
 	            }
 	            pedido.Observacion__c = Response.Mensaje;
+	            pedido.StageName = '1 - Pedido Colocado';
+			    pedido.Estatus_Cierre_Pedido__c = null;
 	            ActualizaEnvioPedidos(pedido,DatosPedidos);
-	           
+	             
 	        }
 	        else
 	        {
-	        	pedido.Observacion__c = Response.Mensaje;
+	        	 if(Response != null && Response.SapReturn != null)
+                    {
+                        for(WsPedidosMayoreoLegados.DT_SDL_ResItem item :Response.SapReturn.DT_SDL_ResItem)
+                        {
+                            if(item.TYPE_x == 'E')
+                            {
+                            	pedido.Observacion__c = item.MESSAGE;
+                                system.debug('Mensaje SAP: '+ item.MESSAGE);
+                            }
+                        }
+                    }
+                    else{ pedido.Observacion__c = Response.Mensaje;}
+                   // pedido.Estatus_Cierre_Pedido__c = 'Rejected';     
 	        }
-	        return pedido;
+	        return pedido; 
 	    }
 	    public static void ActualizaEnvioPedidos(opportunity pedido,WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
 	    {
