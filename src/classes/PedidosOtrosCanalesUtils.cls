@@ -2111,11 +2111,8 @@ public class PedidosOtrosCanalesUtils {
                     pedidoSap.SALES_HEADER_IN.DISTR_CHAN =  codigo;
                     pedidoSap.SALES_HEADER_IN.SALES_ORG= string.ValueOf(sucViz.Organizacion_de_Ventas__c.right(4));
                     pedidoSap.SALES_HEADER_IN.PURCH_NO_C= sucViz.Canal_Distribucion__c.right(2)+pedido.Id_Externo__c;
-                    
                 }
-            }
-            
-            
+            }           
         }
         else
         {
@@ -2144,7 +2141,7 @@ public class PedidosOtrosCanalesUtils {
             
             productosSap.put(string.ValueOf(consecutivo),p);    
             item = new WsPedidosMayoreoLegados.SALES_ITEMS_IN();
-            item.ITM_NUMBER= string.ValueOf(consecutivo);
+            item.ITM_NUMBER= string.ValueOf(consecutivo * 10);
             item.MATERIAL=    p.codigo;
             if(p.item.Unidad__c =='C' || p.item.Unidad__c =='P')
             {
@@ -2242,8 +2239,8 @@ public class PedidosOtrosCanalesUtils {
                 continue;
             schedules.LOAD_DATE =  dateToString(pedido.Fecha_de_Embarque__c,'yyyyMMdd');
             schedules.GI_DATE = dateToString(pedido.Fecha_de_Entrega__c,'yyyyMMdd');
-            schedules.ITM_NUMBER = string.ValueOf(consecutivo);
-            ln.POS_NR = string.ValueOf(consecutivo);
+            schedules.ITM_NUMBER = string.ValueOf(consecutivo * 10);
+            ln.POS_NR = string.ValueOf(consecutivo * 10);
             ln.TEXT_LINE = p.item.Observaciones__c;
             pedidoSap.Text.SALES_TEXT.add(ln);
             pedidoSap.SchedulesIn.SALES_SCHEDULES_IN.add(schedules);
@@ -3295,7 +3292,7 @@ public class PedidosOtrosCanalesUtils {
         map<Integer,String> MapaMonedasSAP = crearMonedaSAP();
         
         detalle = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
-        detalle.NumRenglon  = contador;
+        detalle.NumRenglon  = contador * 10;
         if(producto.Product2 != null)
         {
             detalle.Producto  = integer.ValueOf(producto.Product2.ProductCode);

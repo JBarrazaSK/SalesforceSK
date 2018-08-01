@@ -171,8 +171,7 @@ public with sharing class PedidoWizardController {
         	if (responseSAP.DT_SE_ABCPedidos_RespPedido != null)
         	{  
         		for(Integer i = 0; i<responseSAP.DT_SE_ABCPedidos_RespPedido.size();i++ )
-        		{      			
-	        		  	 
+        		{     			
 					if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null 
 							&& responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != 'C') 
 		        			&& (responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'S') 
@@ -180,7 +179,6 @@ public with sharing class PedidoWizardController {
 		        						&& responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus == 'A')) // por lo tanto el salesforce tambien se crea.
 		        	{
 		        		pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[i]);
-		        		pedidoWrapper.save();
 		        	}	        	
 		        	if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'E' )
 		        	{
@@ -192,14 +190,14 @@ public with sharing class PedidoWizardController {
 		        		if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null 
 							&& responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus == 'B'))      			 
 							{
-		        				pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[i]);
-		        				pedidoWrapper.save();
+		        				pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[i]);		        				
 							}
 		        		
 		        		 myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[i].Mensaje);
 		        		 ApexPages.addMessage(myMsg);
 		        		 
-		        	}		            
+		        	}
+		        	pedidoWrapper.save();		            
 	            }   
         	}
         }        	
