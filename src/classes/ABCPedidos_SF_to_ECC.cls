@@ -119,6 +119,7 @@ public class ABCPedidos_SF_to_ECC {
         public String OrdenCompraCliente;
         public String NumeroPedidoSalesForce;
         public String Estatus;
+        public String TipoPago;
         private String[] TipoPedido_type_info = new String[]{'TipoPedido','http://SuKarne.com/pi/SE/ABCPedidos_SF_to_ECC',null,'0','1','false'};
         private String[] FolioPedidoSAP_type_info = new String[]{'FolioPedidoSAP','http://SuKarne.com/pi/SE/ABCPedidos_SF_to_ECC',null,'0','1','false'};
         private String[] FolioPedidoSalesForce_type_info = new String[]{'FolioPedidoSalesForce','http://SuKarne.com/pi/SE/ABCPedidos_SF_to_ECC',null,'0','1','false'};
@@ -130,7 +131,8 @@ public class ABCPedidos_SF_to_ECC {
         private String[] OrdenCompraCliente_type_info = new String[]{'OrdenCompraCliente','http://SuKarne.com/pi/SE/ABCPedidos_SF_to_ECC',null,'0','1','false'};
         private String[] NumeroPedidoSalesForce_type_info = new String[]{'NumeroPedidoSalesForce','http://SuKarne.com/pi/SE/ABCPedidos_SF_to_ECC',null,'0','1','false'};
         private String[] Estatus_type_info = new String[]{'Estatus','http://SuKarne.com/pi/SE/ABCPedidos_SF_to_ECC',null,'0','1','false'};
+        private String[] TipoPago_type_info = new String[]{'TipoPago','http://SuKarne.com/pi/SE/ABCPedidos_SF_to_ECC',null,'0','1','false'};
         private String[] apex_schema_type_info = new String[]{'','true','false'};
-        private String[] field_order_type_info = new String[]{'TipoPedido','FolioPedidoSAP','FolioPedidoSalesForce','OrganizacionVentas','OficinaVentas','CanalDistribucion','Sector','FechaSurtido','OrdenCompraCliente','NumeroPedidoSalesForce','Estatus'};
+        private String[] field_order_type_info = new String[]{'TipoPedido','FolioPedidoSAP','FolioPedidoSalesForce','OrganizacionVentas','OficinaVentas','CanalDistribucion','Sector','FechaSurtido','OrdenCompraCliente','NumeroPedidoSalesForce','Estatus','TipoPago'};
     }
 }

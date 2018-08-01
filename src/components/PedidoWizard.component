@@ -38,21 +38,17 @@
                     defaultDate = new Date(fechaDefault);
                     today = new Date(nowD);
                 }
-                var fechaD = new Date(defaultDate.setDate(defaultDate.getDate()+ maxPresaleDays));
+                var fechaSurt =  new Date(fechaDefault);
+                var fechacalculado = new Date(defaultDate.setDate(defaultDate.getDate()+ maxPresaleDays));
                 today.setDate(today.getDate()-(today.getDay() == 1 ? 2 : 1));
-               	var dias =  cuentaDomingo(date,fechaD) == 0 ? maxPresaleDays+2: maxPresaleDays;
+               	var dias =  cuentaDomingo(date,fechacalculado) == 0 ? maxPresaleDays+2: maxPresaleDays;
                 var fechaDef = new Date(defaultDate.setDate((defaultDate.getDate() - maxPresaleDays) + dias));
-                console.log(dias);
-                console.log(fechaDef);
-                console.log('fecha < fechaDefault => ' + date < defaultDate);
-                console.log(date + " -- "+ defaultDate);
+              
                 
                 if(!(Object.prototype.toString.call(date) === "[object Date]") || isNaN(date.getTime())) {
                     hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
-                } else if(date < defaultDate) {
-                    //hasError = !alert("La fecha de surtido programada no puede ser menor a la fecha de mañana.\nSe reasigna el valor por defecto.");
+                } else if(date < fechaSurt) {
                     hasError = !alert("La fecha de surtido seleccionada no puede ser menor a la fecha de surtido programada.\nSe reasigna el valor por defecto.");
-                //} else if(fecha > defaultDate.setDate(defaultDate.getDate()+maxPresaleDays)) {
                 }else if(date > fechaDef) {
                     hasError = !alert("El máximo de días de preventa permitidos es de "+maxPresaleDays+".\nSe reasigna el valor por defecto.");
                 } else if(date.getDay() == 0) {
@@ -720,8 +716,8 @@ function numberToString(value) {
             PrecioUnitarioOtorgado__c:row.find("td:nth-child(14) input:first-child"),
             precioUnitarioOtorgadoPesos:row.find("td:nth-child(14) input:last-child"),
             tipoPrecio:row.find("td:nth-child(15) select"),
-            Importe__c:row.find("td:nth-child(16) input")
-            ,Unidad__c :row.find("td:nth-child(7) select")
+            Importe__c:row.find("td:nth-child(16) input"),
+            Unidad__c :row.find("td:nth-child(7) select")
         };
         var values = {
             index: objects.index,
@@ -787,7 +783,6 @@ function numberToString(value) {
         pedidoItem.objects.PrecioUnitarioOtorgado__c.val(floatToString(pedidoItem.values.PrecioUnitarioOtorgado__c, 4));
         pedidoItem.objects.precioUnitarioOtorgadoPesos.val(pedidoItem.values.precioUnitarioOtorgadoPesos);
         //pedidoItem.objects.Importe__c.val(floatToCurrency(parseFloat(pedidoItem.values.Importe__c)));
-
         pedidoItem.objects.Importe__c.val(formatoMoneda(pedidoItem.values.Importe__c));  
               
     
@@ -813,6 +808,7 @@ function numberToString(value) {
         pedidoItem.values.precioUnitarioOtorgadoPesos = pedidoItem.objects.precioUnitarioOtorgadoPesos.data("old");
         pedidoItem.values.Importe__c = pedidoItem.objects.Importe__c.data("old");
         pedidoItem.values.Unidad__c =  pedidoItem.objects.Unidad__c.data("old");
+        
     }
     
   function copySolicitadoToConfirmado(pedidoItemValues) {
@@ -1414,11 +1410,14 @@ function rowOff(element) {
 								onkeydown="onInputEnterKeydown(event)" />
 						</div></td>
 					<td class="labelCol">Pago de:</td>
-					<td colspan="2" id="tdFormaPago"><apex:variable value="{!IF(isEditablePedido && (accountWrapper.account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3'), true, IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (accountWrapper.account.Parent.RFC__c != null || accountWrapper.account.Parent.RFC_Generico__c != null), false, false))}"
-							var="isEditableFormaPago" /> <apex:inputField value="{!pedidoWrapper.pedido.Forma_Pago__c}" required="true"
-							onchange="setFacturaNoFiscal()" rendered="{!isEditableFormaPago}" />
-						<apex:outputField value="{!pedidoWrapper.pedido.Forma_Pago__c}"
-							rendered="{!!isEditableFormaPago}" /></td>
+					<td colspan="2" id="tdFormaPago">						
+							<apex:variable value="{!IF(isEditablePedido && (accountWrapper.account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3'), true, IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (accountWrapper.account.Parent.RFC__c != null || accountWrapper.account.Parent.RFC_Generico__c != null), false, false))}"
+							var="isEditableFormaPago" /> 
+							<input type="hidden" value="{!pedidoWrapper.pedido.Forma_Pago__c}" id="inputPedidoFormaPago" />
+							<apex:inputField value="{!pedidoWrapper.pedido.Forma_Pago__c}" required="true"
+							onchange="setFacturaNoFiscal()" 
+							 />
+					</td>
 					<td class="labelCol">Imprime factura:</td>
 					<td class="width1"><apex:outputField value="{!pedidoWrapper.pedido.Factura__c}" /></td>
 				</tr>

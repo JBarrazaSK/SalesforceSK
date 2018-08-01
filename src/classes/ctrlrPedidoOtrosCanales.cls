@@ -882,7 +882,7 @@ public class ctrlrPedidoOtrosCanales {
         
         if( temp == null ) { return temp; }
         if( temp.item == null ) { return temp; }
-        if( temp.item.Importe__c == null ) { temp.item.Importe__c = 0; }
+        if( temp.item.Importe__c == null ) { temp.item.Importe__c = 0; } 
         
         // Ramon Atondo
         if( temp.isPrecio == false && pedido.id != null && temp.item.id !=  null) { return temp; }
@@ -2057,8 +2057,8 @@ public class ctrlrPedidoOtrosCanales {
               }
               System.debug('totPedidoSF :: '+ totPedidoSF);
               System.debug('pedido.Canal__c :: '+ pedido.Canal__c);
-             // if(pedido.Canal__c == 'E')
-              //{
+              if(pedido.Id == null)
+             {
                 esvalido = PedidosOtrosCanalesUtils.validarCredito( String.valueOf(Integer.valueOf( pedido.Cliente__r.Numero_Cliente_SAP__c )),
                                                               '',
                                                                 totPedidoSF,
@@ -2066,7 +2066,7 @@ public class ctrlrPedidoOtrosCanales {
                                                               pedido.Cliente__r.Sociedad__c.right(3),
                                                                 idExterno,
                                                                   '');
-             // }
+              }
              // else
              // {
              // esvalido = new PedidosOtrosCanalesUtils.ValidacionCredito();

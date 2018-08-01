@@ -161,7 +161,8 @@
 			    <td title="Confirmado"><span>{Cajas_Balanceadas__c}</span></td>
 			    <td title="Balanceado">
 			    	<span class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-text">{Cajas_Conf__c}</span>
-			    	<input class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-input ovCerrada" type="text" data-id="{Id}" data-pedido="{Pedido__c}" data-producto="{Producto__r.Codigo_Id_Externo__c}" data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas_Conf__c}" onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas_Conf__c}" />
+			    	<!-- <input class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-input ovCerrada" type="text" data-id="{Id}" data-pedido="{Pedido__c}" data-producto="{Producto__r.Codigo_Id_Externo__c}" data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas_Conf__c}" onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas_Conf__c}" /> -->
+			    	<input class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-input ovCerrada" type="text" data-id="{Id}" data-pedido="{Pedido__c}" data-producto="{Producto__r.Codigo_Id_Externo__c}" data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas__c}" onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas_Conf__c}" />
 			    </td>
 			    <td title="Canal de Distribución"><span>{Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name}</span></td>
 			    <td title="Estatus"><span>{Pedido__r.EstatusPedido__c}</span></td>
@@ -186,7 +187,9 @@
 			j$(item).val(previo);
 		}
 		if(j$(item).val() > max){
+		console.log("PREVIO=>" + previo);
 			j$(item).val(previo);
+			
 			alert('La cantidad balanceada no puede ser mayor a la confimada');
 		}else if (j$(item).val() < min){
 			j$(item).val(previo);
@@ -213,11 +216,13 @@
 	 		BalanceoController.OperaEnSapOfiCerrada(filtroOV,
 	 			function(result, event){
 	                if (event.status) {	                	
-	                    if(result){
+	                    if(result)
+	                    {
 							alert("El canal seleccionado se encuentra cerrado.");
-	                    }else{
+	                	}
+	                	//else{
 	                    	getPedidos();
-	                    }
+	                 	//   }
 					} 
 	       		},
 	    		{escape: true}
@@ -308,7 +313,7 @@
     	BalanceoController.validaCierrePlaza(canales, canalPadre, 
     		function(result, event){
                 if (event.status) {
-                	console.log(result);
+                	console.log("RESULTADO=> "+result);
                     if(result==null){
                     	alert("Error al consultar el cierre de plazas");
                     	//result = {2:true, 5:false}; // Para pruebas
@@ -328,9 +333,9 @@
                     		}
                     	});
 
-                		if(ovAbierta==false){
-                			alert("Las plazas estan cerradas");
-                		}
+                		//if(ovAbierta==false){
+                		//	alert("Las plazas estan cerradas");
+                		//}
                     	muestraDetalle(item);
                     }
                     muestraDetalle(item);//FIXME

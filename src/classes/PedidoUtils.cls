@@ -255,7 +255,9 @@ public with sharing class PedidoUtils {
         return new Map<Id,Pedido__c>([
             SELECT Id, Canal__c, Costo_de_Flete__c, CreatedDate, Cuenta__c, DepartamentoOrdenCompra__c, EstatusPedido__c, Factura__c, Factura_No_Fiscal__c, Fecha_de_Entrega__c, Fecha_Registro__c, FechaSurtidoProgramada__c, Forma_Pago__c, MotivoAutorizacion__c,
             Muestra__c, Name, Numero_de_Pedido_NSC__c, Observacion__c, Orden_de_Compra__c, Pedido_Cancelado__c, Pedido_Cliente__c, PedidoAceptado__c, PedidoCanceladoPorElSistema__c, PedidoRechazado__c, Prospecto__c, RequiereAutorizacion__c, TipoAutorizacionRemota__c,
-            TipoSurtido__c, CreatedBy.Username, Organizacion_de_Ventas__c, OficinaVentas__r.Codigo__c, OficinaVentas__r.Name,Numero_Pedido_SAP__c,Prospecto__r.Id_prospecto_sap__c,IdExterno__c,OficinaVentas__r.Opera_en_SAP__c,
+            TipoSurtido__c, CreatedBy.Username, Organizacion_de_Ventas__c, OficinaVentas__r.Codigo__c,
+            OficinaVentas__r.Name,Numero_Pedido_SAP__c,Prospecto__r.Id_prospecto_sap__c,IdExterno__c,
+            OficinaVentas__r.Opera_en_SAP__c,Forma_Pago_Original__c,
             (
              SELECT Cajas__c, Cajas_Conf__c,
              CantidadConfirmadaUnidadMovimiento__c, CantidadPedidaUnidadMovimiento__c,
@@ -347,6 +349,7 @@ public with sharing class PedidoUtils {
             pedido.Factura__c = account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || account.Parent.Tipo_de_Credito__c == 'Crédito - 3' || (account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (account.Parent.RFC__c != null || account.Parent.RFC_Generico__c != null));
             pedido.FechaSurtidoProgramada__c = pedido.FechaSurtidoProgramada__c != null?pedido.FechaSurtidoProgramada__c:getNextWorkingDatetime(isClosedPlaza);
             pedido.Forma_Pago__c = account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || account.Parent.Tipo_de_Credito__c == 'Crédito - 3' ? '2 - Crédito' : account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (account.Parent.RFC__c != null || account.RFC_Generico__c != null) ? '1 - Contado' : null;
+            pedido.Forma_Pago_Original__c =pedido.Forma_Pago__c; 
             pedido.Correo_electronico_del_cliente__c = account.Correo_Electronico__c;
         }
 
@@ -907,8 +910,7 @@ public with sharing class PedidoUtils {
         public ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_ReqLista setPedidoSAPWS(PedidoUtils.PedidoWrapper pedidoWrapper, PedidoUtils.AccountWrapper accountWrapper, boolean Balanceo) {
         	ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_ReqLista result = new ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_ReqLista();
 
-        	result.SALES_HEADER_IN = new ABCPedidos_SF_to_ECC.SALES_HEADER_IN_element();
-        	//result.SALES_HEADER_IN.TipoPedido;
+        	result.SALES_HEADER_IN = new ABCPedidos_SF_to_ECC.SALES_HEADER_IN_element();        	
         	if(!String.isBlank(pedidoWrapper.pedido.Numero_Pedido_SAP__c))
         		result.SALES_HEADER_IN.FolioPedidoSAP 		= pedidoWrapper.pedido.Numero_Pedido_SAP__c;
         	result.SALES_HEADER_IN.FolioPedidoSalesForce	= generateIdPedidoSF();
@@ -919,7 +921,18 @@ public with sharing class PedidoUtils {
         	result.SALES_HEADER_IN.FechaSurtido 			= pedidoWrapper.pedido.FechaSurtidoProgramada__c.format('yyyyMMdd');
         	result.SALES_HEADER_IN.OrdenCompraCliente		= pedidoWrapper.pedido.Orden_de_Compra__c;
         	result.SALES_HEADER_IN.NumeroPedidoSalesForce 	= pedidoWrapper.pedido.Name;
-        	result.SALES_HEADER_IN.Estatus = (!String.isBlank(pedidoWrapper.pedido.Numero_Pedido_SAP__c))?'U':'I';
+        	result.SALES_HEADER_IN.Estatus 					= (!String.isBlank(pedidoWrapper.pedido.Numero_Pedido_SAP__c))?'U':'I';
+        	
+        	result.SALES_HEADER_IN.TipoPago = ''; 
+        	if(pedidoWrapper.pedido.Forma_Pago_Original__c == '2 - Crédito')
+        	{
+        		if(pedidoWrapper.pedido.Forma_Pago_Original__c != pedidoWrapper.pedido.Forma_Pago__c)
+        		{
+        			result.SALES_HEADER_IN.TipoPago = 'D000';
+        		}
+        	}
+        	system.debug('FORMA DE PAGO=> '+ result.SALES_HEADER_IN.tipoPedido );
+        	
         	//result.SALES_HEADER_IN.DOC_TYPE = 'ZORC';ubtwf
 
         	result.SALES_ITEMS_IN 		= new ABCPedidos_SF_to_ECC.ArrayOfDT_SE_ABCPedidos_ReqListaITEMS_Linea();
@@ -1030,6 +1043,7 @@ public with sharing class PedidoUtils {
         		elem5.FechaSurtido 			= pedidoWrapper.pedido.FechaSurtidoProgramada__c.format('yyyyMMdd');
         		result.SALES_SCHEDULES_IN.SCHEDULES_Linea.add(elem5);
         	}
+        	system.debug('ELEMENTO5=> ' + result);
         	return result;
         }
         
@@ -1457,6 +1471,7 @@ public with sharing class PedidoUtils {
         
         public WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido syncPedidoSAP(PedidoUtils.PedidoWrapper pedidoWrapper, PedidoUtils.AccountWrapper accountWrapper,Boolean balanceo) {
          
+         	System.debug('***RESPONSE RAMON=> ' +pedidoWrapper);
            if(pedidoWrapper.pedido.Prospecto__c != null && pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c == null)
               { 
                   ApexPages.Message myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,'El prospecto no cuenta con numero de destinatario sap');
@@ -1465,6 +1480,7 @@ public with sharing class PedidoUtils {
               }
             ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_ReqLista pedidoWS = setPedidoSAPWS(pedidoWrapper,accountWrapper,balanceo);
             WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido response = sendPedido(pedidoWS);
+            System.debug('RESPOINSE=>> '+  response);
             if(response != null) {
                 return response;
             }
@@ -1736,7 +1752,8 @@ public with sharing class PedidoUtils {
            	WsABCPeidosSFSAP.ABCPedidosSF_SAPSoap request = new WsABCPeidosSFSAP.ABCPedidosSF_SAPSoap();
            	WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_ReqLista pedidoWSArray = new WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_ReqLista();
            	pedidoWSArray.DT_SE_ABCPedidos_ReqLista = new list<ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_ReqLista>{pedidoWS};
-           	
+           
+           system.debug('WsABCPeidosSFSAP------- > Entro' +  pedidoWSArray);	
             request.timeout_x = 50000;
             for(Integer i=1; i<=PedidoUtils.MAX_CALLOUT_RETRIES; i++) {
                 try {

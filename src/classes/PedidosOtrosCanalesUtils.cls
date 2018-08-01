@@ -1065,17 +1065,13 @@ public class PedidosOtrosCanalesUtils {
         {
             system.debug('MODIFICACION=>');         
             WsActualizaDatosGenerales_NSC_SDL.RespuestaModificacionPedidos ResponseNSC = null;
-            system.debug('ENVIARPEDIDOMODIFICACION ' +  pedido.Id);
              if(string.isNotBlank(pedido.Id))
              {
-             	system.debug('ENVIARPEDIDOMODIFICACION=>' +  pedido.Id);
                      if(productoEliminado != null && productoEliminado.size() > 0)
                      {
-                     	
                          ResponseNSC = EnviarModificacionPedido(pedido,areaResp,productos, productoEliminado);                         
                          
                      }else{
-                     	system.debug('ENVIARPEDIDOMODIFICACION ' +  pedido);
                         ResponseNSC = WsActualizarDatosGenerales(pedido,areaResp, productos,2,'1');
                         
                      }
@@ -1139,10 +1135,10 @@ public class PedidosOtrosCanalesUtils {
             ObtenerActalizaLegados(pedido);
             DatosPedidos.IdTransaccion = pedido.id_externo__c;
              if(pedido.Pedido_SDL__c != 'Reintento' && pedido.Reenviar__c)
-               {
-                  system.debug('pedido.Pedido_SDL__c '+ pedido.Pedido_SDL__c);
-                     DatosPedidos.IdTransaccion = generateIdPedidoSF();
-               }
+		       {
+		       	  system.debug('pedido.Pedido_SDL__c '+ pedido.Pedido_SDL__c);
+		       		 DatosPedidos.IdTransaccion = generateIdPedidoSF();
+		       }
 
            
             if(pedido.Reenviar__c)  
@@ -1262,11 +1258,11 @@ public class PedidosOtrosCanalesUtils {
                 }
                 else
                 {
-                    if(Response.Resultado == 'Reintento')
-                    {
-                        pedido.Pedido_SDL__c = 'Reintento';
-                        pedido.Reenviar__c = true;
-                    }
+                	if(Response.Resultado == 'Reintento')
+                	{
+                		pedido.Pedido_SDL__c = 'Reintento';
+                		pedido.Reenviar__c = true;
+                	}
                     if(Response.SapReturn != null)
                     {
                         for(WsPedidosMayoreoLegados.DT_SDL_ResItem item :Response.SapReturn.DT_SDL_ResItem)
@@ -1294,8 +1290,8 @@ public class PedidosOtrosCanalesUtils {
                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,Response.Mensaje));
                         if(Response.Mensaje.contains('Servidor NSC Ocupado, favor de intentar nuevamente mas tarde.'))
                         {
-                            pedido.Reenviar__c = true;
-                            
+                        	pedido.Reenviar__c = true;
+                        	
                         }else{return null;}
                     }
                     
@@ -1780,26 +1776,26 @@ public class PedidosOtrosCanalesUtils {
         // CODIGO VIZ DEL CANAL DE DISTRIBUCIÓN DE LA SUCURSAL
         Integer codigoVizCDSucursal = null;
         try{
-             if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
-                {
-                    string suc = 'SUC - ';
-                    List<String> ListaSucursalesFrontera = new List<String>();
-                    ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
-                    System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
-                    System.debug('pedido.frontera__c: '+pedido.frontera__c);
-                    String ClienteViz = ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
-                    System.debug('ClienteViz: '+ClienteViz);
-                    if(String.isNotBlank(ClienteViz))
-                    {
-                        string codigo  ='0';
-                        Account sucVizNew = buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
-                        if(sucVizNew != null && sucVizNew.Canal_de_Distribucion_NSC__c != null)
-                        {
-                            codigo = sucViz.Canal_de_Distribucion_NSC__r.Codigo__c;
-                            codigoVizCDSucursal =  Integer.valueOf(codigo);
-                        }
-                    }
-                }     
+        	 if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
+		        {
+		            string suc = 'SUC - ';
+		            List<String> ListaSucursalesFrontera = new List<String>();
+		            ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
+		            System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
+		            System.debug('pedido.frontera__c: '+pedido.frontera__c);
+		            String ClienteViz = ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
+		            System.debug('ClienteViz: '+ClienteViz);
+		            if(String.isNotBlank(ClienteViz))
+		            {
+		                string codigo  ='0';     
+		                Account sucVizNew = buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
+		                if(sucVizNew != null && sucVizNew.Canal_de_Distribucion_NSC__c != null)
+		                {
+		                    codigo = sucVizNew.Canal_de_Distribucion_NSC__r.Codigo__c;
+		                    codigoVizCDSucursal =  Integer.valueOf(codigo);
+		                }
+		            }
+		        }     
            
         }catch(Exception e){
             System.debug('Error en conversión del codigo viz del canal de distribución de la sucursal');
@@ -2148,7 +2144,7 @@ public class PedidosOtrosCanalesUtils {
             
             productosSap.put(string.ValueOf(consecutivo),p);    
             item = new WsPedidosMayoreoLegados.SALES_ITEMS_IN();
-            item.ITM_NUMBER= string.ValueOf(consecutivo * 10);
+            item.ITM_NUMBER= string.ValueOf(consecutivo);
             item.MATERIAL=    p.codigo;
             if(p.item.Unidad__c =='C' || p.item.Unidad__c =='P')
             {
@@ -2246,8 +2242,8 @@ public class PedidosOtrosCanalesUtils {
                 continue;
             schedules.LOAD_DATE =  dateToString(pedido.Fecha_de_Embarque__c,'yyyyMMdd');
             schedules.GI_DATE = dateToString(pedido.Fecha_de_Entrega__c,'yyyyMMdd');
-            schedules.ITM_NUMBER = string.ValueOf(consecutivo*10);
-            ln.POS_NR = string.ValueOf(consecutivo*10);
+            schedules.ITM_NUMBER = string.ValueOf(consecutivo);
+            ln.POS_NR = string.ValueOf(consecutivo);
             ln.TEXT_LINE = p.item.Observaciones__c;
             pedidoSap.Text.SALES_TEXT.add(ln);
             pedidoSap.SchedulesIn.SALES_SCHEDULES_IN.add(schedules);
@@ -3243,12 +3239,12 @@ public class PedidosOtrosCanalesUtils {
         {
             PedidoDatosGenerales.CanalDistribucion = integer.ValueOf(pedido.Canal_Factura__r.Codigo__c);
         }
-        
-        if(string.isNotBlank(pedido.Numero_Pedido_SAP__c) && pedido.Numero_Pedido_SAP__c != ' ')
+        PedidoDatosGenerales.TipoModificacionSAP = '1';
+       /* if(string.isNotBlank(pedido.Numero_Pedido_SAP__c) && pedido.Numero_Pedido_SAP__c != ' ')
         {     
-            PedidoDatosGenerales.TipoModificacionSAP = '1'; //2
+            PedidoDatosGenerales.TipoModificacionSAP = '1'; // 1
         }
-        else{ PedidoDatosGenerales.TipoModificacionSAP = '1';}//1 si es un modificacion parcial = 2
+        else{ PedidoDatosGenerales.TipoModificacionSAP = '1';} // 2*/ 
         
         if(pedido.Fecha_Embarque_Bodega__c != null)
             PedidoDatosGenerales.FechaEntregaBodega  = dateToString(pedido.Fecha_Embarque_Bodega__c,'yyyyMMdd');
@@ -3316,8 +3312,8 @@ public class PedidosOtrosCanalesUtils {
         map<string,Integer> MapaUnidadMedida = crearUnidadMedida();
         detalle.UnidadMedida  = MapaUnidadMedida.get(producto.Tipo_de_Precio__c);
         /* if(producto.Tipo_de_Precio__c =='DL')
-                detalle.KgsPedidos  = producto.Volumen__c /CONVERSION_KILO_POUND;
-        else*/
+				detalle.KgsPedidos  = producto.Volumen__c /CONVERSION_KILO_POUND;
+		else*/
         detalle.KgsPedidos  = producto.kilos__c;
         
         detalle.LibrasPedidas  = producto.Volumen__c == null?0:producto.Volumen__c;
@@ -4313,26 +4309,26 @@ public class PedidosOtrosCanalesUtils {
         // CODIGO VIZ DEL CANAL DE DISTRIBUCIÓN DE LA SUCURSAL
         Integer codigoVizCDSucursal = null;
         try{
-            if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
-                {
-                    string suc = 'SUC - ';
-                    List<String> ListaSucursalesFrontera = new List<String>();
-                    ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
-                    System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
-                    System.debug('pedido.frontera__c: '+pedido.frontera__c);
-                    String ClienteViz = ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
-                    System.debug('ClienteViz: '+ClienteViz);
-                    if(String.isNotBlank(ClienteViz))
-                    {
-                        string codigo  ='0';
-                        Account sucVizNew = buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
-                        if(sucVizNew != null && sucVizNew.Canal_de_Distribucion_NSC__c != null)
-                        {
-                            codigo = sucViz.Canal_de_Distribucion_NSC__r.Codigo__c;
-                            codigoVizCDSucursal =  Integer.valueOf(codigo);
-                        }  
-                    }
-                }
+        	if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
+		        {
+		            string suc = 'SUC - ';
+		            List<String> ListaSucursalesFrontera = new List<String>();
+		            ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
+		            System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
+		            System.debug('pedido.frontera__c: '+pedido.frontera__c);
+		            String ClienteViz = ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
+		            System.debug('ClienteViz: '+ClienteViz);
+		            if(String.isNotBlank(ClienteViz))
+		            {
+		                string codigo  ='0';
+		                Account sucVizNew = buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
+		                if(sucVizNew != null && sucVizNew.Canal_de_Distribucion_NSC__c != null)
+		                {
+		                    codigo = sucVizNew.Canal_de_Distribucion_NSC__r.Codigo__c;
+		                    codigoVizCDSucursal =  Integer.valueOf(codigo);
+		                }  
+		            }
+		        }
             //codigoVizCDSucursal = Integer.valueOf( sucViz.Canal_de_Distribucion_NSC__r.Codigo__c );
         }catch(Exception e){
             System.debug('Error en conversión del codigo viz del canal de distribución de la sucursal');

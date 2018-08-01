@@ -73,6 +73,7 @@ public with sharing class PedidoWizardController {
     public void stepForth() {
         String tipoSurtido = pedidoWrapper.pedido.TipoSurtido__c;
         System.debug('Tipo Surtido'+ tipoSurtido);
+        System.debug('stepForthPEDIDO '+ pedidoWrapper.pedido);
         String oficinaVentasName = accountWrapper.oficinaVentasName;
         System.debug('OficinaVentasName'+ oficinaVentasName);
         Date fechaSurtido = null;
@@ -147,12 +148,15 @@ public with sharing class PedidoWizardController {
     public void submit() {
     	system.debug('SUBMIT():'); 
         pedidoWrapper.setPedidoData();
-        system.debug('PEDIDO=> ' +pedidoWrapper);
+        
         PedidoInsertNSCWS.PedidoRespuesta response = null;
         ApexPages.Message myMsg =  null;   
         WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido responseSAP = null; 
         if(externalSources.OperaEnSap(Integer.valueOf(accountWrapper.ofiventas)))
+        {
+        	system.debug('PEDIDO=> ' +pedidoWrapper);        
         	responseSAP = externalSources.syncPedidoSAP(pedidoWrapper, accountWrapper,false);
+        }
         else
         	response = externalSources.syncPedido(pedidoWrapper, accountWrapper);                
 
@@ -185,13 +189,20 @@ public with sharing class PedidoWizardController {
 		        	}
 		        	else if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'W' )
 		        	{
+		        		if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null 
+							&& responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus == 'B'))      			 
+							{
+		        				pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[i]);
+		        				pedidoWrapper.save();
+							}
+		        		
 		        		 myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[i].Mensaje);
 		        		 ApexPages.addMessage(myMsg);
+		        		 
 		        	}		            
 	            }   
         	}
-        }
-        	
+        }        	
     }
 
     public Map<String, Product2> product2XproductCodeMap {
