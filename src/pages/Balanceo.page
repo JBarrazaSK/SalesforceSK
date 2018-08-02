@@ -162,7 +162,7 @@
 			    <td title="Balanceado">
 			    	<span class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-text">{Cajas_Conf__c}</span>
 			    	<!-- <input class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-input ovCerrada" type="text" data-id="{Id}" data-pedido="{Pedido__c}" data-producto="{Producto__r.Codigo_Id_Externo__c}" data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas_Conf__c}" onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas_Conf__c}" /> -->
-			    	<input class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-input ovCerrada" type="text" data-id="{Id}" data-pedido="{Pedido__c}" data-producto="{Producto__r.Codigo_Id_Externo__c}" data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas__c}" onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas_Conf__c}" />
+			    	<input class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-input ovCerrada" type="text" data-id="{Id}" data-pedido="{Pedido__c}" data-producto="{Producto__r.Codigo_Id_Externo__c}" data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas__c}" onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas__c}" />
 			    </td>
 			    <td title="Canal de Distribución"><span>{Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name}</span></td>
 			    <td title="Estatus"><span>{Pedido__r.EstatusPedido__c}</span></td>
@@ -258,7 +258,6 @@
         BalanceoController.buscarRemoto(fechaSurtidoProgramadaVal,filtroOV,
             function(result, event){
                 if (event.status) {
-                    console.log(result);
                     j$("#productosBusqueda").html("");
                     j$("[id$='selectProducto']").html('<option value="Todos">Todos</option>');
                     if(result.length>0){
@@ -273,11 +272,9 @@
 	                	j$("#productosBusqueda").append(sinDatos());
 	                }
                 } else if (event.type === 'exception') {
-                	console.log(event);
                 	j$("#productosBusqueda").append(sinDatos());
                 	alert(event.message);
                 } else {
-                    console.log(event.message);
                     j$("#productosBusqueda").append(sinDatos());
                     alert(event.message);
                 }
@@ -294,7 +291,6 @@
     	var canalPadre = j$('#p-'+item).data('canal-padre');
     	var canales = [];
     	var canalesText = ''+j$('#p-'+item).data('canales')+'';
-    	console.log(canalesText);
         if(canalPadre===undefined || canalesText===undefined){
             console.log('Sin parametros');
             hideLoadingDiv();
@@ -313,7 +309,6 @@
     	BalanceoController.validaCierrePlaza(canales, canalPadre, 
     		function(result, event){
                 if (event.status) {
-                	console.log("RESULTADO=> "+result);
                     if(result==null){
                     	alert("Error al consultar el cierre de plazas");
                     	//result = {2:true, 5:false}; // Para pruebas
@@ -526,7 +521,8 @@
 
 	    	itemTR = itemTR.replace('{Cajas_Conf_Balanceadas}',rmUndefinen(item.Cajas_Balanceadas__c==0?item.Cajas_Conf__c:item.Cajas_Balanceadas__c));
 
-	    	itemTR = itemTR.replace(/{Cajas_Conf__c}/g,rmUndefinen(item.Cajas_Conf__c));
+	    	//itemTR = itemTR.replace(/{Cajas_Conf__c}/g,rmUndefinen(item.Cajas_Conf__c));
+	    	itemTR = itemTR.replace(/{Cajas__c}/g,rmUndefinen(item.Cajas__c));
 	    	itemTR = itemTR.replace('{Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name}',rmUndefinen(item.Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name));
 	    	itemTR = itemTR.replace('{Pedido__r.EstatusPedido__c}',rmUndefinen(item.Pedido__r.EstatusPedido__c));
 	    	itemTR = itemTR.replace('{CreatedBy.Name}',rmUndefinen(item.CreatedBy.Name));

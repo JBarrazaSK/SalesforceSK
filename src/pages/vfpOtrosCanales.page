@@ -220,10 +220,10 @@ textarea {
                 <apex:actionStatus id="actionStatusSubmit" onstart="hideActionButtons()" onstop="showActionButtons()">
                     <apex:facet name="stop">
                         <apex:outputPanel styleClass="outputPanelActionButtons">
-                         <apex:outputPanel rendered="{!pedido.Reenviar__c}" >
+                         <apex:outputPanel rendered="{!pedido.Reenviar__c &&  !TieneEntregaSAP}" >
                         	 <input type="button" class="btn" onclick="ConsultarPedidosOC(2)" value= "Reenviar Pedido" name="btnModificado23" style="color: #fff;background-color: GREEN;border-color: #5cb85c;background-image:none;font-weight=bold;" ></input>
                            </apex:outputPanel>
-                            <apex:outputPanel rendered="{!!pedido.Reenviar__c}">
+                            <apex:outputPanel rendered="{!!pedido.Reenviar__c || TieneEntregaSAP}">
                             
                             <apex:outputPanel rendered="{!pedido.Id != null}" >
                                 <input type="button" class="btn" onclick="ConsultarPedidosOC(1)" value= "Guardar" name="btnModificado" style="color: #fff;background-color: GREEN;border-color: #5cb85c;background-image:none;font-weight=bold;" ></input>
@@ -358,7 +358,7 @@ textarea {
                         <div class="requiredInput"><div class="requiredBlock"></div>
                         <apex:outputText value="{0,date,dd/MM/yyyy}" style="width:80px" rendered="{!pedido.Reenviar__c}"> <apex:param value="{!pedido.Fecha_de_Embarque__c}" /> </apex:outputText>
          
-                        <apex:inputField value="{!pedido.Fecha_de_Embarque__c}" rendered="{!!pedido.Reenviar__c}">
+                        <apex:inputField value="{!pedido.Fecha_de_Embarque__c}" rendered="{!!pedido.Reenviar__c}">  
                         <apex:actionSupport event="onchange" action="{!validateFecha}" rerender="outputPanelProductos" status="actionStatusDispo" >
 								<apex:param name="fecha" value="{!pedido.Fecha_de_Embarque__c}" assignTo="{!fecha}" /> 
                             </apex:actionSupport>
@@ -391,9 +391,8 @@ textarea {
                     <td class="labelCol">Fecha de Inspección:</td>
                     <td colspan="2">
                         <div class="requiredInput"><div class="requiredBlock"></div>
-                        <apex:outputText value="{0,date,dd/MM/yyyy}" style="width:80px" rendered="{!pedido.Reenviar__c}"> 
-                        	<apex:param value="{!pedido.Fecha_de_Embarque__c}" /> </apex:outputText>
-	                    	<apex:inputField value="{!pedido.Fecha_de_Inspeccion__c}" rendered="{!cruce && !pedido.Reenviar__c}"/>
+                        <apex:outputText value="{0,date,dd/MM/yyyy}" style="width:80px" rendered="{!pedido.Reenviar__c}"> <apex:param value="{!pedido.Fecha_de_Embarque__c}" /> </apex:outputText>
+	                    	<apex:inputField value="{!pedido.Fecha_de_Inspeccion__c}" rendered="{!!pedido.Reenviar__c}"/>
                         </div>
                     </td>
                 </tr>
@@ -406,15 +405,14 @@ textarea {
 
                     <td class="labelCol">PO Proveedor:</td>
                     <td colspan="2">
-                    	<apex:outputtext value="{!pedido.PO_Proveedor__c}" rendered="{!pedido.Reenviar__c}" />
-                    	<apex:inputField value="{!pedido.PO_Proveedor__c}" rendered="{!!pedido.Reenviar__c}"/>
+                    	<!-- <apex:outputtext value="{!pedido.PO_Proveedor__c}" rendered ="{!pedido.Reenviar__c}" /> --> 
+                    	<apex:inputField value="{!pedido.PO_Proveedor__c}" />
                     </td>
                     <td class="labelCol">Fecha de Embarque Bodega:</td>
                     <td colspan="2">
                         <div class="requiredInput"><div class="requiredBlock"></div>
-                        	<apex:outputText value="{0,date,dd/MM/yyyy}" style="width:80px" rendered="{!pedido.Reenviar__c}"> 
-                        	<apex:param value="{!pedido.Fecha_de_Embarque__c}" /> </apex:outputText>                        	
-                    		<apex:inputField value="{!pedido.Fecha_Embarque_Bodega__c}" rendered="{!cruce && !pedido.Reenviar__c}" />
+                        	<apex:outputText value="{0,date,dd/MM/yyyy}" style="width:80px" rendered="{!pedido.Reenviar__c}"> <apex:param value="{!pedido.Fecha_de_Embarque__c}" /> </apex:outputText>
+                    		<apex:inputField value="{!pedido.Fecha_Embarque_Bodega__c}" rendered="{!!pedido.Reenviar__c || !esPlanta  }" />
                         </div>
                     </td>
                 </tr>
@@ -432,22 +430,22 @@ textarea {
                     <td class="labelCol">Observaciones</td>
                     <td colspan="4">
                         <div id="divObservacion">
-                        	<apex:inputTextarea value="{!pedido.Description}" rows="3" cols="150" rendered="{!!pedido.Reenviar__c}"/>
-                        	<apex:outputText value="{!pedido.Description}" rendered="{!pedido.Reenviar__c}" />
+                        	<apex:inputTextarea value="{!pedido.Description}" rows="3" cols="150" />
+                        	 
                         </div>
                     </td>
                     <td colspan="2">&nbsp;</td>
                 </tr>
 
             </table>
-		</apex:pageBlock>
+		</apex:pageBlock>     
 
         <apex:pageBlock >
             <apex:pageBlockButtons location="top">
                 <apex:commandButton action="{!addRow}" value="Agregar Producto" rerender="outputPanelProductos" rendered="{!!pedido.Reenviar__c}" /> 
 <!--                 <apex:commandButton action="{!consultarDisponibilidad}" value="Precios&Disponibilidad" status="actionStatusDispo" rerender="outputPanelProductos, inventario" /> -->
-                <apex:commandButton action="{!consultarPrecio}" value="Precios" status="actionStatusDispo" rerender="outputPanelProductos, inventario" />
-                <apex:commandButton action="{!consultarDisponibilidad}" value="Disponibilidad" status="actionStatusDispo" rerender="outputPanelProductos, inventario" />
+                <apex:commandButton action="{!consultarPrecio}" value="Precios" status="actionStatusDispo"  rerender="outputPanelProductos, inventario" />
+                <apex:commandButton action="{!consultarDisponibilidad}" value="Disponibilidad" status="actionStatusDispo" rendered="{!!pedido.Reenviar__c}" rerender="outputPanelProductos, inventario" />
                 <apex:actionStatus id="actionStatusDispo" >
                     <apex:facet name="start">
                         <img src="/img/loading.gif" class="imgLoading"/> 

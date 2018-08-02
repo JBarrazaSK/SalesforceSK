@@ -196,9 +196,9 @@ public with sharing class PedidoWizardController {
 		        		 myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[i].Mensaje);
 		        		 ApexPages.addMessage(myMsg);
 		        		 
-		        	}
-		        	pedidoWrapper.save();		            
-	            }   
+		        	}		        	     
+	            } 
+	            pedidoWrapper.save();		         
         	}
         }        	
     }
