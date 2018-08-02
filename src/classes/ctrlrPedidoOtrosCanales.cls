@@ -668,7 +668,7 @@ public class ctrlrPedidoOtrosCanales {
                  if(prod.item.Unidad__c == 'P')
                     prod.item.Cantidad__c = piezas;
                   else
-                        prod.item.Cantidad__c = cajas;
+                    prod.item.Cantidad__c = cajas;
 
               }
               else if(prod.item.Tipo_de_Precio__c == 'DL' && sfdcProd.Unidad_de_medida_base__c == 'PI' )
