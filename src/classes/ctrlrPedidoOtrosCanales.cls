@@ -883,10 +883,10 @@ public class ctrlrPedidoOtrosCanales {
         
         if( temp == null ) { return temp; }
         if( temp.item == null ) { return temp; }
-        if( temp.item.Importe__c == null ) { temp.item.Importe__c = 0; }
+        if( temp.item.Importe__c == null ) { temp.item.Importe__c = 0; } 
         
         // Ramon Atondo
-        if( temp.isPrecio == false && !temp.showDelete ) { return temp; }
+        if( temp.isPrecio == false && pedido.id != null && temp.item.id !=  null) { return temp; }
 
         System.debug('MapPrecios validatePrecios: '+ mapPrecios);
         if( mapPrecios == null || mapPrecios.size() == 0 ) {
@@ -1160,8 +1160,10 @@ public class ctrlrPedidoOtrosCanales {
             if( p.item.Cantidad__c == 0 && p.item.Volumen__c == 0 ) { continue; }
             
             // Ramon Atondo
-            if( p.isPrecio == false && !p.showDelete ) { continue; }
+            system.debug('PRoducto=>> ' +p.isPrecio + ' peiddo=>> '+ pedido.id);
+           if( p.isPrecio == false && pedido.id != null && p.item.id != null ) { continue; }
                         
+            System.debug('ENTROAPRECIOS=>');
             List<ListaPreciosWS.Precios> listaPrecios = mapPrecios.get( p.codigo );
             if( listaPrecios == null || listaPrecios.size() == 0 ){
                 System.debug( 'No hay precios disponibles, imposible continuar...' ); noPrices = true;
@@ -1222,10 +1224,11 @@ public class ctrlrPedidoOtrosCanales {
               if( String.isBlank( p.codigo ) ) { continue; }
               if( p.item == null ) { continue; }              
                // Ramon Atondo
-              if( p.isPrecio == false && !p.showDelete ) { continue; }
-            
+               
+              if( p.isPrecio == false && pedido.id != null && p.item.id != null ) { continue; }
+           	
             List<ListaPreciosWS.Precios> listaPrecios = mapPrecios.get( p.codigo );
-            System.debug('listaPrecios: '+listaPrecios);
+           
               System.debug('GetKey: '+p.codigo+'-'+p.item.Origen_Surtido__c);
               Double csTemp = mapCO.get( p.codigo+'-'+p.item.Origen_Surtido__c );
               System.debug('Cantidad:--> '+csTemp);
@@ -1270,7 +1273,7 @@ public class ctrlrPedidoOtrosCanales {
                 if( p.item.Cantidad__c == null && p.item.Volumen__c == null ) { continue; }
                 if( p.item.Cantidad__c == 0 && p.item.Volumen__c == 0 ) { continue; }
                // Ramon Atondo
-               if( p.isPrecio == false && !p.showDelete ) { continue; }
+                if( p.isPrecio == false && pedido.id != null && p.item.id != null ) { continue; }
                                    
                 List<ListaPreciosWS.Precios> listaPreciosViz = mapPreciosViz.get( p.codigo );
                 if( listaPreciosViz == null || listaPreciosViz.size() == 0 ){
@@ -2055,15 +2058,15 @@ public class ctrlrPedidoOtrosCanales {
               }
               System.debug('totPedidoSF :: '+ totPedidoSF);
               System.debug('pedido.Canal__c :: '+ pedido.Canal__c);
-              if(pedido.id == null)
-              {
+              if(pedido.Id == null)
+             {
                 esvalido = PedidosOtrosCanalesUtils.validarCredito( String.valueOf(Integer.valueOf( pedido.Cliente__r.Numero_Cliente_SAP__c )),
                                                               '',
                                                                 totPedidoSF,
                                                             moneda,
                                                               pedido.Cliente__r.Sociedad__c.right(3),
                                                                 idExterno,
-                                                                  ''); 
+                                                                  '');
               }
             /*else
               {
