@@ -28,28 +28,29 @@
                 if( createdDate ) {
                    // defaultDate = new Date(createdDate);
                    defaultDate = new Date(fechaDefault);
-                    //defaultDate.setDate( defaultDate.getDate() - 1 );
                     today = new Date(createdDate);
                         today.setDate( today.getDate() + 1 );
                 }
                 else {
                     var nowD = "{!NOW()}";
-                    //alert("{!NOW()}");
                     defaultDate = new Date(fechaDefault);
                     today = new Date(nowD);
                 }
-                var fechaSurt =  new Date(fechaDefault);
-                var fechacalculado = new Date(defaultDate.setDate(defaultDate.getDate()+ maxPresaleDays));
+                var fechaPedidoSurtido =  new Date(createdDate);
+                var fechaCalculado = new Date(fechaPedidoSurtido.setDate(fechaPedidoSurtido.getDate()+ maxPresaleDays));
                 today.setDate(today.getDate()-(today.getDay() == 1 ? 2 : 1));
-               	var dias =  cuentaDomingo(date,fechacalculado) == 0 ? maxPresaleDays+2: maxPresaleDays;
-                var fechaDef = new Date(defaultDate.setDate((defaultDate.getDate() - maxPresaleDays) + dias));
-              
+               	var dias = cuentaDomingo(date,fechaCalculado) == 0 ? maxPresaleDays + 1: maxPresaleDays;
+               	
+               	fechaCalculado = new Date(fechaPedidoSurtido.setDate((fechaPedidoSurtido.getDate() - maxPresaleDays) + dias));
+                var fechaPedido =  new Date(createdDate);
+              	
+                console.log('FECHA PEDIDO=> '+ fechaPedido +" \nFECHA SELECCIONADA "+ date +" \nFECHACALCULADA "+ fechaCalculado);
                 
                 if(!(Object.prototype.toString.call(date) === "[object Date]") || isNaN(date.getTime())) {
                     hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
-                } else if(date < fechaSurt) {
+                } else if(date < fechaPedido) {
                     hasError = !alert("La fecha de surtido seleccionada no puede ser menor a la fecha de surtido programada.\nSe reasigna el valor por defecto.");
-                }else if(date > fechaDef) {
+                }else if(date > fechaCalculado) {
                     hasError = !alert("El máximo de días de preventa permitidos es de "+maxPresaleDays+".\nSe reasigna el valor por defecto.");
                 } else if(date.getDay() == 0) {
                     hasError = !alert("Los domingos no se surten pedidos.\nSe reasigna el valor por defecto.");

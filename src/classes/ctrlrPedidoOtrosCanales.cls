@@ -1894,6 +1894,10 @@ public class ctrlrPedidoOtrosCanales {
             System.debug('Pedido: '+pedido);
             System.debug('Productos: '+productos);
          // pedido = PedidosOtrosCanalesUtils.guardarPedidoSDL( pedido, productos, true );
+	        if(TieneEntregaSAP)
+	        {
+	        	pedido.reenviar__c = false;
+	        }
          pedido = PedidosOtrosCanalesUtils.guardarPedidoLegados( pedido, productos, true , new list<ProductosEliminado__c>());
          
           if(pedido == null)
@@ -1940,7 +1944,7 @@ public class ctrlrPedidoOtrosCanales {
                 }
             }
         } 
-      
+      System.debug('GUARDARPRODUCOTS=> '+ productos);
             if(pedido.Id != null)
             {
                 changeProds= false;
@@ -1957,6 +1961,7 @@ public class ctrlrPedidoOtrosCanales {
                         { 
                             changeProds= true;
                         }
+                     calculaFlete(p);
                 }
             /*    if(pedidoOld != null && pedidoOld.Fecha_de_Embarque__c != null)
                 {
@@ -1982,6 +1987,7 @@ public class ctrlrPedidoOtrosCanales {
                  }
                 
             }
+           System.debug('GUARDARPRODUCOTS2==> '+ productos);
             
         if( !validatePedido() ) { return; }
         if( !validateProducts2Save() ) { return; }
@@ -2100,6 +2106,10 @@ public class ctrlrPedidoOtrosCanales {
           {
               ContainsDelete = true;
           }
+          if(TieneEntregaSAP)
+        {
+        pedido.reenviar__c = false;
+        }
           pedido = PedidosOtrosCanalesUtils.ValidarPedidoModificado( pedido, productos, false,pedidoOld,ProductosOld,ContainsDelete, ProductosEliminado);  
 			
 			 if(pedido == null)
@@ -2973,14 +2983,20 @@ public class ctrlrPedidoOtrosCanales {
     
     public void calculaFlete(PedidosOtrosCanalesUtils.Producto prod)
     {
-    
-        /// Ramon Atondo 01/06/2018
-          if( pedido.Flete__c != null && prod.item.UnitPrice != null )
-           { 
-             prod.item.UnitPrice = prod.item.Precio_Unitario_Original__c +pedido.Flete__c;
-    
-        }
-      prod.precioConFlete =  prod.item.UnitPrice;
+    	try
+    	{
+		    if(pedido.Flete__c ==  null)
+		    	pedido.Flete__c = 0;
+		    	
+		    	system.debug('PRODCTO CALC=> '+prod.codigo +' PRECIO ORIGINAL=> '+ prod.item.Precio_Unitario_Original__c);
+	        	// Ramon Atondo 01/06/2018
+	          if( pedido.Flete__c != null && prod.item.UnitPrice != null )
+	           { 
+	             prod.item.UnitPrice = prod.item.Precio_Unitario_Original__c + pedido.Flete__c;	    
+	        	}
+	      prod.precioConFlete =  prod.item.UnitPrice;
+    	}
+    	catch(Exception e){}
     }
     public Boolean ValidarDisponibilidad( PedidosOtrosCanalesUtils.Producto temp)
     {

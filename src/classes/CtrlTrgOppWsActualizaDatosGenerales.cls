@@ -1276,8 +1276,9 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 	            }
 	            if(DatosPedidos.ActualizaSAP)
 	            {
-	            	pedido.Numero_Pedido_SAP__c = Response.SapShip_To;
-	            }
+	            	pedido.Numero_Pedido_SAP__c = string.ValueOf(integer.ValueOf(Response.SapShip_To));
+         	     }
+	            	
 	            pedido.Observacion__c = Response.Mensaje;
 	            pedido.StageName = '1 - Pedido Colocado';
 			    pedido.Estatus_Cierre_Pedido__c = null;

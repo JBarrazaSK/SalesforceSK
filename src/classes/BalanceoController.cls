@@ -44,7 +44,10 @@ public with sharing class BalanceoController {
             oficinasIds.add(ov.Id);
         }
 
-		pedidosList = [SELECT Id, Name, Canal__c, OficinaVentas__c, OficinaVentas__r.Id, OficinaVentas__r.Codigo__c, Cuenta__c, ClienteSap__c  
+		pedidosList = [SELECT Id, Name, Canal__c, OficinaVentas__c,
+					 OficinaVentas__r.Id, 
+					 OficinaVentas__r.Codigo__c, 
+					 Cuenta__c, ClienteSap__c  
                         FROM Pedido__c 
                         WHERE DAY_IN_YEAR(convertTimezone(FechaSurtidoProgramada__c)) =: fechaSurtido.dayOfYear() and
                                   OficinaVentas__c IN: oficinasIds and 
@@ -246,7 +249,8 @@ public with sharing class BalanceoController {
             BalanceoNSCWS.BalanceoProductos invItem = inventario.get(Integer.valueOf(pw.producto.Codigo_Id_Externo__c));
             InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element invItemSAP = inventarioSAP.get(Integer.valueOf(pw.producto.Codigo_Id_Externo__c));
             if(invItem!=null || invItemSAP != null){
-                pw.disponible = ((invItem != null)? invItem.Disponible:invItemSAP.Disponible.intValue()) + pw.confirmado.intValue();
+                pw.disponible = ((invItem != null) ? invItem.Disponible : invItemSAP.Disponible.intValue());
+                pw.disponible += pw.confirmado.intValue();
                 pw.tipoManejoInventario = (invItem != null)?invItem.TipoManejoInventario:invItemSAP.TipoManejoInventario;
             }else{
                 System.debug('No se encontro el producto '+Integer.valueOf(pw.producto.Codigo_Id_Externo__c));
@@ -346,7 +350,8 @@ public with sharing class BalanceoController {
         String estatuspedido='';
         String pedidoExternoExecutado = '';
         Map<Id,Decimal> mapPedidoItems = new Map<Id,Decimal>();
-        //Savepoint savepoint = Database.setSavepoint();
+
+       //Savepoint savepoint = Database.setSavepoint();
         try{
         	Integer codigoOficinaVenta = 0;
         	boolean operaEnSap  = false;
@@ -473,6 +478,7 @@ public with sharing class BalanceoController {
                     for(Integer i=0; i < pu.pedidoWrapper.pedidoItemList.size(); i++) {
                         pedidoExternoExecutado = pu.pedidoWrapper.pedido.Numero_de_Pedido_NSC__c;
                         PedidoItem__c valItem = pu.pedidoWrapper.pedidoItemList[i];
+                        system.debug('PEDIDOITEM=> '+  valItem);
                         if(mapItemBalanceo.containsKey(valItem.Id)){
                         	if(valItem.Cajas_Balanceadas__c==null){
 	                            valItem.Cantidad_Balanceada_Unidad_de_Movimiento__c = valItem.CantidadConfirmadaUnidadMovimiento__c;
@@ -601,7 +607,7 @@ public with sharing class BalanceoController {
             respuesta = PedidoUtils.PEDIDO_WEB_SERVICE_ERROR+e.getMessage()+ ' Pedido ' + pedidoExternoExecutado;
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR,respuesta));
         }
-          system.debug('tizoc --------------------> '+ respuesta);
+        system.debug('tizoc --------------------> '+ respuesta);
         return respuesta;
     }
 

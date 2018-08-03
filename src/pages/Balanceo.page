@@ -164,8 +164,8 @@
 			    	<!-- <input class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-input ovCerrada" type="text" data-id="{Id}" data-pedido="{Pedido__c}" data-producto="{Producto__r.Codigo_Id_Externo__c}" data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas_Conf__c}" onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas_Conf__c}" /> -->
 			    	<input class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-input ovCerrada" 
 			    		type="text" data-id="{Id}" data-pedido="{Pedido__c}" data-producto="{Producto__r.Codigo_Id_Externo__c}" 
-			    		data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas__c}" 
-			    		onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas__c}" />
+			    		data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas_Conf__c}" 
+			    		onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas_Conf__c}" />
 			    </td>
 			    <td title="Canal de Distribución"><span>{Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name}</span></td>
 			    <td title="Estatus"><span>{Pedido__r.EstatusPedido__c}</span></td>
@@ -524,8 +524,8 @@
 
 	    	itemTR = itemTR.replace('{Cajas_Conf_Balanceadas}',rmUndefinen(item.Cajas_Balanceadas__c==0?item.Cajas_Conf__c:item.Cajas_Balanceadas__c));
 
-	    	//itemTR = itemTR.replace(/{Cajas_Conf__c}/g,rmUndefinen(item.Cajas_Conf__c));
-	    	itemTR = itemTR.replace(/{Cajas__c}/g,rmUndefinen(item.Cajas__c));
+	    	itemTR = itemTR.replace(/{Cajas_Conf__c}/g,rmUndefinen(item.Cajas_Conf__c));
+	    	//itemTR = itemTR.replace(/{Cajas__c}/g,rmUndefinen(item.Cajas__c));
 	    	itemTR = itemTR.replace('{Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name}',rmUndefinen(item.Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name));
 	    	itemTR = itemTR.replace('{Pedido__r.EstatusPedido__c}',rmUndefinen(item.Pedido__r.EstatusPedido__c));
 	    	itemTR = itemTR.replace('{CreatedBy.Name}',rmUndefinen(item.CreatedBy.Name));

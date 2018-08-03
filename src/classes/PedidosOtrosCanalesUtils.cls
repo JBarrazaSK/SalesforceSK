@@ -2216,7 +2216,8 @@ public class PedidosOtrosCanalesUtils {
             {
                 condition.COND_VALUE = string.valueOf(mapProductosConConsecutivo.get(i).item.UnitPrice);
             }               
-            condition.CURRENCY_x =  pedido.Cliente__r.Moneda_Cliente__c.right(3);
+            //condition.CURRENCY_x =  pedido.Cliente__r.Moneda_Cliente__c.right(3);
+            condition.CURRENCY_x =   mapTipoPrecio.get(llave).Moneda__c;
             condition.COND_UNIT = mapTipoPrecio.get(llave).Tipo_Precio_Sap__c;
             pedidoSap.ConditionsIn.SALES_CONDITIONS_IN.add(condition);
         }
@@ -3079,12 +3080,13 @@ public class PedidosOtrosCanalesUtils {
                     oppl.Cajas__c =  integer.ValueOf(p.item.Cantidad__c);
                 
                 MapaCantidadProductos.put(p.codigo,oppl);
-            }    
-            system.debug(' CODIGO=> '+p.codigo);
+            }  
+              
             d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();           
             d = CrearDetalleNSCSDL(p.item,contador++, request.pedidoDatosGenerales.TipoMoneda,p.codigo,pedido);
             if(d != null)
-                detalleWs.add(d);           
+                detalleWs.add(d);  
+        
         }             
        /* for(opportunityLineItem p : MapaCantidadProductos.values())
         {           
@@ -3304,7 +3306,7 @@ public class PedidosOtrosCanalesUtils {
         
         detalle.TipoPrecio  = producto.Tipo_de_Precio__c;
         detalle.PrecioUnitCte  = producto.UnitPrice;
-        detalle.PrecioConFleteCte  = producto.UnitPrice;//producto.Precio_Flete__c == null?0:producto.Precio_Flete__c;
+        detalle.PrecioConFleteCte  = producto.UnitPrice; //producto.Precio_Flete__c == null?0:producto.Precio_Flete__c;
         detalle.ImporteTotalProducto  = producto.Importe__c;
         map<string,Integer> MapaUnidadMedida = crearUnidadMedida();
         detalle.UnidadMedida  = MapaUnidadMedida.get(producto.Tipo_de_Precio__c);
@@ -3346,7 +3348,7 @@ public class PedidosOtrosCanalesUtils {
             detalle.DiasConsolidacion  =  Integer.ValueOf(ep.Dias_Embarque__c);
             
         }
-      
+      	System.debug('DETALLEPRODUCTO=> ' +  detalle);
         return detalle;
     }
     private static AggregateResult[] CalcularImportes(Opportunity Opp )
