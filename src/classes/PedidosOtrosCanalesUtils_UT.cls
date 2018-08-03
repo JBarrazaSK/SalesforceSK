@@ -32,11 +32,14 @@ public class PedidosOtrosCanalesUtils_UT {
         fronteras.Id = 'a0h2C000000I4emQAC';
         fronteras.Id_Frontera__c = '7';
         fronteras.Name = 'ENSENADA';
-        upsert fronteras;
+        upsert fronteras; 
         
         
         
         List<PedidosOtrosCanalesUtils.Producto> productos = new List<PedidosOtrosCanalesUtils.Producto>();
+        
+        productos.add(retrieveProducto());
+        
         Test.startTest();        
         PedidosOtrosCanalesUtils.DispoMayoristas dispo = new PedidosOtrosCanalesUtils.DispoMayoristas();
         dispo.producto = '';
@@ -65,7 +68,6 @@ public class PedidosOtrosCanalesUtils_UT {
         
         
         crearDispo(pedido,productos);        
-        retrieveProducto(); 
        	PedidosOtrosCanalesUtils.IsVizcatle(pedido);
         PedidosOtrosCanalesUtils.ReenviarPedido(pedido);
         PedidosOtrosCanalesUtils.fillFronteras(); 
@@ -82,7 +84,8 @@ public class PedidosOtrosCanalesUtils_UT {
         PedidosOtrosCanalesUtils.retrieveCanalFacturaInfo(pedido.Canal_Factura__c);
         ConsultaDisponibilidadMayoristasWS.RespuestaOfListOfDisponibilidadMayoristas response = new ConsultaDisponibilidadMayoristasWS.RespuestaOfListOfDisponibilidadMayoristas();
         response.Datos = new ConsultaDisponibilidadMayoristasWS.ArrayOfDisponibilidadMayoristas();
-		ConsultaDisponibilidadMayoristasWS.DisponibilidadMayoristas dp = new ConsultaDisponibilidadMayoristasWS.DisponibilidadMayoristas();
+		
+        ConsultaDisponibilidadMayoristasWS.DisponibilidadMayoristas dp = new ConsultaDisponibilidadMayoristasWS.DisponibilidadMayoristas();
 		dp.producto= 'PULPA-NEGRA';
 		dp.tipoInventario='';
 		dp.contenido=0;
@@ -105,11 +108,20 @@ public class PedidosOtrosCanalesUtils_UT {
         PedidosOtrosCanalesUtils.buscarSucursal('0012C000002XoGQQA0', pedido.Numero_Pedido_SAP__c);
         buscarPorId('0012C000002XoGQQA0');
         PedidosOtrosCanalesUtils.ObtenerProductosPorPedido(pedido);
-        //PedidosOtrosCanalesUtils.validarCredito(cliente.Id, '0012C000002XoGQQA0',100,'US',cliente.Sociedad__c,1,cliente.Canal_Distribucion__c);
+        validaCreditoCliente(cliente);
+        PedidosOtrosCanalesUtils.ObtenerDiasConsolidacion(pedido, 12);
+        PedidosOtrosCanalesUtils.ObtenerActalizaLegados(pedido);
+        PedidosOtrosCanalesUtils.CrearDetallePedido(pedido,productos,false);
+       
+        
        
         retrieveCteInfo('0012C000002XoGQQA0');  
         PedidosOtrosCanalesUtils.retrieveCteInfo('0012C000002XoGQQA0');
         Test.stopTest();
+    }
+    public static void validaCreditoCliente(Account cliente){
+        
+        //PedidosOtrosCanalesUtils.validarCredito(cliente.Id, '0012C000002XoGQQA0',100,'US',cliente.Sociedad__c,1,cliente.Canal_Distribucion__c);
     }
     public static Oficina_de_Venta__c crearOficina(){
         
@@ -118,8 +130,10 @@ public class PedidosOtrosCanalesUtils_UT {
             ofiv.IdPlanta__c = '3';
             ofiv.Codigo__c = '105';   
             ofiv.IdClienteViz__c = '90000303';
+        	ofiv.Valida_Disponibilidad__c = true;
+        	//ofiv.Dias_Consolidacion_Prod__c = '1;2;3';
             //ofiv.SucursalesViz__c = '1 Calexico - 803284; 2 Laredo - 803287; 8 Houston - 807186';
-            insert ofiv;
+            upsert ofiv;
         return ofiv;
     }
     
@@ -160,12 +174,13 @@ public class PedidosOtrosCanalesUtils_UT {
     {
     
         ListaPreciosWS.RespuestaOfListOfPrecioClienteSF response  = new ListaPreciosWS.RespuestaOfListOfPrecioClienteSF();
+        
         system.debug('PRECIOSCLIENTE==>> '+ pedido.Canal_Factura__r.IdClienteViz__c);
         PedidosOtrosCanalesUtils.DispoMayoristas.fillPreciosCliente(pedido,productos, true );
         PedidosOtrosCanalesUtils.DispoMayoristas.getPrices(response);
     }
     
-   @isTest public static void retrieveProducto()
+   @isTest public static PedidosOtrosCanalesUtils.Producto retrieveProducto()
     {
         PedidosOtrosCanalesUtils.Producto producto =  new  PedidosOtrosCanalesUtils.Producto();
         PedidosOtrosCanalesUtils.Producto producto2 =  new  PedidosOtrosCanalesUtils.Producto();
@@ -201,7 +216,7 @@ public class PedidosOtrosCanalesUtils_UT {
         producto.HabilitaCantidad = true;
         producto.HabilitaVolumen = true;
         producto.precioConFlete = 10.00;
-             
+        producto.item.Origen_Surtido__c = 'a0k2C000000Wju4';    
 
 
         producto2 =  producto;        
@@ -215,7 +230,8 @@ public class PedidosOtrosCanalesUtils_UT {
         Date fecha = Date.today();
         PedidosOtrosCanalesUtils.getDOF(fecha);
         PedidosOtrosCanalesUtils.generateIdPedidoSF();
-        PedidosOtrosCanalesUtils.generatePedido(1);             
+        PedidosOtrosCanalesUtils.generatePedido(1);      
+return producto;      
 
     }
       public static Account retrieveCteInfo( String accountId ) {

@@ -346,8 +346,8 @@ textarea {
                     <td colspan="3" >&nbsp;</td>
                     <td class="labelCol">Flete / Libra:</td>
                     <td colspan="2" >
-                    <apex:outputText value="{!pedido.Flete__c}" style="width:80px" rendered="{!pedido.Reenviar__c}" />
-                        <apex:inputField value="{!pedido.Flete__c}" rendered="{!!pedido.Reenviar__c}">
+                   <!-- <apex:outputText value="{!pedido.Flete__c}" style="width:80px" rendered="{!pedido.Reenviar__c}" />-->
+                        <apex:inputField value="{!pedido.Flete__c}">
                             <apex:actionSupport action="{!validateInteger}" event="onchange" status="actionStatusSucursal" rerender="generales,outputPanelProductos"  onsubmit="ConsultarPedidosOC()" oncomplete="OcultarSpinner()"/>
                         </apex:inputField>
                     </td>

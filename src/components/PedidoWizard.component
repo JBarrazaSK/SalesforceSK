@@ -14,6 +14,7 @@
         function validateFechaSurtidoD() 
         {
             var createdDate = "{!pedidoWrapper.pedido.CreatedDate}"
+            var fechaCreacion = "{!pedidoWrapper.pedido.Fecha_Registro__c}";
             var UnidadMedidaAnterior;
             var hasError;
             var fechaSurtido = $("#tableGenerales2 .dateInput input");
@@ -36,19 +37,17 @@
                     defaultDate = new Date(fechaDefault);
                     today = new Date(nowD);
                 }
-                var fechaPedidoSurtido =  new Date(createdDate);
+                var fechaPedidoSurtido =  new Date(fechaCreacion);
+               // fechaCreacion =  new Date(fechaCreacion);
                 var fechaCalculado = new Date(fechaPedidoSurtido.setDate(fechaPedidoSurtido.getDate()+ maxPresaleDays));
                 today.setDate(today.getDate()-(today.getDay() == 1 ? 2 : 1));
-               	var dias = cuentaDomingo(date,fechaCalculado) == 0 ? maxPresaleDays + 1: maxPresaleDays;
-               	
-               	fechaCalculado = new Date(fechaPedidoSurtido.setDate((fechaPedidoSurtido.getDate() - maxPresaleDays) + dias));
-                var fechaPedido =  new Date(createdDate);
-              	
-                console.log('FECHA PEDIDO=> '+ fechaPedido +" \nFECHA SELECCIONADA "+ date +" \nFECHACALCULADA "+ fechaCalculado);
-                
+               	var dias = cuentaDomingo(date,fechaCalculado) == 0 ? maxPresaleDays + 1: maxPresaleDays;               	
+               	fechaCalculado = new Date(fechaPedidoSurtido.setDate((fechaPedidoSurtido.getDate() - maxPresaleDays) + dias));              	
+                console.log(" \nFECHA SELECCIONADA "+ date +" \nFECHACALCULADA "+ fechaCalculado +"\nFECHA "+ defaultDate );
+    
                 if(!(Object.prototype.toString.call(date) === "[object Date]") || isNaN(date.getTime())) {
                     hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
-                } else if(date < fechaPedido) {
+                } else if(date < defaultDate) {
                     hasError = !alert("La fecha de surtido seleccionada no puede ser menor a la fecha de surtido programada.\nSe reasigna el valor por defecto.");
                 }else if(date > fechaCalculado) {
                     hasError = !alert("El máximo de días de preventa permitidos es de "+maxPresaleDays+".\nSe reasigna el valor por defecto.");
@@ -1163,6 +1162,8 @@ function processTipoPrecio(index) {
 function guardar() {
     if(isValidData()) {
         submit();
+        $("[id$=inputFechaSurtido]").attr("disabled","disabled");
+        fechaSurtido = $("[id$=inputFechaSurtido]").val();
         currentProductCode = undefined;
     }
 }
@@ -1390,6 +1391,7 @@ function rowOff(element) {
 					<td class="labelCol">Fecha de surtido:</td>
 					<td colspan="4"><apex:inputField value="{!pedidoWrapper.pedido.FechaSurtidoProgramada__c}"
 							required="true" onkeydown="onInputEnterKeydown(event)"
+							id="inputFechaSurtido"
 							onchange="validateFechaSurtidoD()" rendered="{!isEditablePedido}" />
 						<apex:outputField value="{!pedidoWrapper.pedido.FechaSurtidoProgramada__c}"
 							rendered="{!!isEditablePedido}" /></td>
