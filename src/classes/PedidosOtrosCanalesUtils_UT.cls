@@ -1,12 +1,15 @@
 @isTest
+//@isTest (SeeAllData=true)
 public class PedidosOtrosCanalesUtils_UT {
 
     @isTest private static void testOCUtils() {
         
         PedidosOtrosCanalesUtils ext = new PedidosOtrosCanalesUtils();
       	Opportunity pedido = crearPedido();  
-        Account  cliente = crearCliente();
-        Oficina_de_Venta__c ofiv =  crearOficina();
+       // Account  cliente = crearCliente();
+        //Oficina_de_Venta__c ofiv =  crearOficina();
+		list<ProductosEliminado__c> productoEliminado = new list<ProductosEliminado__c>();
+		map<string,PedidosOtrosCanalesUtils.Producto> productosOld = new map<string,PedidosOtrosCanalesUtils.Producto>();
            
       
         Pricebook2 precios = new Pricebook2();
@@ -36,7 +39,8 @@ public class PedidosOtrosCanalesUtils_UT {
         
         
         
-        List<PedidosOtrosCanalesUtils.Producto> productos = new List<PedidosOtrosCanalesUtils.Producto>();
+        List<PedidosOtrosCanalesUtils.Producto> productos = new List<PedidosOtrosCanalesUtils.Producto>();        
+        //productosOld.put(productos[0].codigo,productos[0]);
         
         productos.add(retrieveProducto());
         
@@ -67,6 +71,8 @@ public class PedidosOtrosCanalesUtils_UT {
         PedidosOtrosCanalesUtils.mensaje = ''; 
         
         
+        
+        // Llamadas a los metodos.
         crearDispo(pedido,productos);        
        	PedidosOtrosCanalesUtils.IsVizcatle(pedido);
         PedidosOtrosCanalesUtils.ReenviarPedido(pedido);
@@ -106,12 +112,29 @@ public class PedidosOtrosCanalesUtils_UT {
         PedidosOtrosCanalesUtils.dateToString(fechaEmbarque, 'yyyyMMdd');
         PedidosOtrosCanalesUtils.buscarPorSAP(pedido.Numero_Pedido_SAP__c);
         PedidosOtrosCanalesUtils.buscarSucursal('0012C000002XoGQQA0', pedido.Numero_Pedido_SAP__c);
-        buscarPorId('0012C000002XoGQQA0');
+        buscarPorId(pedido.Cliente__r.Id);
         PedidosOtrosCanalesUtils.ObtenerProductosPorPedido(pedido);
-        validaCreditoCliente(cliente);
+        PedidosOtrosCanalesUtils.CrearDetallePedido1(pedido,productos,false);
+       	PedidosOtrosCanalesUtils.CrearDetallePedido(pedido,productos,false);
+       	PedidosOtrosCanalesUtils.CrearPedidoMayoreoLegados(pedido,productos,false);
+        
         PedidosOtrosCanalesUtils.ObtenerDiasConsolidacion(pedido, 12);
-        PedidosOtrosCanalesUtils.ObtenerActalizaLegados(pedido);
-        PedidosOtrosCanalesUtils.CrearDetallePedido(pedido,productos,false);
+       
+        PedidosOtrosCanalesUtils.ValidarPedidoModificado(pedido,productos,false,pedido,productosOld,false,productoEliminado);
+        Test.startTest();
+    	Test.setMock(WebServiceMock.class, new PedidosMayoreoWSMockImpl());
+    	Test.setMock(WebServiceMock.class, new WsActualizaDatosGenerales_NSC_SDLMock());
+    	
+        //PedidosOtrosCanalesUtils.ObtenerActalizaLegados(pedido);
+	   	//PedidosOtrosCanalesUtils.GenerarAdmonEstrategia(pedido,productos[0],false,'EX');
+	 	//validaCreditoCliente(cliente);
+	  	//PedidosOtrosCanalesUtils.retrieveCteInfo(cliente.Id);
+	    //PedidosOtrosCanalesUtils.guardarPedidoLegados(pedido,productos,false,productoEliminado);
+	    //PedidosOtrosCanalesUtils.ValidarCambiosPedidos(pedido,productos,pedido);
+        
+       
+       
+        
        
         
        
@@ -126,14 +149,15 @@ public class PedidosOtrosCanalesUtils_UT {
     public static Oficina_de_Venta__c crearOficina(){
         
         Oficina_de_Venta__c  ofiv = new Oficina_de_Venta__c();
-            ofiv.Id = 'a0k2C000000Wju4';
+            //ofiv.Id = 'a0k2C000000Wju4';
             ofiv.IdPlanta__c = '3';
             ofiv.Codigo__c = '105';   
             ofiv.IdClienteViz__c = '90000303';
         	ofiv.Valida_Disponibilidad__c = true;
+        	ofiv.Descripcion__c = 'TSK LOS ANGELES';
         	//ofiv.Dias_Consolidacion_Prod__c = '1;2;3';
             //ofiv.SucursalesViz__c = '1 Calexico - 803284; 2 Laredo - 803287; 8 Houston - 807186';
-            upsert ofiv;
+            insert ofiv;
         return ofiv;
     }
     
@@ -141,35 +165,90 @@ public class PedidosOtrosCanalesUtils_UT {
          
         Opportunity pedido =  new Opportunity();
          // Se crean datos de pruebas
-            pedido.Id = '0062C000003uXAR';
-            pedido.Canal_Factura__c = 'a0k2C000000Wju4';
+            //pedido.Id = '0062C000003uXAR';
+            pedido.Canal_Factura__c = crearOficina().Id; //'a0k2C000000Wju4';
             pedido.Id_Externo__c = '000001246177480';
             pedido.Fecha_de_Embarque__c =  date.today();
             pedido.Folio_Pedido_SDL__c = '62177';
             pedido.Numero_de_Pedido_NSC__c = '137437';
             pedido.Numero_Pedido_SAP__c = '90000303';
-            pedido.AccountId = '0012C000002XoGQQA0';
-            pedido.Cliente__c = '0012C000006l2cv';
+           	pedido.Cliente__c = crearCliente().Id;
+           	pedido.AccountId = subCrearCliente().Id;
+           	pedido.Name = 'RANCHO PR3';
+           	pedido.StageName = 'En Proceso';
+           	pedido.CloseDate =  date.today();
+           	pedido.CreatedDate =  date.today();
         upsert pedido;
 
 	return pedido;      
     }
     public  static Account crearCliente(){
         Account cliente = new Account();	            
-            cliente.Id = '0012C000002XoGQQA0';
-            cliente.Name ='SUC - JON CINA';
-            cliente.Numero_Cliente_SAP__c = '90000303';
-            cliente.Canal_Distribucion__c = 'a072C000000CqIF';
+            cliente.Name ='JON CINA';
+            cliente.Numero_Cliente_SAP__c = '0000408946';
+            //cliente.Canal_Distribucion__c = 'a072C000000CqIF';
+            cliente.Canal_Distribucion__c = 'AS';
             cliente.Sociedad__c = 'VIZCATTLE - 303';
             cliente.Estatus_Cliente__c = 'Activo';
             cliente.Organizacion_de_Ventas__c = 'VIZCATTLE CORPORATIO - 3031';
             cliente.Cadena__c = ''; 
+            cliente.Organizacion_de_Ventas__c = '';
+            cliente.Canal_de_Distribucion_NSC__c = CrearCanalDistribucion().Id;
+            cliente.Telefono__c = '6671234567';
+           	//cliente.RecordTypeId = Constants.recordTypeMap.get('Account').get('Principal_No_Editable');
+           	//cliente.RecordTypeId = recordType().Id; //[Select Id From RecordType Where SobjectType = 'Account' and Name = 'Principal No Editable'].Id;
+        	//Id RecordTypeIdContact = Schema.SObjectType.Contact.getRecordTypeInfosByName().get('DeveloperNameOfRecordType').getRecordTypeId(); 
+        
+            insert cliente;
+        return cliente;
+    }
+        public  static Account subCrearCliente(){
+        Account cliente = new Account();	            
+            cliente.Name ='SUC - CLIENTE JON 4';
+            cliente.Numero_Cliente_SAP__c = 'SUC - 0000408946';
+            //cliente.Canal_Distribucion__c = 'a072C000000CqIF';
+            cliente.Canal_Distribucion__c = 'AS';
+            cliente.Sociedad__c = 'VIZCATTLE - 303';
+            cliente.Estatus_Cliente__c = 'Activo';
+            cliente.Organizacion_de_Ventas__c = 'VIZCATTLE CORPORATIO - 3031';
+            cliente.Cadena__c = ''; 
+            cliente.Organizacion_de_Ventas__c = '';
+          	cliente.ParentId = [Select id FROM Account where Numero_Cliente_SAP__c ='0000408946' limit 1].Id;
+            
+           	//cliente.RecordTypeId =  recordType2().Id;//[Select Id From RecordType Where SobjectType = 'Account' and Name = 'Sucursal'].Id;
+        	//cliente.RecordTypeId = Constants.recordTypeMap.get('Account').get('Sucursal'); 
+           	cliente.RFC__c = null;
+          	cliente.Tipo_de_Cliente__c = 'CLIENTES SUCURSALES - D002';
+          	cliente.Telefono__c = '6671234568';
+            
         	//cliente.Grupo_de_Vendedores__c = 'a0l2C000000CcKo';
         	//cliente.Oficina_de_Ventas__c = 'a0k2C000000Wju4';
-            upsert cliente;
+           upsert cliente;
         return cliente;
     }
     
+    public static RecordType recordType()
+    {
+	    RecordType record = new RecordType();
+	    	record.SobjectType= 'Account';
+	    	record.name = 'Principal No Editable';
+	    return record;
+    }
+   public static RecordType recordType2()
+   {
+	    RecordType record = new RecordType();
+	    	record.SobjectType= 'Account';
+	    	record.name = 'Sucursal';
+	    return record;
+    }
+  public  static Canal_de_Distribucion_NSC__c CrearCanalDistribucion()
+  {
+   			Canal_de_Distribucion_NSC__c	 canal = new Canal_de_Distribucion_NSC__c	();
+	   			canal.Codigo__c = '740';
+	   			canal.Descripcion__c = 'BODEGA CALEXICO';            
+	        	insert canal;
+    return canal;
+	}
  public static void crearDispo(Opportunity pedido,List<PedidosOtrosCanalesUtils.Producto> productos )
     {
     
@@ -216,7 +295,12 @@ public class PedidosOtrosCanalesUtils_UT {
         producto.HabilitaCantidad = true;
         producto.HabilitaVolumen = true;
         producto.precioConFlete = 10.00;
-        producto.item.Origen_Surtido__c = 'a0k2C000000Wju4';    
+        producto.item.Origen_Surtido__c = 'a0k2C000000Wju4';  
+        producto.item.Tipo_de_Inventario__c = '1'; 
+        producto.item.Volumen__c = 100.00; 
+        producto.item.Kilos__c = 15.50;
+        producto.item.Cantidad__c = 15;
+        producto.item.Importe__c= 234.80;
 
 
         producto2 =  producto;        
@@ -226,11 +310,14 @@ public class PedidosOtrosCanalesUtils_UT {
         PedidosOtrosCanalesUtils.ValidacionCredito vCredito =  new  PedidosOtrosCanalesUtils.ValidacionCredito();
         vCredito.aprobado =  true;
         vCredito.mensaje ='Exito';
+        OpportunityLineItem temp = new OpportunityLineItem();
+      //  producto.Producto(1,temp);
        
         Date fecha = Date.today();
         PedidosOtrosCanalesUtils.getDOF(fecha);
         PedidosOtrosCanalesUtils.generateIdPedidoSF();
-        PedidosOtrosCanalesUtils.generatePedido(1);      
+        PedidosOtrosCanalesUtils.generatePedido(1);     
+         
 return producto;      
 
     }
