@@ -164,11 +164,13 @@ public CrtlCierreCanalDetalle()
  	{
  		if(ofv.Seleccionado)
  		{
+ 			
  			if(ofv.oficina.Cerrado__c)
  			{
  				showPageMessage('WARNING','La oficina de ventas ya se encuentra cerrada');
 	        	return;
  			}
+ 			
  			if(ofv.Oficina != null)
  			{
  				if(TraerPedidosBloqueados(ofv.Oficina) && ValorBoton != 'Continuar')
@@ -226,6 +228,8 @@ public CrtlCierreCanalDetalle()
  	{
  		if(ofv.Seleccionado)
  		{
+ 			
+ 			
  			if(ofv.oficina.Reaperturado__c)
  			{
  				showPageMessage('WARNING','La oficina de ventas ya se encuentra Reaperturada');
@@ -298,7 +302,7 @@ public CrtlCierreCanalDetalle()
 		 		system.debug('Response --->'+ rc);
 	 		}
 	 		update oficinasAGuardar;
-	 		showPageMessage('CONFIRM','Se ha reaperturado con éxito las oficinas de ventas seleccionadas');
+	 		showPageMessage('CONFIRM','se ha reaperturado con éxito las oficinas de ventas seleccionadas');
 	 		consultar();
 
  	}
@@ -317,8 +321,10 @@ public CrtlCierreCanalDetalle()
  	{
  		if(ofv.Seleccionado)
  		{
+ 			
+ 			
  			if(ofv.oficina.Extension__c)
- 			{
+ 			{ 
  				showPageMessage('WARNING','La oficina de ventas ya se encuentra con horario extendido');
 	        	return;
  			}

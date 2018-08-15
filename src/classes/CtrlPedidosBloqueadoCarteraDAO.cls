@@ -274,7 +274,8 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
 	    	
 	    	for(opportunity opp : mapValidos.values())
 	    	{
-	    		system.debug('opp.Canal_Factura__r.IdPlanta__c ----------------------------> '+opp.Canal_Factura__r.IdPlanta__c);
+                system.debug('LIBERACION_PEDIDO ---------> '+opp);
+	    		system.debug('opp.Canal_Factura__r.IdPlanta__c ----------> '+opp.Canal_Factura__r.IdPlanta__c);
 	    		if(opp.Canal_Factura__r.IdPlanta__c == null)
 	    		{
 	    			isBodega = true;
@@ -294,30 +295,39 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
 	
 	    		opp.fecha_aprov_recha__c = Datetime.Now().Date();
 	    		WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido DatosLiberacionPedido = new WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido();
-	    		
-		    		if(opp.Canal_Factura__r.IdPlanta__c  !=null)
-	        		{
-		    			// se obtiene el canal de distribucion si es frontera o no.
-					    	string suc = 'SUC - ';
-				            List<String> ListaSucursalesFrontera = new List<String>();
-				            ListaSucursalesFrontera.addAll(opp.Canal_Factura__r.SucursalesViz__c.split(';'));
-				            System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
-				            String ClienteViz = PedidosOtrosCanalesUtils.ValidarSucursalViz(ListaSucursalesFrontera,opp.frontera__c);
-				            System.debug('ClienteViz: '+ClienteViz);
-				            if(String.isNotBlank(ClienteViz))
-				            {
-				                
-				                Account sucViz = PedidosOtrosCanalesUtils.buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
-				                if(sucViz != null && sucViz.Canal_de_Distribucion_NSC__c != null)
-				                {
-				                    DatosLiberacionPedido.CanalDistribucion = Integer.ValueOf(sucViz.Canal_de_Distribucion_NSC__r.Codigo__c);
-				                    
-				                }
-				            }
-				        }else
-				        {
-				          DatosLiberacionPedido.CanalDistribucion = Integer.ValueOf(opp.Canal_Factura__r.Codigo__c);
-				        }
+		    	System.debug('CANAL_FACTURA: '+ opp.Canal_Factura__r.IdPlanta__c +' CANAL_DISTRIBUCION: ' + opp.Cliente__r.Canal_Distribucion__c.right(2) +' CLIENTE_SOCIEDAD: '+ opp.Cliente__r.Sociedad__c.right(3));	
+                
+                if (opp.Canal_Factura__r.IdPlanta__c  !=null && opp.frontera__c == null)
+                {
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Warning,'El pedido ['+opp.Folio_Pedido_SDL__c+'] no se puede liberar en SalesForce, es necesario liberar desde SAP.'));
+                    return null;
+                    
+                }else if(opp.Canal_Factura__r.IdPlanta__c  !=null )
+                         //		&& opp.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' 
+                         //		&& opp.Cliente__r.Sociedad__c.right(3) == '303')
+                {
+                                    
+                    // se obtiene el canal de distribucion si es frontera o no.
+                    string suc = 'SUC - ';
+                    List<String> ListaSucursalesFrontera = new List<String>();
+                    ListaSucursalesFrontera.addAll(opp.Canal_Factura__r.SucursalesViz__c.split(';'));
+                    System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
+                    String ClienteViz = PedidosOtrosCanalesUtils.ValidarSucursalViz(ListaSucursalesFrontera,opp.frontera__c);
+                    System.debug('ClienteViz: '+ClienteViz);
+                    if(String.isNotBlank(ClienteViz))
+                    {
+                        
+                        Account sucViz = PedidosOtrosCanalesUtils.buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
+                        if(sucViz != null && sucViz.Canal_de_Distribucion_NSC__c != null)
+                        {
+                            DatosLiberacionPedido.CanalDistribucion = Integer.ValueOf(sucViz.Canal_de_Distribucion_NSC__r.Codigo__c);
+                            
+                        }
+                    }
+                }else
+                {                    
+                    DatosLiberacionPedido.CanalDistribucion = Integer.ValueOf(opp.Canal_Factura__r.Codigo__c);
+                }
 				        
 			    if(DatosLiberacionPedido.CanalDistribucion == null || DatosLiberacionPedido.CanalDistribucion == 0)
 	    		{
@@ -329,7 +339,7 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
 	    			    			
 	    			System.debug('DatosLiberacionPedido:=> Canal_Distribucion__c: ' + DatosLiberacionPedido.CanalDistribucion  + ' opp.Folio_Pedido_SDL__c ' + opp.Folio_Pedido_SDL__c +' opp.Numero_de_Pedido_NSC__c '+opp.Numero_de_Pedido_NSC__c);		
 		    		DatosLiberacionPedido.FolioPSV = opp.Folio_Pedido_SDL__c;
-		    		DatosLiberacionPedido.FolioNSC = opp.Numero_de_Pedido_NSC__c == null ? '0' :opp.Numero_de_Pedido_NSC__c;
+		    		DatosLiberacionPedido.FolioNSC = opp.Numero_de_Pedido_NSC__c == null ? '' :opp.Numero_de_Pedido_NSC__c;
 		    		DatosLiberacionPedido.Tipo =  canal;
 		    		DatosLiberacionPedido.Usuario = ObtenerUsuario();
 		    		System.debug('DatosLiberacionPedido:=> ' + DatosLiberacionPedido);		    		
@@ -363,9 +373,7 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
 	    	}
 
     	}catch(Exception e) 
-		{
-					   ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, e.getMessage()));                
-			                
+		{           	                
 		   ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, 'Ocurrió un problema al liberar el pedido. Favor de intentar de nuevo.'));                
 		}
     	return Valido;

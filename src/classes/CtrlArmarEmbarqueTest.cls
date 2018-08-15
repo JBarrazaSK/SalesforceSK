@@ -8,10 +8,18 @@
 @isTest
 public class CtrlArmarEmbarqueTest {
 
-
+    static testmethod void metodos(){
+        Test.startTest(); 
+        Test.setMock(WebServiceMock.class, new WsEntregasMock());
+        CtrlArmarEmbarque clase = new CtrlArmarEmbarque();
+        clase.GenerarEntregas(new  WsEntregas.ArrayOfString());
+        CtrlArmarEmbarque.fakeMethod();
+        test.stopTest();
+        
+    }
 
  static  testmethod void coverCode() {
-
+			
 			CtrlArmarEmbarque clase = new CtrlArmarEmbarque();
 			clase.getItemsFrontera();
     		clase.Frontera = '';
@@ -530,23 +538,17 @@ public class CtrlArmarEmbarqueTest {
 	       	Ext.AlmacenId = Ofiv.Id;
 	       	Ext.getPedidos();
 	       	embarque__c embarque = 	CtrlArmarEmbarqueDAO.GenerarEmbarquesConPedidoConFolio(listaPedidos,'A',Ofiv.Id,Date.today().addDays(2));
+	       	endpoints__c ep = new endpoints__c();
+        	ep.GrabarPedidosLegados__c = 'http://192.168.217.29:2562/SKServiciosExternos/SAP/PedidosMayoreoLegados.asmx';
+            upsert ep;
 	       	Ext.ListaEmbarques= Ext.ObtenerEmbarques();
-	       	Test.startTest();
+	       	Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());
 	       	Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock());
-	       	//Test.setMock(WebServiceMock.class, new WsComposicionEmbarqueMock());
+	       	Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
+	       	Test.setMock(WebServiceMock.class, new WsEntregasMock());
+	       	Test.startTest();
+	       		       	
 	       	
-	       /*	Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
-	        HttpResponse res = CtrlArmarEmbarque.getInfoFromExternalService();
-	        
-	        // Verify response received contains fake values
-	        String contentType = res.getHeader('Content-Type');
-	        System.assert(contentType == 'text/xml; charset=UTF-8');
-	        String actualValue = res.getBody();
-	        String expectedValue = '{"example":"test"}';
-	        System.assertEquals(actualValue, expectedValue);
-	        System.assertEquals(200, res.getStatusCode());*/
-        
-	       	Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());	       	
 	       	Ext.ListaEmbarques[0].Seleccionado = false;
 	       	Ext.CerrarEmbarque();
 	       	Ext.ListaEmbarques[0].Seleccionado = true;
@@ -561,8 +563,11 @@ public class CtrlArmarEmbarqueTest {
        		Test.stopTest();
        }
   
-       static  testmethod void CerrarEmbarqueN()
+      /* static  testmethod void CerrarEmbarqueN()
        {
+       	    endpoints__c ep = new endpoints__c();
+        	ep.GrabarPedidosLegados__c = 'http://192.168.217.29:2562/SKServiciosExternos/SAP/PedidosMayoreoLegados.asmx';
+            upsert ep;
        		Oficina_de_Venta__c Ofiv = CrearOficinaVentas();
 	    	Opportunity Pedido = CrearPedido('P20160129','A');
 	    	Product2 prod = CrearProducto();
@@ -581,14 +586,22 @@ public class CtrlArmarEmbarqueTest {
 	       	Ext.getPedidos();
 	       	embarque__c embarque = 	CtrlArmarEmbarqueDAO.GenerarEmbarquesConPedidoConFolio(listaPedidos,'A',Ofiv.Id,Date.today().addDays(2));
 	       	Ext.ListaEmbarques= Ext.ObtenerEmbarques();
-	       	Test.startTest();
-	       	Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock());
+	       	
+	       
+	       	Test.startTest(); 
+	        Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock());
+	       	Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
+            Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());
+           Test.setMock(WebServiceMock.class, new WsEntregasMock());
 	       	Ext.ListaEmbarques[0].Seleccionado = true;
 	      	Ext.CerrarEmbarque();
        		Test.stopTest();
        }
        static  testmethod void CerrarEmbarqueFail()
        {
+       	endpoints__c ep = new endpoints__c();
+        	ep.GrabarPedidosLegados__c = 'http://192.168.217.29:2562/SKServiciosExternos/SAP/PedidosMayoreoLegados.asmx';
+            upsert ep;
        		Oficina_de_Venta__c Ofiv = CrearOficinaVentas();
 	    	Opportunity Pedido = CrearPedido('P20160129','A');
 	    	Product2 prod = CrearProducto();
@@ -608,14 +621,18 @@ public class CtrlArmarEmbarqueTest {
 	       	Ext.ListaEmbarques= Ext.ObtenerEmbarques();
 	       	Test.startTest();
 	       	Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock.WsArmarEmbarqueSDLWebServiceMockFail());
-	       	//Test.setMock(WebServiceMock.class, new WsComposicionEmbarqueMock.WsComposicionEmbarqueMockFail());
-	       	Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock.WsPedidosMayoreoLegadosMockFail());	
+	       	Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());
+	       	Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
+	       	Test.setMock(WebServiceMock.class, new WsEntregasMock());	
 	       	Ext.ListaEmbarques[0].Seleccionado = true;
 	      	Ext.CerrarEmbarque();
        		Test.stopTest();
        }
        static  testmethod void CerrarEmbarqueFailError()
        {
+       		endpoints__c ep = new endpoints__c();
+        	ep.GrabarPedidosLegados__c = 'http://192.168.217.29:2562/SKServiciosExternos/SAP/PedidosMayoreoLegados.asmx';
+            upsert ep;
        		Oficina_de_Venta__c Ofiv = CrearOficinaVentas();
 	    	Opportunity Pedido = CrearPedido('P20160129','A');
 	    	Product2 prod = CrearProducto();
@@ -635,12 +652,13 @@ public class CtrlArmarEmbarqueTest {
 	       	Ext.ListaEmbarques= Ext.ObtenerEmbarques();
 	       	Test.startTest();
 	       	Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock.UnauthorizedEndpointResponse());
-	     
-	       //	Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());	
+	        Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());
+	       	Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
+	       	Test.setMock(WebServiceMock.class, new WsEntregasMock());
 	       	Ext.ListaEmbarques[0].Seleccionado = true;
 	      	Ext.CerrarEmbarque();
        		Test.stopTest();
-       }
+       }*/
        static  testmethod void AbrirEmbarque()
        {
        		Oficina_de_Venta__c Ofiv = CrearOficinaVentas();
@@ -1128,7 +1146,7 @@ public class CtrlArmarEmbarqueTest {
   public  static testMethod Oficina_de_Venta__c CrearOficinaVentas()
     {
     	Oficina_de_Venta__c oFiv =  new Oficina_de_Venta__c(
-    															Id='a0k2C000000Hpyu',
+    															
     															name = 'PLANTA CULIACAN - 64',
     															Codigo__c = '64',
     															Descripcion__c =  'PLANTA CULIACAN',

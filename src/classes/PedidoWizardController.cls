@@ -188,12 +188,12 @@ public with sharing class PedidoWizardController {
 		        	}
 		        	else if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'W' )
 		        	{
-		        		if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null 
+		        		/*if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null 
 							&& responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus == 'B'))      			 
 							{
 		        				pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[i]);		
 		        				pedidoWrapper.save();		        				
-							}
+							}*/
 		        		
 		        		 myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[i].Mensaje);
 		        		 ApexPages.addMessage(myMsg);

@@ -1,0 +1,68 @@
+<apex:page controller="ValidaProspectos" tabStyle="ValidaProspecto__tab">
+	<style>
+		.centrar{text-align: center;}
+	</style>
+	<script>
+		function marcaCheck(estado){
+			var elements = document.getElementsByClassName("chkaply");
+			for (var i = 0; i < elements.length; i++)
+				elements[i].checked = estado;
+		}
+	</script>
+    <apex:sectionHeader title="Validación de Prospectos"/>
+    <apex:form >
+        <apex:pageBlock mode="edit">
+        	<apex:pageMessages />
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandButton action="{!convert}" value="Aprobar"/>
+                <apex:commandButton action="{!reject}" value="Rechazar"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection columns="3">
+                <apex:inputfield label="Fecha" value="{!fecAccount.Aniversario_del_Negocio__c}" />
+                <apex:selectList label="Grupo de Vendedores" value="{!gpoVendedor}" multiselect="false" size="1" required="true">
+                    <apex:selectOptions value="{!gpoVendedores}"/>
+                </apex:selectList>
+                <apex:commandButton action="{!validate}" value="Validar"/>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Prospectos válidos" columns="1">
+				<apex:pageBlockTable value="{!prospectos}" var="item">
+					<apex:column >
+						<apex:facet name="header"><input type="checkbox" onclick="marcaCheck(this.checked);" /></apex:facet>
+						<apex:inputCheckbox styleClass="chkaply" value="{!item.applyConvert}"/>
+					</apex:column>
+					<apex:column value="{!item.lead.Canal_de_Distribucion_NSC__c}">
+						<apex:facet name="header">Canal de dist.</apex:facet>
+					</apex:column>
+					<apex:column >
+						<apex:facet name="header">Nombre</apex:facet>
+						<apex:outputLink value="/{!item.lead.Id}">{!item.lead.Name}</apex:outputLink>
+					</apex:column>
+					<apex:column styleClass="centrar" headerClass="centrar">
+						<apex:facet name="header">Pedido/Visita</apex:facet>
+						<apex:image rendered="{!NOT(item.HayVisitasPedidos)}" value="/img/permissions_deny16.gif" width="16" />
+						<apex:image rendered="{!item.HayVisitasPedidos}" value="/img/permissions_confirm16.gif" width="16" />
+					</apex:column>
+					<apex:column styleClass="centrar" headerClass="centrar">
+						<apex:facet name="header">Tel. Repetido</apex:facet>
+						<apex:image rendered="{!NOT(item.NoHayTelefono)}" value="/img/permissions_deny16.gif" width="16" />
+						<apex:image rendered="{!item.NoHayTelefono}" value="/img/permissions_confirm16.gif" width="16" />
+					</apex:column>
+					<apex:column styleClass="centrar" headerClass="centrar">
+						<apex:facet name="header">Nombre Repetido</apex:facet>
+						<apex:image rendered="{!NOT(item.NoHayNombre)}" value="/img/permissions_deny16.gif" width="16" />
+						<apex:image rendered="{!item.NoHayNombre}" value="/img/permissions_confirm16.gif" width="16" />
+					</apex:column>
+					<apex:column styleClass="centrar" headerClass="centrar">
+						<apex:facet name="header">Datos incorrectos</apex:facet>
+						<apex:image rendered="{!NOT(item.NOHayDatosIncorrectos)}" value="/img/permissions_deny16.gif" width="16" />
+						<apex:image rendered="{!item.NOHayDatosIncorrectos}" value="/img/permissions_confirm16.gif" width="16" />
+					</apex:column>
+					<apex:column >
+						<apex:facet name="header">Mensaje</apex:facet>
+						<apex:outputText value="{!item.Mensaje}" escape="false" />
+					</apex:column>
+				</apex:pageBlockTable>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

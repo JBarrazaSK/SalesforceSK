@@ -1,5 +1,5 @@
-//@isTest( SeeAllData = true )
-@isTest
+@isTest( SeeAllData = true )
+//@isTest
 public class ctrlrPedidoOtrosCanales_UT implements WebServiceMock  {
 
     public void doInvoke(Object stub, Object request, Map<String, Object> responseMap, String endpoint, String soapAction, String requestName, String responseNS, String responseName, String responseType) {

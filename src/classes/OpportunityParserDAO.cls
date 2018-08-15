@@ -100,7 +100,7 @@ public class OpportunityParserDAO {
                 if(objectName == 'Opportunity' && pedido.StageName == '11 - Bloqueado Cierre')
                 {
                 	system.debug('Envio Aprobacion');
-                    PedidosOtrosCanalesUtils.submitForApproval(pedido,'Se Envio para su aprobacion (Cierre)','Cierre');
+                    saveResult.Bloqueado = pedido;
                 }
                 saveResult.isSuccess = true;
                 saveResult.folioSFDC = pedido.Id_Externo__c;

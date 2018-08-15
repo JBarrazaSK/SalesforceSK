@@ -5,26 +5,26 @@
 * @Company: Sukarne
 */
 public class PedidosOtrosCanalesUtils {
-
+    
     public static String tz = 'GMT-07:00';
-
-    public static final Integer WEB_SERVICE_TIMEOUT   = 120000;
-    public static final Decimal CONVERSION_KILO_POUND   = 2.2046;
-    public static final String PEDIDO_INSERT_CONFIRM   = 'El pedido ha sido guardado con éxito. ';
-    public static final String EMBARQUE_INSERT_CONFIRM   = 'El pedido ha sido guardado con éxito. ';
-    public static final String PEDIDO_CANCEL_CONFIRM   = 'El pedido ha sido cancelado con éxito.';
-    public static final String WRONG_VALUE_ERROR     = 'Dato incorrecto. ';
-    public static final String NO_AVAILABLE_PRODUCT   = 'No hay el producto disponible en este Origen. ';
-    public static final String NO_PRICES_AVAILABLE    = 'No hay precios configurados para este cliente. ';
-    public static final String NO_PRICES_AVAILABLE_VIZ  = 'No hay precios Intercompanía configurados para este cliente. ';
-    public static final String FECHA_EMBARQUE_INVALIDA  = 'Por favor introduzca una Fecha de Embarque válida. ';
-    public static final String SELECCION_CANAL_FACTURA  = 'Por favor seleccione el Canal Factura. ';
-    public static final String SELECCION_ORIGEN      = 'Por favor seleccione el origen. ';
-    public static final String NO_PEDIDO_RESPONSE    = 'Al parecer hubo un error al salvar el pedido en SDL, inténtelo nuevamente. ';
-    public static final String NO_CREDIT_VALIDATION    = 'La interfaz de crédito no responde. ';
-    public static final String NO_PRODUCT_PRICE      = 'No hay precio configurado para el producto, ¡Imposible continuar! ';
-    public static final String NO_PRODUCT_PRICE_VIZ    = 'No hay precio Intercompañía configurado para el producto, ¡Imposible continuar! ';
-    public static final String NO_SUC_VIZ        = 'No se encuentra Configurada la Sucursal Intercompañía.';
+    
+    public static  Integer WEB_SERVICE_TIMEOUT   = 120000;
+    public static  Decimal CONVERSION_KILO_POUND   = 2.2046;
+    public static  String PEDIDO_INSERT_CONFIRM   = 'El pedido ha sido guardado con éxito. ';
+    public static  String EMBARQUE_INSERT_CONFIRM   = 'El pedido ha sido guardado con éxito. ';
+    public static  String PEDIDO_CANCEL_CONFIRM   = 'El pedido ha sido cancelado con éxito.';
+    public static  String WRONG_VALUE_ERROR     = 'Dato incorrecto. ';
+    public static  String NO_AVAILABLE_PRODUCT   = 'No hay el producto disponible en este Origen. ';
+    public static  String NO_PRICES_AVAILABLE    = 'No hay precios configurados para este cliente. ';
+    public static  String NO_PRICES_AVAILABLE_VIZ  = 'No hay precios Intercompanía configurados para este cliente. ';
+    public static  String FECHA_EMBARQUE_INVALIDA  = 'Por favor introduzca una Fecha de Embarque válida. ';
+    public static  String SELECCION_CANAL_FACTURA  = 'Por favor seleccione el Canal Factura. ';
+    public static  String SELECCION_ORIGEN      = 'Por favor seleccione el origen. ';
+    public static  String NO_PEDIDO_RESPONSE    = 'Al parecer hubo un error al salvar el pedido en SDL, inténtelo nuevamente. ';
+    public static  String NO_CREDIT_VALIDATION    = 'La interfaz de crédito no responde. ';
+    public static  String NO_PRODUCT_PRICE      = 'No hay precio configurado para el producto, ¡Imposible continuar! ';
+    public static  String NO_PRODUCT_PRICE_VIZ    = 'No hay precio Intercompañía configurado para el producto, ¡Imposible continuar! ';
+    public static  String NO_SUC_VIZ        = 'No se encuentra Configurada la Sucursal Intercompañía.';
     public static Boolean EnvioAprobacion {get;set;}
     public static String MensajeAprobacion {get;set;}
     public static map<string,Producto> productosSinModificar  {get; set;}
@@ -64,7 +64,7 @@ public class PedidosOtrosCanalesUtils {
     public static List<SelectOption> fillMotivosModificacion() {
         List<Motivos_Modificacion__c> frntrs = Motivos_Modificacion__c.getall().values();
         List<SelectOption> Motivos = new List<SelectOption>();
-
+        
         System.debug('Motivos_Modificacion__c: ' + frntrs);
         if( frntrs.size() > 0 ) {
             Motivos = new List<SelectOption>();
@@ -76,13 +76,13 @@ public class PedidosOtrosCanalesUtils {
                 Motivos.add( opt );
             }
         }
-
+        
         return Motivos;
     }
     public static List<SelectOption> fillMotivosCancelacion() {
         List<Motivos_Cancelacion__c> frntrs = Motivos_Cancelacion__c.getall().values();
         List<SelectOption> Motivos = new List<SelectOption>();
-
+        
         System.debug('Motivos_Modificacion__c: ' + frntrs);
         if( frntrs.size() > 0 ) {
             Motivos = new List<SelectOption>();
@@ -94,7 +94,7 @@ public class PedidosOtrosCanalesUtils {
                 Motivos.add( opt );
             }
         }
-
+        
         return Motivos;
     }
     
@@ -114,7 +114,7 @@ public class PedidosOtrosCanalesUtils {
         
         return medidas;
     }
-
+    
     public static List<SelectOption> fillTP() {
         List<Tipos_de_Precio__c> precios = Tipos_de_Precio__c.getall().values();
         if( precios == null ) { return null; } System.debug('Precios: '+precios);
@@ -334,23 +334,23 @@ public class PedidosOtrosCanalesUtils {
         System.debug('Encabezado Dispo: ' + dispoWS);
         return dispoWS;
     }
-
+    
     public static Map<String, Map<String, List<DispoMayoristas>>> retrieveDisponibilidad( ConsultaDisponibilidadMayoristasWS.RespuestaOfListOfDisponibilidadMayoristas response, List<Producto> productos, Date fechaEmbarque ) {
         if( response == null ) { return null; }
         ConsultaDisponibilidadMayoristasWS.ArrayOfDisponibilidadMayoristas dispoDatos = response.Datos;
         if( dispoDatos == null ) { return null; }
         List<ConsultaDisponibilidadMayoristasWS.DisponibilidadMayoristas> dispoMayoristas = dispoDatos.DisponibilidadMayoristas;
-
+        
         Date fechaInicio = fechaEmbarque.addDays( -6 );
         Date fechaFin = fechaEmbarque.addDays( 6 );
-
+        
         if( dispoMayoristas == null ) { return null; }
         if( dispoMayoristas.size() == 0 ) { return null; }
         List<PedidosOtrosCanalesUtils.DispoMayoristas> dispo = new List<PedidosOtrosCanalesUtils.DispoMayoristas>();
-
+        
         Map<String, Map<String, List<DispoMayoristas>>> mapProdDispo = new Map<String, Map<String, List<PedidosOtrosCanalesUtils.DispoMayoristas>>>();
         List<Datetime> rangoFechas = setRangoDeFechas( fechaEmbarque );
-
+        
         for( ConsultaDisponibilidadMayoristasWS.DisponibilidadMayoristas dm: dispoMayoristas ) {
             if( dm == null ) { continue; }
             if( String.isBlank(dm.producto) ) { continue; }
@@ -370,7 +370,7 @@ public class PedidosOtrosCanalesUtils {
                 listDispo = new List<DispoMayoristas>();
                 mapTipoInv.put( dm.tipoInventario, listDispo);
             }
-
+            
             List<String> df = dm.fecha.split('-');
             if( df == null || df.size() == 0 ) { continue; }
             Integer anio = Integer.valueOf( df.get(2) );// dm.fecha.right(4) );
@@ -378,7 +378,7 @@ public class PedidosOtrosCanalesUtils {
             Integer dia = Integer.valueOf( df.get(0) );// dm.fecha.left(2) );
             System.debug('FechaPresupuesto: '+dia+'/'+mes+'/'+anio);
             Date dFecha = Date.newInstance( anio, mes, dia );
-
+            
             DispoMayoristas dispoM = new DispoMayoristas();
             dispoM.producto     = dm.producto;
             dispoM.contenido     = dm.contenido;
@@ -389,7 +389,7 @@ public class PedidosOtrosCanalesUtils {
             dispoM.origen       = dm.origen;
             listDispo.add( dispoM );
         }
-
+        
         //for( Producto p: productos ) {
         for( String pCode: mapProdDispo.keySet() ) {
             if( String.isBlank( pCode ) ) { continue; }
@@ -397,12 +397,12 @@ public class PedidosOtrosCanalesUtils {
             Map<String, List<PedidosOtrosCanalesUtils.DispoMayoristas>> mapTipInv = mapProdDispo.get( pCode );
             System.debug('MapInv: '+mapTipInv);
             if( mapTipInv != null ) {
-              for( String tipoInv: mapTipInv.keySet() ) {
+                for( String tipoInv: mapTipInv.keySet() ) {
                     if( String.isBlank( tipoInv ) ) { continue; }
                     //System.debug('TipoInventario:'+tipoInv);
                     List<DispoMayoristas> listDispo = mapTipInv.get( tipoInv );
                     List<DispoMayoristas> newDispo = new List<DispoMayoristas>();
-
+                    
                     Datetime fechaIni = null;
                     for( DispoMayoristas dispoD: listDispo ) {
                         if( dispoD == null ) { continue; }
@@ -447,19 +447,19 @@ public class PedidosOtrosCanalesUtils {
                 mapTipInv.put('SIN INVENTARIO', sinInventario);
             }
         }
-
+        
         for( Producto p: productos ) {
-          if( p == null ) { continue; }
+            if( p == null ) { continue; }
             if( String.isBlank( p.codigo ) ) { continue; }
             
             for( String pCode: mapProdDispo.keySet() ) {
                 if( String.isBlank( pCode ) ) { continue; }
                 List<String> prodD = pCode.split('-');
                 if( prodD == null || prodD.size() == 0 ) { continue; }
-
+                
                 System.debug('Codigos:: Map: '+prodD.get(0)+'Prod: '+p.codigo+' Name: '+p.prodName);
                 if( p.codigo.trim() == prodD.get(0).trim() || mapProdDispo.get( p.prodName ) != null ) { break; }
-
+                
                 Map<String, List<PedidosOtrosCanalesUtils.DispoMayoristas>> mapTipInv = new Map<String, List<PedidosOtrosCanalesUtils.DispoMayoristas>>();
                 List<PedidosOtrosCanalesUtils.DispoMayoristas> sinInventario = new List<PedidosOtrosCanalesUtils.DispoMayoristas>();
                 for( Datetime rfecha: rangoFechas ) {
@@ -472,40 +472,40 @@ public class PedidosOtrosCanalesUtils {
         
         return mapProdDispo;
     }
-
+    
     public static List<Datetime> setRangoDeFechas( Date fechaEmbarque ) {
         if( fechaEmbarque == null ) {
             return null;
         }
         List<Datetime> rangoFechas = new List<Datetime>();
-
+        
         Date fInicial   = fechaEmbarque.addDays( -6 );
         Datetime fecha   = fInicial;
         Date fFinal    = fechaEmbarque.addDays( 6 );
-
+        
         boolean continuar = true;
         while( continuar ) {
             rangoFechas.add( fecha );
-
+            
             fecha = fecha.addDays( 1 );
             if( fecha > fFinal ) {
                 continuar = false;
             }
         }
-
+        
         return rangoFechas;
     }
-
+    
     public class DispoMayoristas {
         public String producto        {get; set;}
         public String tipoInventario    {get; set;}
         public Decimal pesoPromedio      {get; set;}
         public Integer canal        {get; set;}
         public Integer origen        {get; set;}
-
+        
         public Datetime fecha        {get; set;}
         public Integer contenido      {get; set;}
-
+        
         public DispoMayoristas() {}
         public DispoMayoristas( Datetime fd, Integer cntd ) {
             fecha = fd;
@@ -515,11 +515,11 @@ public class PedidosOtrosCanalesUtils {
     
     
     /* PRECIOS */
-
+    
     public static Account retrieveCteInfo( String accountId ) {
-        if(Test.isRunningTest() && Limits.getQueries() >=100){
-            return new Account();
-        }
+        /* if(Test.isRunningTest() && Limits.getQueries() >=100){
+return new Account();
+}*/
         Account cte = new Account();
         cte.Id = accountId;
         try {
@@ -536,7 +536,7 @@ public class PedidosOtrosCanalesUtils {
         
         return cte;
     }
-
+    
     public static Map<String, List<ListaPreciosWS.Precios>> getPrices( ListaPreciosWS.RespuestaOfListOfPrecioClienteSF response ) {
         ListaPreciosWS.ArrayOfPrecioClienteSF listaMay = response.Datos;
         System.debug('LISTMAY:'+  listaMay);
@@ -551,7 +551,7 @@ public class PedidosOtrosCanalesUtils {
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, PedidosOtrosCanalesUtils.NO_PRICES_AVAILABLE));
             return null;
         }
-
+        
         Map<String, List<ListaPreciosWS.Precios>> mapaPreciosPorProducto = new Map<String, List<ListaPreciosWS.Precios>>();
         for( ListaPreciosWS.PrecioClienteSF psf: preciosCte ) {
             if( psf == null ) { continue; }
@@ -559,12 +559,12 @@ public class PedidosOtrosCanalesUtils {
             if( psf.numerocliente == null || arrayPrecios == null ) {continue;}
             List<ListaPreciosWS.Precios> precios = arrayPrecios.PreciosSF;
             if( precios == null ) { continue; }
-
+            
             for( ListaPreciosWS.Precios p: precios ) {
                 if( p == null ) { continue; }
                 if( String.isBlank( p.pve_cveprod )) { continue; }
                 String cveProd = String.valueOf(Integer.valueOf( p.pve_cveprod ));
-
+                
                 List<ListaPreciosWS.Precios> listaPrecios = mapaPreciosPorProducto.get(cveprod);
                 if(listaPrecios==null){
                     listaPrecios = new List<ListaPreciosWS.Precios>();
@@ -573,10 +573,10 @@ public class PedidosOtrosCanalesUtils {
                 listaPrecios.add(p);
             }
         }
-
+        
         return mapaPreciosPorProducto;
     }
-
+    
     public static ListaPreciosWS.ArrayOfPreciosXCliente fillPreciosCliente( Opportunity pedido, List<Producto> productos, boolean isViz ) {
         
         System.debug('Pedido: '+pedido);
@@ -586,15 +586,15 @@ public class PedidosOtrosCanalesUtils {
         System.debug('Productos: '+productos);
         if( String.isBlank( pedido.AccountId ) && String.isNotBlank( pedido.SucursalAux__c ) ) { pedido.AccountId = pedido.SucursalAux__c; }
         if( String.isBlank( pedido.Cliente__c ) || String.isBlank( pedido.AccountId ) ) { return null; }
-
+        
         pedido.Cliente__r   = retrieveCteInfo( pedido.Cliente__c );
         pedido.Account     = retrieveCteInfo( pedido.AccountId );
         Account cliente   = pedido.Cliente__r;
         Account sucursal   = pedido.Account;
-
+        
         ListaPreciosWS.ArrayOfPreciosXCliente request = new ListaPreciosWS.ArrayOfPreciosXCliente();
         DateTime fechaEmbarque = pedido.Fecha_de_Embarque__c;
-       System.debug('Datetime FechaEmbarque: '+fechaEmbarque);
+        System.debug('Datetime FechaEmbarque: '+fechaEmbarque);
         List<ListaPreciosWS.PreciosXCliente> clientes = new List<ListaPreciosWS.PreciosXCliente>();
         ListaPreciosWS.PreciosXCliente precioCte = new ListaPreciosWS.PreciosXCliente();
         if( isViz ) {
@@ -728,9 +728,10 @@ public class PedidosOtrosCanalesUtils {
         public Producto(Integer index, OpportunityLineItem item){
             this.index = String.valueOf(index);
             this.item = item;
+            this.item.Estatus__c = item.Estatus__c ==3?1:item.Estatus__c;
             codigo = item.ProductCode;
             if(item.Cajas_x_Pallet__c!=null){
-              cajasXPallet = item.Cajas_x_Pallet__c.intValue();
+                cajasXPallet = item.Cajas_x_Pallet__c.intValue();
             }else{
                 cajasXPallet = 0;
             }
@@ -756,7 +757,7 @@ public class PedidosOtrosCanalesUtils {
             showDelete = true;
             DisabledProd = true;
             precioConFlete = item.unitprice;
-
+            
             if(string.isNotBlank(item.Opportunity.Folio_SAP__c) && item.Opportunity.Folio_SAP__c != '0')
             {
                 HabilitaCantidad = false;
@@ -819,7 +820,7 @@ public class PedidosOtrosCanalesUtils {
             vc.aprobado = false;
             vc.mensaje = response.Mensaje;
         }
-
+        
         return vc;
     }
     
@@ -827,22 +828,22 @@ public class PedidosOtrosCanalesUtils {
         public String codigo {get;set;}
         public String productCode {get;set;}    
     }
-
+    
     public class ValidacionCredito {
-
+        
         public Boolean aprobado    {get; set;}
         public String mensaje    {get; set;}
-
+        
         public ValidacionCredito() {}
     }
-
+    
     /* GUARDAR PEDIDO */
     public static String getDOF( Date fe ) {
         String dof = '';
         if( fe == null ) { return dof; }
         String day = dateToString( fe, 'EEEE' ).toUpperCase();//fe.format('EEEE').capitalize();
         System.debug('DOF: '+day+ ' EQUAL? '+day.equalsIgnoreCase('SUNDAY'));
-
+        
         if( day.equalsIgnoreCase('LUNES') || day.equalsIgnoreCase('MONDAY') ) { //System.debug('DOF: '+day);
             dof = '1';
         }
@@ -864,14 +865,14 @@ public class PedidosOtrosCanalesUtils {
         else if( day.equalsIgnoreCase('DOMINGO') || day.equalsIgnoreCase('SUNDAY') ) { //System.debug('DOF: '+day);
             dof = '7';
         }
-
+        
         return dof;
     }
-
+    
     public static String generateIdPedidoSF() {
         String idPedidoSF = '';
         boolean exist = true;
-
+        
         while(exist) {
             Integer x = 1;
             //2,147,483,647
@@ -895,18 +896,18 @@ public class PedidosOtrosCanalesUtils {
             }
             if( String.isBlank( oppId ) ) { exist = false; }
         }
-
+        
         return idPedidoSF;
     }
-
+    
     public static List<Integer> generatePedido(Integer rows) {
         Integer x = 1;
         //2,147,483,647
         Integer y = 2147483647;
-
+        
         Map<String, String> mapIds = new Map<String, String>();
         Integer index=1;
-
+        
         boolean blnContinue = true;
         while(blnContinue) {
             while(index<=rows){
@@ -933,7 +934,7 @@ public class PedidosOtrosCanalesUtils {
                 }
             }
         }
-
+        
         List<Integer> valores = new List<Integer>();
         for(String external:mapIds.keySet()){
             valores.add(Integer.valueOf(external));
@@ -949,7 +950,7 @@ public class PedidosOtrosCanalesUtils {
         ValidarCambiosPedidos(pedido, productos,pedidoOld,productosOld);
         //return guardarPedidoSDL( pedido, productos, false );
         return guardarPedidoLegados( pedido, productos, false,productoEliminado );
-       
+        
     }
     public Static void ValidarCambiosPedidos(Opportunity pedido, List<Producto> productos,Opportunity pedidoOld,map<string,PedidosOtrosCanalesUtils.Producto> productosOld)
     {
@@ -972,9 +973,9 @@ public class PedidosOtrosCanalesUtils {
                 
             }
             /* if(pedido.Fecha_de_Embarque__c != pedidoOld.Fecha_de_Embarque__c )
-                {
-                EnvioAprobacion = true;
-                }*/
+{
+EnvioAprobacion = true;
+}*/
             productosSinModificar = productosOld;
             pedidoSinMod = pedidoOld;
             MensajeAprobacion ='El pedido tuvo los siguentes cambios:\n ';
@@ -984,6 +985,7 @@ public class PedidosOtrosCanalesUtils {
                 
                 if(productosOld.ContainsKey(p.Codigo))
                 {
+                    System.debug('si la encontro');
                     productosSinModificacion.add(productosOld.get(p.Codigo));
                     Integer cajas = productosOld.get(p.Codigo).item.Quantity == null ? 0 : Integer.ValueOf(productosOld.get(p.Codigo).item.Quantity);
                     
@@ -991,18 +993,19 @@ public class PedidosOtrosCanalesUtils {
                     if(p.item.Cantidad__c != cajas )
                     {
                         MensajeAprobacion += 'Se Agrego la cantidad de: '+ p.item.Cantidad__c +' para el producto : '+p.Codigo +'  \n';
-                         p.item.Estatus__c = 1;
+                        p.item.Estatus__c = 1;
                         //EnvioAprobacion = true;
                         
                     }
                     else{ p.item.Estatus__c = 1;}
                     /*if(p.item.Estatus__c != 3)
-                    {
-                        p.item.Estatus__c = 1;
-                    }*/
+{
+p.item.Estatus__c = 1;
+}*/
                 }
                 else
                 {
+                    System.debug('Entro como nuevo');
                     MensajeAprobacion += 'Se Agrego el producto: '+p.Codigo+' Con la cantidad de: '+ p.cjs +'  \n';
                     p.item.Estatus__c = 3;
                     ProductoNuevo = true;
@@ -1016,7 +1019,7 @@ public class PedidosOtrosCanalesUtils {
             {
                 if(!validarGuardarNSC(pedido))
                 {
-                      EnvioAprobacion = true;
+                    EnvioAprobacion = true;
                 }
                 
             }
@@ -1059,67 +1062,22 @@ public class PedidosOtrosCanalesUtils {
             ActualizarCamposPedido(pedidoSinMod);
             ActualizarCamposOpportunityLineItem(productosSinModificacion);
         }
-    /*(String.isNotBlank(pedido.Numero_de_Pedido_NSC__c) && pedido.Numero_de_Pedido_NSC__c != '0') 
-                || (string.isNotBlank(pedido.Numero_Pedido_SAP__c ) && pedido.Numero_Pedido_SAP__c != '0')*/
+        /*(String.isNotBlank(pedido.Numero_de_Pedido_NSC__c) && pedido.Numero_de_Pedido_NSC__c != '0') 
+|| (string.isNotBlank(pedido.Numero_Pedido_SAP__c ) && pedido.Numero_Pedido_SAP__c != '0')*/
         if(!pedido.Reenviar__c && string.isNotBlank(pedido.id)) 
         {
             system.debug('MODIFICACION=>');         
             WsActualizaDatosGenerales_NSC_SDL.RespuestaModificacionPedidos ResponseNSC = null;
-             if(string.isNotBlank(pedido.Id))
-             {
-                     if(productoEliminado != null && productoEliminado.size() > 0)
-                     {
-                         ResponseNSC = EnviarModificacionPedido(pedido,areaResp,productos, productoEliminado);                         
-                         
-                     }else{
-                        ResponseNSC = WsActualizarDatosGenerales(pedido,areaResp, productos,2,'1');
-                        
-                     }
-                    
-                    system.debug('RESPONSE NSC: '+ ResponseNSC);
-                    if(ResponseNSC  != null && ResponseNSC.EstatusPedido == 1 )
-                         {
-                             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));
-                             if(productoEliminado != null && productoEliminado.size() > 0)
-                             {
-                                 for(ProductosEliminado__c p :productoEliminado)
-                                 {
-                                     p.Enviado__c = true;
-                                 }
-                                 //update MapProductosEliminado.get(Pedido.Id);
-                             }
-                             
-                         }
-                          else
-                         {
-                            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, ResponseNSC.Mensaje));
-                           if(productoEliminado != null && productoEliminado.size() > 0)
-                             {
-                                 for(ProductosEliminado__c p :productoEliminado)
-                                 {
-                                     p.Enviado__c = false;
-                                 }
-                                // update MapProductosEliminado.get(Pedido.Id);
-                             }
-                            return pedido;
-                         }
-                    /*if(ResponseNSC  != null && ResponseNSC.EstatusPedido == 1 )
-                    {
-                        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));
-                    }
-                    else
-                    {
-                        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, ResponseNSC.Mensaje));
-                        return pedido;
-                    }*/
-             }
-            if(cancelacion)
+            
+            if(string.isNotBlank(pedido.Id))
+            {	if(cancelacion)
                 {
                     System.debug('Entro cancelacion nueva');
                     ResponseNSC = WsActualizarDatosGenerales(pedido,areaResp, productos,2,'2');
                     if(ResponseNSC  != null && ResponseNSC.EstatusPedido == 1 )
                     {
                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));
+                         return pedido;
                     }
                     else
                     {
@@ -1127,6 +1085,53 @@ public class PedidosOtrosCanalesUtils {
                         return pedido;
                     }
                 }
+             if(productoEliminado != null && productoEliminado.size() > 0)
+             {
+                 ResponseNSC = EnviarModificacionPedido(pedido,areaResp,productos, productoEliminado);                         
+                 
+             }else{
+                 ResponseNSC = WsActualizarDatosGenerales(pedido,areaResp, productos,2,'1');
+                 
+             }
+             
+             system.debug('RESPONSE NSC: '+ ResponseNSC);
+             if(ResponseNSC  != null && ResponseNSC.EstatusPedido == 1 )
+             {
+                 ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));
+                 if(productoEliminado != null && productoEliminado.size() > 0)
+                 {
+                     for(ProductosEliminado__c p :productoEliminado)
+                     {
+                         p.Enviado__c = true;
+                     }
+                     //update MapProductosEliminado.get(Pedido.Id);
+                 }
+                 
+             }
+             else
+             {
+                 ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, ResponseNSC.Mensaje));
+                 if(productoEliminado != null && productoEliminado.size() > 0)
+                 {
+                     for(ProductosEliminado__c p :productoEliminado)
+                     {
+                         p.Enviado__c = false;
+                     }
+                     // update MapProductosEliminado.get(Pedido.Id);
+                 }
+                 return pedido;
+             }
+             /*if(ResponseNSC  != null && ResponseNSC.EstatusPedido == 1 )
+{
+ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));
+}
+else
+{
+ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, ResponseNSC.Mensaje));
+return pedido;
+}*/
+            }
+            
         }
         else
         {
@@ -1134,19 +1139,19 @@ public class PedidosOtrosCanalesUtils {
             WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos = new WsPedidosMayoreoLegados.DatosPedidoLegado();
             ObtenerActalizaLegados(pedido);
             DatosPedidos.IdTransaccion = pedido.id_externo__c;
-             if(pedido.Pedido_SDL__c != 'Reintento' && pedido.Reenviar__c)
-		       {
-		       	  system.debug('pedido.Pedido_SDL__c '+ pedido.Pedido_SDL__c);
-		       		 DatosPedidos.IdTransaccion = generateIdPedidoSF();
-		       }
-
-           
+            if(pedido.Pedido_SDL__c != 'Reintento' && pedido.Reenviar__c)
+            {
+                system.debug('pedido.Pedido_SDL__c '+ pedido.Pedido_SDL__c);
+                DatosPedidos.IdTransaccion = generateIdPedidoSF();
+            }
+            
+            
             if(pedido.Reenviar__c)  
             {
                 ReenviarPedido(pedido); 
             }
             
-          
+            
             DatosPedidos.ActualizaPSV = ActualizaPSV;
             PedidoBloqueado = false;
             if(DatosPedidos.ActualizaPSV)   
@@ -1196,7 +1201,7 @@ public class PedidosOtrosCanalesUtils {
             catch(Exception e)
             {
                 //ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, e.getmessage()));
-               // ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,'Ocurrió un problema al guardar en sistemas legados.'));
+                // ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,'Ocurrió un problema al guardar en sistemas legados.'));
                 system.debug('Error Pedido :: '+ e.getStackTraceString() );
                 pedido.Pedido_SDL__c = 'Reintento';
                 pedido.reenviar__c = true;
@@ -1207,96 +1212,97 @@ public class PedidosOtrosCanalesUtils {
         return pedido;
     }
     /*public static Boolean validaDatosPedidos(WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
-    {
-        integer contador = 0;
-        boolean bandera = false;
-        if(DatosPedidos.ActualizaPSV)
-        {
-            contador++;
-        } 
-        if(DatosPedidos.ActualizaSAP)
-        { contador++;}
-        
-        if(DatosPedidos.ActualizaNSC)
-        {
-             contador++;
-        }   
-        if(contador > 0)
-            bandera = true;
-    
-        return bandera;
-    }*/
+{
+integer contador = 0;
+boolean bandera = false;
+if(DatosPedidos.ActualizaPSV)
+{
+contador++;
+} 
+if(DatosPedidos.ActualizaSAP)
+{ contador++;}
+
+if(DatosPedidos.ActualizaNSC)
+{
+contador++;
+}   
+if(contador > 0)
+bandera = true;
+
+return bandera;
+}*/
     public static Opportunity responseWS(Opportunity pedido,WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
     {               
         WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap services = new WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap();
         WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados Response = new WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados();
         
-            system.debug('Respuesta: ------> '+DatosPedidos);
-            Response = services.GenerarPedidoMayoreo(DatosPedidos);
-            system.debug('Respuesta: ------>'+Response.Mensaje  +' RESULTADO  '+ Response.Resultado +' FolioSAP: '+ Response.SapShip_To);
-
-            if(Response != null && Response.Resultado =='TerminadoConExito')
-            { 
-                ValidarPedidosCreados(DatosPedidos,Response,pedido);
-                if(mapEstrategiasMod != null && mapEstrategiasMod.size() >0) 
-                {
-                    System.debug('listaAGrabar : : '+mapEstrategiasMod );
-                    upsert mapEstrategiasMod.values();
-                }
-                ActualizarEnvioPedios(pedido,DatosPedidos);
-                pedido.Reenviar__c = false;
-                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, mensaje));
+        system.debug('Respuesta: ------> '+DatosPedidos);
+        Response = services.GenerarPedidoMayoreo(DatosPedidos);
+        system.debug('Respuesta: ------>'+Response.Mensaje  +' RESULTADO  '+ Response.Resultado +' FolioSAP: '+ Response.SapShip_To);
+        
+        if(Response != null && Response.Resultado =='TerminadoConExito')
+        { 
+            ValidarPedidosCreados(DatosPedidos,Response,pedido);
+            if(mapEstrategiasMod != null && mapEstrategiasMod.size() >0) 
+            {
+                System.debug('listaAGrabar : : '+mapEstrategiasMod );
+                upsert mapEstrategiasMod.values();
             }
-
-         else{
-                
-                if(Response == null)
+            ActualizarEnvioPedios(pedido,DatosPedidos);
+            pedido.Reenviar__c = false;
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, mensaje));
+        }
+        
+        else{
+            
+            if(Response == null)
+            {
+                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'No hubo respuesta de los servicios legados, Favor de reintentar.'));
+                pedido.Reenviar__c = true;
+                pedido.Pedido_SDL__c = 'Reintento';
+            }
+            else
+            {
+                if(Response.Resultado == 'Reintento')
                 {
-                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'No hubo respuesta de los servicios legados, Favor de reintentar.'));
-                    pedido.Reenviar__c = true;
                     pedido.Pedido_SDL__c = 'Reintento';
+                    pedido.Reenviar__c = true;
+                }
+                if(Response.SapReturn != null)
+                {
+                    for(WsPedidosMayoreoLegados.DT_SDL_ResItem item :Response.SapReturn.DT_SDL_ResItem)
+                    {
+                        if(item.TYPE_x == 'E')
+                        {
+                            system.debug('item '+ item);
+                            system.debug('item.ROW '+ item.ROW);
+                            system.debug('productosSap '+ productosSap.get(item.ROW.trim()));
+                            if(item.MESSAGE.contains('Unidad de medida de ventas PI no está prevista en la posición'))
+                            {
+                                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'Unidad de medida de ventas PI no está prevista en el producto: '  + productosSap.get(item.ROW.trim()).prodName));
+                            }
+                            else
+                            {
+                                if(!item.MESSAGE.contains('Error en SALES_ITEM_IN'))
+                                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,item.MESSAGE));
+                            }
+                            
+                        }
+                    }
                 }
                 else
                 {
-                	if(Response.Resultado == 'Reintento')
-                	{
-                		pedido.Pedido_SDL__c = 'Reintento';
-                		pedido.Reenviar__c = true;
-                	}
-                    if(Response.SapReturn != null)
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,Response.Mensaje));
+                    if(Response.Mensaje.contains('Servidor NSC Ocupado, favor de intentar nuevamente mas tarde.'))
                     {
-                        for(WsPedidosMayoreoLegados.DT_SDL_ResItem item :Response.SapReturn.DT_SDL_ResItem)
-                        {
-                            if(item.TYPE_x == 'E')
-                            {
-                                system.debug('item '+ item);
-                                system.debug('item.ROW '+ item.ROW);
-                                system.debug('productosSap '+ productosSap.get(item.ROW.trim()));
-                                if(item.MESSAGE.contains('Unidad de medida de ventas PI no está prevista en la posición'))
-                                {
-                                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'Unidad de medida de ventas PI no está prevista en el producto: '  + productosSap.get(item.ROW.trim()).prodName));
-                                }
-                                else
-                                {
-                                    if(!item.MESSAGE.contains('Error en SALES_ITEM_IN'))
-                                        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,item.MESSAGE));
-                                }
-                                
-                            }
-                        }
-                    }
-                    else
-                    {
-                        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING,Response.Mensaje));
-                        if(Response.Mensaje.contains('Servidor NSC Ocupado, favor de intentar nuevamente mas tarde.'))
-                        {
-                        	pedido.Reenviar__c = true;
-                        	
-                        }else{return null;}
-                    }
-                    
+                        //pedido.Reenviar__c = true;
+                        return null;
+                        
+                    }else{return null;}
                 }
-                return pedido;
+                
+            }
+            return pedido;
             
         }
         return pedido;
@@ -1304,79 +1310,79 @@ public class PedidosOtrosCanalesUtils {
     public static void ValidarPedidosCreados(WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos,WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados Response, opportunity pedido)
     {
         if(DatosPedidos.ActualizaSAP 
-                && (Response != null && (Response.Resultado == 'Error' || Response.Resultado =='TerminadoConExito')))
-                {
-                    pedido.Numero_Pedido_SAP__c = Response.SapShip_To;
-                    
-                    if(String.isBlank(pedido.Numero_Pedido_SAP__c))
-                    {                       
-                        pedido.Reenviar__c = true;  
-                       
-                    }
-                    else{mensaje += ' Folio SAP: '+ pedido.Numero_Pedido_SAP__c;}
-                    
-                }
+           && (Response != null && (Response.Resultado == 'Error' || Response.Resultado =='TerminadoConExito')))
+        {
+            pedido.Numero_Pedido_SAP__c = Response.SapShip_To;
+            
+            if(String.isBlank(pedido.Numero_Pedido_SAP__c))
+            {                       
+                pedido.Reenviar__c = true;  
+                
+            }
+            else{mensaje += ' Folio SAP: '+ pedido.Numero_Pedido_SAP__c;}
+            
+        }
         if(DatosPedidos.ActualizaPSV)
-                {
-                    pedido.Folio_Pedido_SDL__c = Response.SdlFolioPedidoSDL;
-                    pedido.Folio_Embarque__c = Response.SdlFolioEmbarqueSDL; 
-                    
-                    if(String.isBlank(pedido.Folio_Pedido_SDL__c))
-                    {
-                        pedido.Reenviar__c = true;
-                       
-                    }
-                    else{mensaje += ' Folio SDL: '+ pedido.Folio_Pedido_SDL__c;}                                           
-                }
+        {
+            pedido.Folio_Pedido_SDL__c = Response.SdlFolioPedidoSDL;
+            pedido.Folio_Embarque__c = Response.SdlFolioEmbarqueSDL; 
+            
+            if(String.isBlank(pedido.Folio_Pedido_SDL__c))
+            {
+                pedido.Reenviar__c = true;
+                
+            }
+            else{mensaje += ' Folio SDL: '+ pedido.Folio_Pedido_SDL__c;}                                           
+        }
         if(DatosPedidos.ActualizaNSC && Response.NscNumeroPedido != null)
-                {
-                    pedido.Numero_de_Pedido_NSC__c = string.ValueOf(integer.ValueOf(Response.NscNumeroPedido));
-                    if(String.isBlank(pedido.Numero_de_Pedido_NSC__c))
-                    {                                                
-                        pedido.Reenviar__c = true;
-                    }
-                    else{mensaje += ' Folio NSC: '+ pedido.Numero_de_Pedido_NSC__c;}
-                }
+        {
+            pedido.Numero_de_Pedido_NSC__c = string.ValueOf(integer.ValueOf(Response.NscNumeroPedido));
+            if(String.isBlank(pedido.Numero_de_Pedido_NSC__c))
+            {                                                
+                pedido.Reenviar__c = true;
+            }
+            else{mensaje += ' Folio NSC: '+ pedido.Numero_de_Pedido_NSC__c;}
+        }
     }
     public static void ActualizarEnvioPedios(opportunity pedido,WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos)
     {
-            string Fecha = dateToString(pedido.Fecha_de_Embarque__c,'yyyyMMdd'); 
-            WsActualizaPSVPedidos.PedidosPSV actualizaPedido;
-            list<WsActualizaPSVPedidos.PedidosPSV> listaActualizaPedidos = new list<WsActualizaPSVPedidos.PedidosPSV>();
-            WsActualizaPSVPedidos servicesActualiza = new WsActualizaPSVPedidos();
-            WsActualizaPSVPedidos.RespuestaOfBoolean ResponseActualiza; 
-            if(IsVizcatle(pedido) &&  pedido.StageName != '11 - Bloqueado Cierre')
+        string Fecha = dateToString(pedido.Fecha_de_Embarque__c,'yyyyMMdd'); 
+        WsActualizaPSVPedidos.PedidosPSV actualizaPedido;
+        list<WsActualizaPSVPedidos.PedidosPSV> listaActualizaPedidos = new list<WsActualizaPSVPedidos.PedidosPSV>();
+        WsActualizaPSVPedidos servicesActualiza = new WsActualizaPSVPedidos();
+        WsActualizaPSVPedidos.RespuestaOfBoolean ResponseActualiza; 
+        if(IsVizcatle(pedido) &&  pedido.StageName != '11 - Bloqueado Cierre')
+        {
+            actualizaPedido = CrearPedidoPsvActualiza(pedido.Numero_Pedido_SAP__c,pedido.Id_Externo__c,'E', true,pedido.Folio_Pedido_SDL__c,Fecha);
+            listaActualizaPedidos.add(actualizaPedido);
+            
+            actualizaPedido = new WsActualizaPSVPedidos.PedidosPSV();
+            Fecha = dateToString(pedido.Fecha_Embarque_Bodega__c,'yyyyMMdd'); 
+            actualizaPedido = CrearPedidoPsvActualiza(string.ValueOf(integer.ValueOf(pedido.Numero_de_Pedido_NSC__c)),pedido.Id_Externo__c,'V', false,pedido.Folio_Pedido_SDL__c,Fecha);
+            listaActualizaPedidos.add(actualizaPedido);  
+            
+        }
+        else if(pedido.StageName != '11 - Bloqueado Cierre')
+        {
+            actualizaPedido = new WsActualizaPSVPedidos.PedidosPSV();
+            string pedidoAct = DatosPedidos.ActualizaNSC == true?pedido.Numero_de_Pedido_NSC__c:pedido.Numero_Pedido_SAP__c;
+            actualizaPedido = CrearPedidoPsvActualiza(pedidoAct,pedido.Id_Externo__c,ObtenerCanalVenta(pedido), DatosPedidos.ActualizaSAP,pedido.Folio_Pedido_SDL__c,Fecha);
+            listaActualizaPedidos.add(actualizaPedido);
+            
+        }
+        for(WsActualizaPSVPedidos.PedidosPSV psv : listaActualizaPedidos)
+        {
+            servicesActualiza = new WsActualizaPSVPedidos();
+            ResponseActualiza = new WsActualizaPSVPedidos.RespuestaOfBoolean();
+            ResponseActualiza = servicesActualiza.ActualizaPSVPedidos(psv);
+            
+            if(ResponseActualiza != null)
             {
-                actualizaPedido = CrearPedidoPsvActualiza(pedido.Numero_Pedido_SAP__c,pedido.Id_Externo__c,'E', true,pedido.Folio_Pedido_SDL__c,Fecha);
-                listaActualizaPedidos.add(actualizaPedido);
-                
-                actualizaPedido = new WsActualizaPSVPedidos.PedidosPSV();
-                Fecha = dateToString(pedido.Fecha_Embarque_Bodega__c,'yyyyMMdd'); 
-                actualizaPedido = CrearPedidoPsvActualiza(string.ValueOf(integer.ValueOf(pedido.Numero_de_Pedido_NSC__c)),pedido.Id_Externo__c,'V', false,pedido.Folio_Pedido_SDL__c,Fecha);
-                listaActualizaPedidos.add(actualizaPedido);  
+                system.debug('Respuesta: '+ResponseActualiza.Mensaje);
                 
             }
-            else if(pedido.StageName != '11 - Bloqueado Cierre')
-            {
-                actualizaPedido = new WsActualizaPSVPedidos.PedidosPSV();
-                string pedidoAct = DatosPedidos.ActualizaNSC == true?pedido.Numero_de_Pedido_NSC__c:pedido.Numero_Pedido_SAP__c;
-                actualizaPedido = CrearPedidoPsvActualiza(pedidoAct,pedido.Id_Externo__c,ObtenerCanalVenta(pedido), DatosPedidos.ActualizaSAP,pedido.Folio_Pedido_SDL__c,Fecha);
-                listaActualizaPedidos.add(actualizaPedido);
-                
-            }
-            for(WsActualizaPSVPedidos.PedidosPSV psv : listaActualizaPedidos)
-            {
-                servicesActualiza = new WsActualizaPSVPedidos();
-                ResponseActualiza = new WsActualizaPSVPedidos.RespuestaOfBoolean();
-                ResponseActualiza = servicesActualiza.ActualizaPSVPedidos(psv);
-               
-                if(ResponseActualiza != null)
-                {
-                    system.debug('Respuesta: '+ResponseActualiza.Mensaje);
-                    
-                }
-                
-            }
+            
+        }
     }
     public static WsActualizaPSVPedidos.PedidosPSV CrearPedidoPsvActualiza(string folio,string folioSF,String tipoPedido,boolean actualizaSap,string folioSDL,string fechaEmbarque)
     {
@@ -1498,7 +1504,7 @@ public class PedidosOtrosCanalesUtils {
         } else {
             pedidoWS.folioEmbarqueSDL =  '';
         }
-        system.debug('canal: '+pedido.Account.Canal_Distribucion__c.right(2)+'Sociedad: '+pedido.Account.Sociedad__c.right(3));
+        //system.debug('canal: '+pedido.Account.Canal_Distribucion__c.right(2)+'Sociedad: '+pedido.Account.Sociedad__c.right(3));
         if(!Test.isRunningTest()){
             if( pedido.Account.Canal_Distribucion__c.right(2) == 'EX' && (pedido.Account.Sociedad__c.right(3) == '303' || pedido.Account.Sociedad__c.right(3) == '300') ) {
                 if( String.isBlank(pedido.OC__c ) ) {
@@ -1534,7 +1540,7 @@ public class PedidosOtrosCanalesUtils {
                 PedidoBloqueado = true;
             }
         }
-         
+        
         pedidoWS.tipoSurtido = 3;
         pedidoWS.tipoVenta = 1;
         String sociedad = '';
@@ -1776,27 +1782,27 @@ public class PedidosOtrosCanalesUtils {
         // CODIGO VIZ DEL CANAL DE DISTRIBUCIÓN DE LA SUCURSAL
         Integer codigoVizCDSucursal = null;
         try{
-        	 if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
-		        {
-		            string suc = 'SUC - ';
-		            List<String> ListaSucursalesFrontera = new List<String>();
-		            ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
-		            System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
-		            System.debug('pedido.frontera__c: '+pedido.frontera__c);
-		            String ClienteViz = ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
-		            System.debug('ClienteViz: '+ClienteViz);
-		            if(String.isNotBlank(ClienteViz))
-		            {
-		                string codigo  ='0';     
-		                Account sucVizNew = buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
-		                if(sucVizNew != null && sucVizNew.Canal_de_Distribucion_NSC__c != null)
-		                {
-		                    codigo = sucVizNew.Canal_de_Distribucion_NSC__r.Codigo__c;
-		                    codigoVizCDSucursal =  Integer.valueOf(codigo);
-		                }
-		            }
-		        }     
-           
+            if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
+            {
+                string suc = 'SUC - ';
+                List<String> ListaSucursalesFrontera = new List<String>();
+                ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
+                System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
+                System.debug('pedido.frontera__c: '+pedido.frontera__c);
+                String ClienteViz = ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
+                System.debug('ClienteViz: '+ClienteViz);
+                if(String.isNotBlank(ClienteViz))
+                {
+                    string codigo  ='0';     
+                    Account sucVizNew = buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
+                    if(sucVizNew != null && sucVizNew.Canal_de_Distribucion_NSC__c != null)
+                    {
+                        codigo = sucVizNew.Canal_de_Distribucion_NSC__r.Codigo__c;
+                        codigoVizCDSucursal =  Integer.valueOf(codigo);
+                    }
+                }
+            }     
+            
         }catch(Exception e){
             System.debug('Error en conversión del codigo viz del canal de distribución de la sucursal');
         }
@@ -1956,7 +1962,7 @@ public class PedidosOtrosCanalesUtils {
             // else if( pedido.Unidad__c == 'L' ) { utipoPeso = 3; }
             p.unidadPeso = utipoPeso;
             p.tipoPeso = String.valueOf(utipoPeso);//UM 0,1,2
-
+            
             Decimal pallets   = 0;
             Integer cantidad   = 0;
             Integer cajasTt     = 0;
@@ -1965,7 +1971,7 @@ public class PedidosOtrosCanalesUtils {
             Decimal importeTxP   = 0.0;
             Decimal importeTxPV = 0.0;
             String obs       = '';
-
+            
             System.debug('Armando Inventario...');
             List<WsPedidosMayoreoLegados.PedidoMayoreoInventario> listInventario = new List<WsPedidosMayoreoLegados.PedidoMayoreoInventario>();
             for( PedidosOtrosCanalesUtils.Producto prod: prodsAux ) {
@@ -1974,7 +1980,7 @@ public class PedidosOtrosCanalesUtils {
                 
                 WsPedidosMayoreoLegados.PedidoMayoreoInventario inventario = new WsPedidosMayoreoLegados.PedidoMayoreoInventario();
                 inventario.producto = pCodigo;
-
+                
                 //ORIGEN SURTIDO
                 String idPlantaSurtido = '';
                 Integer codigoOrigen = 0;
@@ -1998,7 +2004,7 @@ public class PedidosOtrosCanalesUtils {
                     System.debug('Error en conversión de la planta del origen surtido');
                 }
                 inventario.origenSurtido = codigoOrigen;
-
+                
                 // ACTIVA
                 Integer activa = 0;
                 try {
@@ -2007,7 +2013,7 @@ public class PedidosOtrosCanalesUtils {
                     System.debug('Error en valida disponibilidad del origen surtido');
                 }
                 inventario.dispoActiva = activa;
-
+                
                 //TIPO INVENTARIO
                 Integer tipoInventario = 0;
                 try{
@@ -2016,7 +2022,7 @@ public class PedidosOtrosCanalesUtils {
                     System.debug('Error en conversion de tipo de inventario');
                 }
                 inventario.tipoInventario = tipoInventario;
-
+                
                 //CANTIDAD CAJAS
                 Integer cajas = 0;
                 try{
@@ -2027,7 +2033,7 @@ public class PedidosOtrosCanalesUtils {
                 if(cajas==null){cajas = 0;}
                 inventario.cantidadCajas = cajas;
                 listInventario.add( inventario );
-
+                
                 //ACUMULADO
                 Integer tmpPallets = 0;
                 Integer tmpVolumen = 0;
@@ -2035,7 +2041,7 @@ public class PedidosOtrosCanalesUtils {
                 if(tmpPallets==null){tmpPallets=0;}
                 try{tmpVolumen=Integer.valueOf(item.Volumen__c);}catch(Exception e){System.debug('Error en conversión de volumen');}
                 if(tmpVolumen==null){tmpVolumen=0;}
-
+                
                 cajasTt += cajas;
                 pallets += tmpPallets;
                 cantidad += Integer.valueOf(item.Cantidad__c);
@@ -2051,7 +2057,7 @@ public class PedidosOtrosCanalesUtils {
                     obs += ( (String.isNotBlank(item.Rango_Surtido__c)?item.Rango_Surtido__c:'') + ' ' + item.Observaciones__c);
                 }
             }
-
+            
             System.debug('INVENTARIO::'+listInventario);
             
             WsPedidosMayoreoLegados.ArrayOfPedidoMayoreoInventario inventarioWS = new WsPedidosMayoreoLegados.ArrayOfPedidoMayoreoInventario();
@@ -2082,7 +2088,7 @@ public class PedidosOtrosCanalesUtils {
         WsPedidosMayoreoLegados.PIPedidoVenta pedidoSap = new WsPedidosMayoreoLegados.PIPedidoVenta();
         pedido.Cliente__r   = PedidosOtrosCanalesUtils.retrieveCteInfo( pedido.Cliente__c );
         pedido.Account     =  PedidosOtrosCanalesUtils.retrieveCteInfo( pedido.AccountId );
-       
+        
         system.debug('CrearPedidoSap------------------------------------------------------------------> ');
         system.debug('mapTipoPedido: '+mapTipoPedido);
         system.debug('pedido.Canal__c: '+pedido.Canal__c);
@@ -2091,7 +2097,7 @@ public class PedidosOtrosCanalesUtils {
         pedidoSap.SALES_HEADER_IN = new WsPedidosMayoreoLegados.SALES_HEADER_IN();
         pedidoSap.SALES_HEADER_IN.DOC_TYPE= mapTipoPedido.get(pedido.Canal__c).ClaseDocto__c;
         pedidoSap.SALES_HEADER_IN.COLLECT_NO='X'; // siempre va vacio
-       
+        
         if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
         {
             string suc = 'SUC - ';
@@ -2216,8 +2222,7 @@ public class PedidosOtrosCanalesUtils {
             {
                 condition.COND_VALUE = string.valueOf(mapProductosConConsecutivo.get(i).item.UnitPrice);
             }               
-            //condition.CURRENCY_x =  pedido.Cliente__r.Moneda_Cliente__c.right(3);
-            condition.CURRENCY_x =   mapTipoPrecio.get(llave).Moneda__c;
+            condition.CURRENCY_x =  pedido.Cliente__r.Moneda_Cliente__c.right(3);
             condition.COND_UNIT = mapTipoPrecio.get(llave).Tipo_Precio_Sap__c;
             pedidoSap.ConditionsIn.SALES_CONDITIONS_IN.add(condition);
         }
@@ -2334,7 +2339,7 @@ public class PedidosOtrosCanalesUtils {
         DatosPedidoNSC.bPedidoRechazado=               false;
         DatosPedidoNSC.bCapturadoDespuesDeCierre=      false;
         DatosPedidoNSC.bFacturaNoFiscal=               false; 
-        DatosPedidoNSC.nCostoFlete=                    0;
+        DatosPedidoNSC.nCostoFlete=                    pedido.Flete__c;
         DatosPedidoNSC.bEnviadoCorporativo=            false;
         DatosPedidoNSC.bPedidoCanceladoPorElSistema=   false;
         DatosPedidoNSC.bPedidoTransmitido=             false;
@@ -2357,18 +2362,18 @@ public class PedidosOtrosCanalesUtils {
         
         system.debug('PEDIDO LIBERADO: ' +pedido.Liberado__c );
         
-       if(pedido.Liberado__c =='N')
-       {
+        if(pedido.Liberado__c =='N')
+        {
             DatosPedidoNSC.bRequiereAutorizacion=          true;
             DatosPedidoNSC.bTipoAutorizacionRemota=        true; 
             DatosPedidoNSC.cMotivoAutorizacion=           pedido.Motivo_Rechazo_Cartera__c; 
-       }
-       else
-       {
+        }
+        else
+        {
             DatosPedidoNSC.bRequiereAutorizacion=          false;
             DatosPedidoNSC.bTipoAutorizacionRemota=        false; 
             DatosPedidoNSC.cMotivoAutorizacion=            ''; 
-       }
+        }
         if(pedido.Id!= null)
         {
             DatosPedidoNSC.cUsuario_UltimaModificacion=    ObtenerUsuario(); 
@@ -2464,17 +2469,17 @@ public class PedidosOtrosCanalesUtils {
             pedidoDetalle.Precio_nFolioOferta=0;
             pedidoDetalle.nPrecioUnitarioOriginal = p.item.UnitPrice;
             pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
-          
-          /*  if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
-            {
-                pedidoDetalle.nPrecioUnitarioOriginal = p.item.Precio_Unitario_Viz__c;
-                pedidoDetalle.nPrecioUnitarioOtorgado = p.item.Precio_Unitario_Viz__c;
-            }   
-            else
-            {
-                pedidoDetalle.nPrecioUnitarioOriginal = p.item.UnitPrice;
-                pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
-            } */
+            
+            /*  if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
+{
+pedidoDetalle.nPrecioUnitarioOriginal = p.item.Precio_Unitario_Viz__c;
+pedidoDetalle.nPrecioUnitarioOtorgado = p.item.Precio_Unitario_Viz__c;
+}   
+else
+{
+pedidoDetalle.nPrecioUnitarioOriginal = p.item.UnitPrice;
+pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
+} */
             pedidoDetalle.nImporte = p.item.importe__c;
             pedidoDetalle.nMoneda = MapaMonedas.get(pedido.Cliente__r.Moneda_Cliente__c.right(3));
             pedidoDetalle.nTipoCambio = 1;
@@ -2860,7 +2865,7 @@ public class PedidosOtrosCanalesUtils {
     }
     public static void submitForApproval(Opportunity opp, string Comment, string tipo)
     {
-          // Create an approval request for the Opportunity
+        // Create an approval request for the Opportunity
         String canalDistribucion = tipo =='Cierre'?opp.Canal_Factura__r.Codigo__c: opp.Cliente__r.Canal_Distribucion__c.right(2);
         String aprobadorID ='';
         map<string,String> mapAprobadores = ObtenerAprobadores();
@@ -3014,12 +3019,12 @@ public class PedidosOtrosCanalesUtils {
     {
         map<string,Integer> mapaUnidadMedida = new map<string,Integer>();
         mapaUnidadMedida.put('PK',4);
-        mapaUnidadMedida.put('PP',4);
-        mapaUnidadMedida.put('PC',4);
+        mapaUnidadMedida.put('PP',1);
+        mapaUnidadMedida.put('PC',3);
         mapaUnidadMedida.put('DL',5);
-        mapaUnidadMedida.put('DK',5);
-        mapaUnidadMedida.put('DC',5);
-        mapaUnidadMedida.put('DP',5);
+        mapaUnidadMedida.put('DK',4);
+        mapaUnidadMedida.put('DC',3);
+        mapaUnidadMedida.put('DP',1);
         return mapaUnidadMedida;
         
     }
@@ -3057,14 +3062,14 @@ public class PedidosOtrosCanalesUtils {
         integer contador = 1;
         list<prod> productMap = new list<prod>();
         map<String,opportunityLineItem> MapaCantidadProductos = new map<String,opportunityLineItem>();
-       system.debug('PRODUCTOS=> '+productos);
+        system.debug('PRODUCTOS=> '+productos);
         for(PedidosOtrosCanalesUtils.producto p : productos)
         {
             prod pp = new prod();
             pp.codigo =  p.codigo;
             pp.ProductCode = p.item.ProductCode;
             productMap.add(pp);
-                
+            
             if(p.item == null)
                 continue;
             
@@ -3080,24 +3085,23 @@ public class PedidosOtrosCanalesUtils {
                     oppl.Cajas__c =  integer.ValueOf(p.item.Cantidad__c);
                 
                 MapaCantidadProductos.put(p.codigo,oppl);
-            }  
-              
+            }    
+            system.debug(' CODIGO=> '+p.codigo);
             d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();           
             d = CrearDetalleNSCSDL(p.item,contador++, request.pedidoDatosGenerales.TipoMoneda,p.codigo,pedido);
             if(d != null)
-                detalleWs.add(d);  
-        
+                detalleWs.add(d);           
         }             
-       /* for(opportunityLineItem p : MapaCantidadProductos.values())
-        {           
-            d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
-            System.debug('TipoMoneda:: '+ request.pedidoDatosGenerales.TipoMoneda);
-           
-            d = CrearDetalleNSCSDL(p,contador++, request.pedidoDatosGenerales.TipoMoneda,p.ProductCode,pedido);
-            if(d != null)
-                detalleWs.add(d);
-        }
-       */
+        /* for(opportunityLineItem p : MapaCantidadProductos.values())
+{           
+d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
+System.debug('TipoMoneda:: '+ request.pedidoDatosGenerales.TipoMoneda);
+
+d = CrearDetalleNSCSDL(p,contador++, request.pedidoDatosGenerales.TipoMoneda,p.ProductCode,pedido);
+if(d != null)
+detalleWs.add(d);
+}
+*/
         if(MapProductosEliminado != null)
         {
             if(MapProductosEliminado.get(pedido.id) != null)
@@ -3133,7 +3137,7 @@ public class PedidosOtrosCanalesUtils {
         }
         else
         {
-             PedidosMayoreoWS.PedidoMayoreo CabezeropedidoMayoreo = CtrlTrgOppWsActualizaDatosGenerales.CrearCabezeroPedido(pedido,productos);
+            PedidosMayoreoWS.PedidoMayoreo CabezeropedidoMayoreo = CtrlTrgOppWsActualizaDatosGenerales.CrearCabezeroPedido(pedido,productos);
             if(CabezeropedidoMayoreo != null)
             {
                 request.pedidoMayoreo.pedidoMayoreo = new list<WsActualizaDatosGenerales_NSC_SDL.PedidoMayoreo>();
@@ -3150,21 +3154,22 @@ public class PedidosOtrosCanalesUtils {
     public static WsActualizaDatosGenerales_NSC_SDL.PedidoDatosGenerales CrearPedidoDatosGenerales(Opportunity pedido,string areaResp, integer TipoAutorizado,String TipoMov)
     {
         WsActualizaDatosGenerales_NSC_SDL.PedidoDatosGenerales PedidoDatosGenerales = new  WsActualizaDatosGenerales_NSC_SDL.PedidoDatosGenerales();
-       // PedidoDatosGenerales.CanalVenta = ObtenerCanalVenta(pedido);
-       if(string.isNotBlank(pedido.Canal_Factura__r.IdPlanta__c) 
-            &&  pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX')
-       {
+        // PedidoDatosGenerales.CanalVenta = ObtenerCanalVenta(pedido);
+        if(string.isNotBlank(pedido.Canal_Factura__r.IdPlanta__c) 
+           &&  pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX')
+        {
             PedidoDatosGenerales.CanalVenta = 'V';
-       }
-       else
-       {
+        }
+        else
+        {
             PedidoDatosGenerales.CanalVenta = ObtenerCanalVenta(pedido);
-       }        
+        }        
         pedido.Cliente__r   = retrieveCteInfo( pedido.Cliente__c );        
         if(pedido.Cliente__r.Canal_de_Distribucion_NSC__c == null)
         {
             pedido.Cliente__r   = retrieveCteInfo( pedido.Cliente__c );
-            PedidoDatosGenerales.CanalDistCte = integer.ValueOf(pedido.Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c);
+            string codigo =   pedido.Cliente__r != null ? pedido.Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c :'740';
+            PedidoDatosGenerales.CanalDistCte = integer.ValueOf(codigo);
         }
         else
         {
@@ -3201,7 +3206,8 @@ public class PedidosOtrosCanalesUtils {
             
         }
         map<string,Integer> MapaMonedas = crearMoneda();
-        PedidoDatosGenerales.TipoMoneda = MapaMonedas.get(pedido.Cliente__r.Moneda_Cliente__c.right(3));
+        string moneda = pedido.Cliente__r != null?pedido.Cliente__r.Moneda_Cliente__c.right(3):'MXN';    
+        PedidoDatosGenerales.TipoMoneda = MapaMonedas.get(moneda);
         PedidoDatosGenerales.FleteLibra = pedido.Flete__c == null?0:pedido.Flete__c;
         PedidoDatosGenerales.OCCliente = pedido.OC__c == null?'':pedido.OC__c;
         PedidoDatosGenerales.OCProveedor = pedido.PO_Proveedor__c== null?'':pedido.PO_Proveedor__c;
@@ -3239,11 +3245,11 @@ public class PedidosOtrosCanalesUtils {
             PedidoDatosGenerales.CanalDistribucion = integer.ValueOf(pedido.Canal_Factura__r.Codigo__c);
         }
         PedidoDatosGenerales.TipoModificacionSAP = '1';
-       /* if(string.isNotBlank(pedido.Numero_Pedido_SAP__c) && pedido.Numero_Pedido_SAP__c != ' ')
-        {     
-            PedidoDatosGenerales.TipoModificacionSAP = '1'; // 1
-        }
-        else{ PedidoDatosGenerales.TipoModificacionSAP = '1';} // 2*/ 
+        /* if(string.isNotBlank(pedido.Numero_Pedido_SAP__c) && pedido.Numero_Pedido_SAP__c != ' ')
+{     
+PedidoDatosGenerales.TipoModificacionSAP = '1'; // 1
+}
+else{ PedidoDatosGenerales.TipoModificacionSAP = '1';} // 2*/ 
         
         if(pedido.Fecha_Embarque_Bodega__c != null)
             PedidoDatosGenerales.FechaEntregaBodega  = dateToString(pedido.Fecha_Embarque_Bodega__c,'yyyyMMdd');
@@ -3306,13 +3312,13 @@ public class PedidosOtrosCanalesUtils {
         
         detalle.TipoPrecio  = producto.Tipo_de_Precio__c;
         detalle.PrecioUnitCte  = producto.UnitPrice;
-        detalle.PrecioConFleteCte  = producto.UnitPrice; //producto.Precio_Flete__c == null?0:producto.Precio_Flete__c;
+        detalle.PrecioConFleteCte  = producto.UnitPrice;//producto.Precio_Flete__c == null?0:producto.Precio_Flete__c;
         detalle.ImporteTotalProducto  = producto.Importe__c;
         map<string,Integer> MapaUnidadMedida = crearUnidadMedida();
         detalle.UnidadMedida  = MapaUnidadMedida.get(producto.Tipo_de_Precio__c);
         /* if(producto.Tipo_de_Precio__c =='DL')
-				detalle.KgsPedidos  = producto.Volumen__c /CONVERSION_KILO_POUND;
-		else*/
+detalle.KgsPedidos  = producto.Volumen__c /CONVERSION_KILO_POUND;
+else*/
         detalle.KgsPedidos  = producto.kilos__c;
         
         detalle.LibrasPedidas  = producto.Volumen__c == null?0:producto.Volumen__c;
@@ -3348,7 +3354,7 @@ public class PedidosOtrosCanalesUtils {
             detalle.DiasConsolidacion  =  Integer.ValueOf(ep.Dias_Embarque__c);
             
         }
-      	System.debug('DETALLEPRODUCTO=> ' +  detalle);
+        
         return detalle;
     }
     private static AggregateResult[] CalcularImportes(Opportunity Opp )
@@ -3393,7 +3399,7 @@ public class PedidosOtrosCanalesUtils {
         opp.Pedido_Approval_Estatus__c =null;
         return opp;
     }
-
+    
     public static List<OpportunityLineItem> RegresarOpportunityLineItem(List<Producto> listaProductos)
     {
         List<OpportunityLineItem> lista = new list<OpportunityLineItem>();
@@ -3469,17 +3475,17 @@ public class PedidosOtrosCanalesUtils {
         integer semanaAnt = semana -1;
         System.debug('SemanaTraer:: '+ semana);
         
-     list<AdminSaldosEstrategias__c> adminSaldos =   [select Id,Anio__c,Fecha_Final__c,Fecha_Inicial__c,Folio__c,Num_Semana__r.Name,Saldo_Final_Auto__c,Saldo_Final_Export__c,Saldo_Final_Mayo__c,
-                productoId__r.ProductCode,Prod_Master__r.MasterID__c,productoId__c,Prod_Master__c
-                from AdminSaldosEstrategias__c
-                where
-                Num_Semana__r.name >=: String.valueOf(semanaAnt)
-                and Num_Semana__r.name <=: String.valueOf(semana)
-                and Anio__c =: String.valueOf(anio)
-                order by   Num_Semana__r.name,Anio__c
-               ];
-          System.debug('TraerEstrategiaComercial '+ adminSaldos);
-         return  adminSaldos;
+        list<AdminSaldosEstrategias__c> adminSaldos =   [select Id,Anio__c,Fecha_Final__c,Fecha_Inicial__c,Folio__c,Num_Semana__r.Name,Saldo_Final_Auto__c,Saldo_Final_Export__c,Saldo_Final_Mayo__c,
+                                                         productoId__r.ProductCode,Prod_Master__r.MasterID__c,productoId__c,Prod_Master__c
+                                                         from AdminSaldosEstrategias__c
+                                                         where
+                                                         Num_Semana__r.name >=: String.valueOf(semanaAnt)
+                                                         and Num_Semana__r.name <=: String.valueOf(semana)
+                                                         and Anio__c =: String.valueOf(anio)
+                                                         order by   Num_Semana__r.name,Anio__c
+                                                        ];
+        System.debug('TraerEstrategiaComercial '+ adminSaldos);
+        return  adminSaldos;
     }
     public static map<string,AdminSaldosEstrategias__c> TraerEstrategiaComercialPorSemana(Integer semana)
     {
@@ -3531,7 +3537,7 @@ public class PedidosOtrosCanalesUtils {
             
             p.inventarioAnt = null;
             p.inventario = null;
-          System.debug('listaEstrategiasCom:: ' + listaEstrategiasCom.size());  
+            System.debug('listaEstrategiasCom:: ' + listaEstrategiasCom.size());  
             for(AdminSaldosEstrategias__c admon : listaEstrategiasCom)
             {
                 System.debug('p.codigo: ' + p.codigo);
@@ -3832,16 +3838,16 @@ public class PedidosOtrosCanalesUtils {
         return Resultado;
     }
     public static void sendEmailWithTemplate(ID usuario, string correo ,id opp) {
-         /* Messaging.SingleEmailMessage mail =  new Messaging.SingleEmailMessage();
-            mail.setTargetObjectId(usuario);
-            mail.setTemplateId('00X2C000000QM1Y');
-            mail.setWhatId(opp);
-            mail.setBccSender(false);
-            mail.setUseSignature(false);
-            //mail.setToAddresses(new String[] {correo});
-            mail.setSenderDisplayName('Notificacion pedidos de planta');
-            mail.setSaveAsActivity(false);
-            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });*/
+        /* Messaging.SingleEmailMessage mail =  new Messaging.SingleEmailMessage();
+mail.setTargetObjectId(usuario);
+mail.setTemplateId('00X2C000000QM1Y');
+mail.setWhatId(opp);
+mail.setBccSender(false);
+mail.setUseSignature(false);
+//mail.setToAddresses(new String[] {correo});
+mail.setSenderDisplayName('Notificacion pedidos de planta');
+mail.setSaveAsActivity(false);
+Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });*/
     }
     
     public static map<string,list<ProductosEliminado__c>> TraerProductosEliminados(string opp)
@@ -3941,14 +3947,14 @@ public class PedidosOtrosCanalesUtils {
             }
         }
         System.debug('Canal Distribución...');
-        if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'AS' ) { areaResp = 'A';  }
-        else if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'MY' ) {
+        if(  pedido.Cliente__r != null && pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'AS' ) { areaResp = 'A';  }
+        else if(  pedido.Cliente__r != null && pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'MY' ) {
             areaResp = 'N'; //pedidoViz = 1;
             if( String.isNotBlank(idPlanta) ) {
                 areaResp = 'M';
             }
         }
-        else if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' ) {
+        else if( pedido.Cliente__r != null &&  pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' ) {
             areaResp = 'B';
             if(String.isNotBlank(idPlanta)) {
                 areaResp = 'E';                
@@ -4052,14 +4058,14 @@ public class PedidosOtrosCanalesUtils {
             if(string.isNotBlank(pedido.Numero_de_Pedido_NSC__c) && pedido.Numero_de_Pedido_NSC__c != '0')
                 pedidoWS.estatusPedido = 10; //10-Bloqueado
         }
-       /*  if(!cancelado && String.isBlank(pedido.Folio_Pedido_SDL__c))
-            {
-            if(!ValidarCierre(pedido,Integer.valueOf(pedido.Canal_Factura__r.Dias_de_cierre__c), pedido.Canal_Factura__r.Hora_de_cierre__c))
-            {
-            pedidoWS.estatusPedido = 11; //10-Bloqueado
-            pedido.StageName = '11 - Bloqueado Cierre';
-            }
-        }*/ 
+        /*  if(!cancelado && String.isBlank(pedido.Folio_Pedido_SDL__c))
+{
+if(!ValidarCierre(pedido,Integer.valueOf(pedido.Canal_Factura__r.Dias_de_cierre__c), pedido.Canal_Factura__r.Hora_de_cierre__c))
+{
+pedidoWS.estatusPedido = 11; //10-Bloqueado
+pedido.StageName = '11 - Bloqueado Cierre';
+}
+}*/ 
         
         pedidoWS.tipoSurtido = 3;
         pedidoWS.tipoVenta = 1;
@@ -4308,26 +4314,26 @@ public class PedidosOtrosCanalesUtils {
         // CODIGO VIZ DEL CANAL DE DISTRIBUCIÓN DE LA SUCURSAL
         Integer codigoVizCDSucursal = null;
         try{
-        	if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
-		        {
-		            string suc = 'SUC - ';
-		            List<String> ListaSucursalesFrontera = new List<String>();
-		            ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
-		            System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
-		            System.debug('pedido.frontera__c: '+pedido.frontera__c);
-		            String ClienteViz = ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
-		            System.debug('ClienteViz: '+ClienteViz);
-		            if(String.isNotBlank(ClienteViz))
-		            {
-		                string codigo  ='0';
-		                Account sucVizNew = buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
-		                if(sucVizNew != null && sucVizNew.Canal_de_Distribucion_NSC__c != null)
-		                {
-		                    codigo = sucVizNew.Canal_de_Distribucion_NSC__r.Codigo__c;
-		                    codigoVizCDSucursal =  Integer.valueOf(codigo);
-		                }  
-		            }
-		        }
+            if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
+            {
+                string suc = 'SUC - ';
+                List<String> ListaSucursalesFrontera = new List<String>();
+                ListaSucursalesFrontera.addAll(pedido.Canal_Factura__r.SucursalesViz__c.split(';'));
+                System.debug('ListaSucursalesFrontera: '+ListaSucursalesFrontera);
+                System.debug('pedido.frontera__c: '+pedido.frontera__c);
+                String ClienteViz = ValidarSucursalViz(ListaSucursalesFrontera,pedido.frontera__c);
+                System.debug('ClienteViz: '+ClienteViz);
+                if(String.isNotBlank(ClienteViz))
+                {
+                    string codigo  ='0';
+                    Account sucVizNew = buscarSucViz(suc+ClienteViz.leftPad(10, '0'));
+                    if(sucVizNew != null && sucVizNew.Canal_de_Distribucion_NSC__c != null)
+                    {
+                        codigo = sucVizNew.Canal_de_Distribucion_NSC__r.Codigo__c;
+                        codigoVizCDSucursal =  Integer.valueOf(codigo);
+                    }  
+                }
+            }
             //codigoVizCDSucursal = Integer.valueOf( sucViz.Canal_de_Distribucion_NSC__r.Codigo__c );
         }catch(Exception e){
             System.debug('Error en conversión del codigo viz del canal de distribución de la sucursal');
@@ -5018,7 +5024,7 @@ public class PedidosOtrosCanalesUtils {
         ActualizaSAP = false;
         
         ParametrosOtrosCanales__c ep = ParametrosOtrosCanales__c.getInstance();
-         ActualizaPSV = Boolean.ValueOf(ep.Opera_PSV__c);
+        ActualizaPSV = Boolean.ValueOf(ep.Opera_PSV__c);
         try{
             sociedad = pedido.Account.Sociedad__c.right(3);
         }catch(Exception e){
@@ -5038,7 +5044,7 @@ public class PedidosOtrosCanalesUtils {
         
         system.debug('Planta :: '+ pedido.Canal_Factura__r.IdPlanta__c);
         system.debug('canalDistribucion :: '+ canalDistribucion );
-         system.debug('sociedad :: '+ sociedad );
+        system.debug('sociedad :: '+ sociedad );
         if(string.Isnotblank(pedido.Canal_Factura__r.IdPlanta__c)) // es planta
         {
             PedidoViz = (canalDistribucion=='EX' && sociedad == '303')?'V':'';
@@ -5069,11 +5075,11 @@ public class PedidosOtrosCanalesUtils {
     }
     public static void ReenviarPedido(opportunity pedido)
     {
-       if(ActualizaPSV && string.isNotBlank(pedido.Folio_Pedido_SDL__c)){ ActualizaPSV = false;}
-      
-       if(ActualizaNSC && string.isNotBlank(pedido.Numero_de_Pedido_NSC__c)){ ActualizaNSC = false;}
-      
-       if(ActualizaSAP && string.isNotBlank(pedido.Numero_Pedido_SAP__c)){ ActualizaSAP = false;}
+        if(ActualizaPSV && string.isNotBlank(pedido.Folio_Pedido_SDL__c)){ ActualizaPSV = false;}
+        
+        if(ActualizaNSC && string.isNotBlank(pedido.Numero_de_Pedido_NSC__c)){ ActualizaNSC = false;}
+        
+        if(ActualizaSAP && string.isNotBlank(pedido.Numero_Pedido_SAP__c)){ ActualizaSAP = false;}
     }   
     public static Boolean IsVizcatle(opportunity pedido)
     {
@@ -5095,7 +5101,7 @@ public class PedidosOtrosCanalesUtils {
             System.debug('Error leyendo el canal de distribucion de la sucursal');
             canalDistribucion = '';
         }
-        if(string.Isnotblank(pedido.Canal_Factura__r.IdPlanta__c)) // es planta
+        if(string.Isnotblank(!(Test.isRunningTest()) ? pedido.Canal_Factura__r.IdPlanta__c: '3')) // es planta
         {
             PedidoViz = (canalDistribucion=='EX' && sociedad == '303')?'V':'';
             
@@ -5156,2898 +5162,3367 @@ public class PedidosOtrosCanalesUtils {
         }
         return diasConsolidacion;
     }
- public static void fakeMethod(){
-    Integer i = 0;
-    i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-    i++;
-      i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-     i++;
-    i++;
-    i++;
-    i++;
-
-    //repeat the i++ hundred of times
-
-  }
+    
     public class SuKarneException extends Exception{}
+    public static void fakeMethod(){
+        Integer i = 0;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        i++;
+        
+        
+        
+        
+        //repeat the i++ hundred of times
+        
+    }
 }

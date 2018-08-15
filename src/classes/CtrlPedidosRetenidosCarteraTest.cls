@@ -112,13 +112,16 @@ public class CtrlPedidosRetenidosCarteraTest {
       wp.SaldoVencido = 1000;
       wp.DocumentosVencidos = 1000;
       wp.LimiteDeCredito = 1000;
-      wp.CreditoDisponible = 1000;
+      wp.CreditoDisponible = 1000; 
       wp.SaldoPedidos = 1000;
       wp.SaldoSF = 1000;
     	clase.listaPedidos = new list<CtrlPedidosRetenidosCartera.PedidosWrapper>();
     	clase.listaPedidos.add(wp);
-        Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraPSVMockImpl.WsLiberacionPedidosCarteraPSVMockImplTwoServices());
-
+        Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraLegadosMock.WsLiberacionPedidosCarteraLegadosMockTwoServices());
+		Test.setMock(WebServiceMock.class, new WsABCPeidosSFSAPMock());
+		Test.setMock(WebServiceMock.class, new WSValidarLimiteCreditoMockImpl());
+		wp.Pedido.Numero_de_Pedido_NSC__c = '1234567';
+        wp.Pedido.Numero_Pedido_SAP__c = '1234567';
         Test.startTest();
         clase.listaPedidos[0].Seleccionado = true;
         clase.ValidarCartera();
@@ -145,7 +148,7 @@ public class CtrlPedidosRetenidosCarteraTest {
       wp.SaldoSF = 1000;
     	clase.listaPedidos = new list<CtrlPedidosRetenidosCartera.PedidosWrapper>();
     	clase.listaPedidos.add(wp);
-        Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraPSVMockImpl.WsLiberacionPedidosCarteraPSVMockImplFail());
+        Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraLegadosMock.WsLiberacionPedidosCarteraLegadosMocklFail());
         Test.startTest();
         clase.listaPedidos[0].Seleccionado = true;
         clase.ValidarCartera();
@@ -170,7 +173,7 @@ public class CtrlPedidosRetenidosCarteraTest {
       wp.SaldoSF = 1000;
     	clase.listaPedidos = new list<CtrlPedidosRetenidosCartera.PedidosWrapper>();
     	clase.listaPedidos.add(wp);
-        Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraPSVMockImpl.WsLiberacionPedidosCarteraPSVMockImplFail2());
+        Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraLegadosMock.WsLiberacionPedidosCarteraLegadosMockFail2());
         Test.startTest();
         clase.listaPedidos[0].Seleccionado = true;
         clase.ValidarCartera();
@@ -195,7 +198,7 @@ public class CtrlPedidosRetenidosCarteraTest {
       wp.SaldoSF = 1000;
     	clase.listaPedidos = new list<CtrlPedidosRetenidosCartera.PedidosWrapper>();
     	clase.listaPedidos.add(wp);
-        Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraPSVMockImpl.WsLiberacionPedidosCarteraPSVMockImplTwoServices());
+        Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraLegadosMock.WsLiberacionPedidosCarteraLegadosMockTwoServices());
         Test.startTest();
         clase.listaPedidos[0].Seleccionado = true;
         clase.listaPedidos[0].pedido.Canal_Factura__r.IdPlanta__c = null;
@@ -221,7 +224,7 @@ public class CtrlPedidosRetenidosCarteraTest {
       wp.SaldoPedidos = 1000;
       wp.SaldoSF = 0;
       lista.add(wp);
-      Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraPSVMockImpl.WsLiberacionPedidosCarteraPSVMockImplTwoServices());
+      Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraLegadosMock.WsLiberacionPedidosCarteraLegadosMockTwoServices());
       Test.startTest();
         CtrlPedidosRetenidosCarteraDAO.ValidarCarteraWs(lista);
       Test.stopTest();
@@ -244,7 +247,7 @@ public class CtrlPedidosRetenidosCarteraTest {
       wp.SaldoSF = 1000;
     	clase.listaPedidos = new list<CtrlPedidosRetenidosCartera.PedidosWrapper>();
     	clase.listaPedidos.add(wp);
-        Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraPSVMockImpl.WsLiberacionPedidosCarteraPSVMockImplTwoServices());
+        Test.setMock(WebServiceMock.class, new WsLiberacionPedidosCarteraLegadosMock.WsLiberacionPedidosCarteraLegadosMockTwoServices());
         Test.startTest();
         clase.listaPedidos[0].Seleccionado = true;
         clase.listaPedidos[0].pedido.Canal_Factura__r.IdPlanta__c = null;

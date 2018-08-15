@@ -583,7 +583,7 @@ return Datetime.newInstanceGmt(now.year(), now.month(), now.day(), hora, minutos
         
         c.Cliente.KNVP = new List<WSCreacionprospectos.KNVP_element> { new WSCreacionprospectos.KNVP_element() };
             c.Cliente.KNVV = new WSCreacionprospectos.KNVV_element();
-        c.Cliente.KNVV.Organizaciondeventas = p.Organizacion_de_Ventas__c.right(4);
+        c.Cliente.KNVV.Organizaciondeventas =  p.Organizacion_de_Ventas__c == null ? '0000' :p.Organizacion_de_Ventas__c.right(4);
         c.Cliente.KNA1.Ramo = p.Ramo_Codigo__c;
         c.Cliente.KNA1.Clavedepais = p.Clave_de_Pais__c == null?'1': p.Clave_de_Pais__c.right(2);
         c.Cliente.KNVV.CanaldeDistribucion = 'DT'; 
@@ -594,7 +594,7 @@ return Datetime.newInstanceGmt(now.year(), now.month(), now.day(), hora, minutos
         c.Cliente.KNVV.Sector = '00';
         c.Cliente.KNA1.Grupodectasdeudor = 'D002';
         c.Cliente.KNVV.Esquemadecliente = '1';
-        c.Cliente.KNVV.Zonadeventas = p.Zona_de_Ventas__c.right(3);
+        c.Cliente.KNVV.Zonadeventas = p.Zona_de_Ventas__c == null ? '000':p.Zona_de_Ventas__c.right(3);
         c.Cliente.KNVV.Oficinadeventas = p.Estructura_de_venta__r.Oficina_de_venta_Codigo__c;
         system.debug('OficinaVentas '+ p.Estructura_de_venta__r.Oficina_de_venta_Codigo__c);
         c.Cliente.KNVV.Grupodevendedores = p.Estructura_de_venta__r.Grupo_de_vendedores_Codigo__c;

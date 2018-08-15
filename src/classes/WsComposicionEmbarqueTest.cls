@@ -12,21 +12,13 @@ public class WsComposicionEmbarqueTest {
         new WsComposicionEmbarque.DT_SDL_ComEmbaReqZLE_COMPOSICION();
         new WsComposicionEmbarque.DT_SDL_ComEmbaRespZLE_COMPOSICION();
         insert new endpoints__c(GrabarPedidosLegados__c='http://localhost/tests');
-
-    }
-  static testMethod void ExecuteWS() 
-        {
-            Map<String, Object> responseMap;
-            Test.setMock(WebServiceMock.class, new WsprospectosMockImpl());
-            Test.startTest();
-                WsComposicionEmbarque.ComposicionEmbarquesResponse_element response = new WsComposicionEmbarque.ComposicionEmbarquesResponse_element();
-                    response.ComposicionEmbarquesResult = new WsComposicionEmbarque.ArrayOfDT_SDL_ComEmbaRespZLE_COMPOSICION();
-                    response.ComposicionEmbarquesResult.DT_SDL_ComEmbaRespZLE_COMPOSICION = new list<WsComposicionEmbarque.DT_SDL_ComEmbaRespZLE_COMPOSICION>();
-                    WsComposicionEmbarque.DT_SDL_ComEmbaRespZLE_COMPOSICION elemento = new WsComposicionEmbarque.DT_SDL_ComEmbaRespZLE_COMPOSICION();
-                    elemento.DocumentoDeTransporte = '00001';
-                    elemento.Status = 'OK';
-                    response.ComposicionEmbarquesResult.DT_SDL_ComEmbaRespZLE_COMPOSICION.add(elemento);
-                    responseMap.put('response_x', response);
-            Test.stopTest();
-        }           
+	    Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
+	    test.startTest();
+	    	WsComposicionEmbarque serviceSAP = new WsComposicionEmbarque();
+	    	WsComposicionEmbarqueCallout.ComposicionEmbarques();
+            serviceSAP.ComposicionEmbarques(new WsComposicionEmbarque.SI_OS_SDL_ComEmbaRequest());
+        WsComposicionEmbarque.fakeMethod();
+	    test.stopTest();
+    } 
+        
 }

@@ -272,7 +272,7 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
 					    		}else{
 						    		WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido DatosLiberacionPedido = new WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido();
 						    		DatosLiberacionPedido.FolioPSV = opp.Folio_Pedido_SDL__c;
-						    		DatosLiberacionPedido.FolioNSC = opp.Numero_de_Pedido_NSC__c;
+						    		DatosLiberacionPedido.FolioNSC = opp.Numero_de_Pedido_NSC__c == null ? '': opp.Numero_de_Pedido_NSC__c;
 						    		DatosLiberacionPedido.CanalDistribucion = Integer.valueOf(opp.Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c);
 						    		DatosLiberacionPedido.Tipo =  canal;
 						    		DatosLiberacionPedido.Usuario = ObtenerUsuario();
@@ -327,7 +327,7 @@ public with sharing class CtrlPedidosRetenidosCarteraDAO {
 			    		{
 				    		WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido DatosLiberacionPedido = new WsLiberacionPedidosCarteraLegados.DatosLiberacionPedido();
 				    		DatosLiberacionPedido.FolioPSV = opp.Folio_Pedido_SDL__c;
-				    		DatosLiberacionPedido.FolioNSC = opp.Numero_de_Pedido_NSC__c;
+                            DatosLiberacionPedido.FolioNSC = opp.Numero_de_Pedido_NSC__c == null ? '': opp.Numero_de_Pedido_NSC__c;
 				    		DatosLiberacionPedido.CanalDistribucion = Integer.valueOf(opp.Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c);
 				    		DatosLiberacionPedido.Tipo =  canal;
 				    		DatosLiberacionPedido.Usuario = ObtenerUsuario();

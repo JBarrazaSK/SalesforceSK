@@ -485,7 +485,9 @@ public with sharing class PedidoUtils {
                 	{
                 		ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, PedidoUtils.PEDIDO_INSERT_CONFIRM+'Folio SAP: '+pedido.Numero_Pedido_SAP__c+'.'));
                 	}
-                	else{ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, PedidoUtils.PEDIDO_INSERT_CONFIRM+'Folio NSC: '+pedido.Numero_de_Pedido_NSC__c+'.'));}
+                	else{
+                		ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, PedidoUtils.PEDIDO_INSERT_CONFIRM+'Folio NSC: '+pedido.Numero_de_Pedido_NSC__c+'.'));
+                		}
                     
                     
                    if(pedido.RequiereAutorizacion__c && pedido.Numero_Pedido_SAP__c == null) {

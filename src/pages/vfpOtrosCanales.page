@@ -505,8 +505,8 @@ textarea {
                     </apex:column>
                     
                     <apex:column headerValue="UM" >
-                        <!--  <apex:outputText value="{!p.item.Unidad__c}" rendered="{!pedido.Id != null}" style="width:25px" />-->
-                        <apex:selectList value="{!p.item.Unidad__c}" multiselect="false" size="1"  style="width:100px" disabled="{!p.DisabledProd}" >
+                       <!-- <apex:outputText value="{!p.item.Unidad__c}" rendered="{!p.item.Id!=null}"/>-->
+                        <apex:selectList value="{!p.item.Unidad__c}" multiselect="false" size="1"  style="width:100px" disabled="{!p.DisabledProd}">
                             <apex:selectOptions value="{!medidas}"/>
                             <apex:actionSupport event="onchange" action="{!validateUM}" rerender="outputPanelProductos" status="actionStatusDispo" >
                             	<apex:param name="index" value="{!p.index}" assignTo="{!index}" />

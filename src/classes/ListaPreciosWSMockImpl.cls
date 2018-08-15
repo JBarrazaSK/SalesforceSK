@@ -8,6 +8,7 @@
 global class ListaPreciosWSMockImpl implements WebServiceMock {
 
     public void doInvoke(Object stub, Object request, Map<String, Object> responseMap, String endpoint, String soapAction, String requestName, String responseNS, String responseName, String responseType) {
+      system.debug('ENTRO doInvoke ListaPreciosWSMockImpl');
         if(request instanceOf ListaPreciosWS.RegresaListaPrecios_element) {
             ListaPreciosWS.RegresaListaPreciosResponse_element response = new ListaPreciosWS.RegresaListaPreciosResponse_element();
             response.RegresaListaPreciosResult = new ListaPreciosWS.RespuestaOfListOfPrecios();
@@ -72,6 +73,7 @@ global class ListaPreciosWSMockImpl implements WebServiceMock {
                         responseMap.put('response_x', response);
             
         }else if(request instanceOf ListaPreciosWS.RegresaListaPreciosMayoristas_element) {
+            system.debug('ENTRO RegresaListaPreciosMayoristas');
             ListaPreciosWS.RegresaListaPreciosMayoristasResponse_element response = new ListaPreciosWS.RegresaListaPreciosMayoristasResponse_element();
             response.RegresaListaPreciosMayoristasResult = new ListaPreciosWS.RespuestaOfListOfPrecioClienteSF();
             response.RegresaListaPreciosMayoristasResult.Tipo = 'TerminadoConExito';

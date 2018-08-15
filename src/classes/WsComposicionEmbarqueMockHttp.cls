@@ -1,38 +1,14 @@
 @isTest
-global class WsComposicionEmbarqueMockHttp implements HttpCalloutMock {
-	// Implement this interface method
-    global HTTPResponse respond(HTTPRequest req) {
-        // Optionally, only send a mock response for a specific endpoint
-        // and method.
-        System.assertEquals('http://example.com/example/test', req.getEndpoint());
-        System.assertEquals('GET', req.getMethod());
+global class WsComposicionEmbarqueMockHttp implements HttpCalloutMock{
+	global HTTPResponse respond(HTTPRequest req) {
         
-        // Create a fake response
+        System.assertEquals('http://api.salesforce.com/foo/bar', req.getEndpoint());
+        System.assertEquals('POST', req.getMethod());
+        
         HttpResponse res = new HttpResponse();
-        res.setHeader('Content-Type', 'application/json');
-        res.setBody('{"example":"test"}');
+        res.setHeader('Content-Type', 'text/xml; charset=UTF-8');
+        res.setBody('<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><ComposicionEmbarquesResponse xmlns="http://sukarne.com/sap/PedidosMayoreoLegados"><ComposicionEmbarquesResult><DT_SDL_ComEmbaRespZLE_COMPOSICION><FolioAgrupacion xmlns="" /><DocumentoDeTransporte xmlns="">0010060523</DocumentoDeTransporte><Status xmlns="">OK</Status><Mensaje xmlns="">Entrega ya tiene transporte: 0080174885</Mensaje></DT_SDL_ComEmbaRespZLE_COMPOSICION></ComposicionEmbarquesResult></ComposicionEmbarquesResponse></soap:Body></soap:Envelope>');
         res.setStatusCode(200);
-        return res;
+        return res; 
     }
-
 }
-/*global with sharing class WsComposicionEmbarqueMock implements HttpCalloutMock  
-{ 
-	 public void doInvoke(Object stub, Object request, Map<String, Object> responseMap, String endpoint, String soapAction, String requestName, String responseNS, String responseName, String responseType) {
-	        responseMap = responseMap == null? new Map<String, Object>():responseMap;
-	    
-	        if( request instanceOf WsComposicionEmbarque.ComposicionEmbarques_element ) {
-	        	
-	        	WsComposicionEmbarque.ComposicionEmbarquesResponse_element response = new WsComposicionEmbarque.ComposicionEmbarquesResponse_element();
-		    	response.ComposicionEmbarquesResult = new WsComposicionEmbarque.ArrayOfDT_SDL_ComEmbaRespZLE_COMPOSICION();
-		      	response.ComposicionEmbarquesResult.DT_SDL_ComEmbaRespZLE_COMPOSICION = new list<WsComposicionEmbarque.DT_SDL_ComEmbaRespZLE_COMPOSICION>();
-		      	WsComposicionEmbarque.DT_SDL_ComEmbaRespZLE_COMPOSICION elemento = new WsComposicionEmbarque.DT_SDL_ComEmbaRespZLE_COMPOSICION();
-		      	elemento.DocumentoDeTransporte = '00001';
-		      	elemento.Status = 'OK';
-		        response.ComposicionEmbarquesResult.DT_SDL_ComEmbaRespZLE_COMPOSICION.add(elemento);
-		        responseMap.put('response_x', response);
-	        }
-	 }
-	
-	
-}*/

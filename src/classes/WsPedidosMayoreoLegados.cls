@@ -828,7 +828,7 @@ public class WsPedidosMayoreoLegados {
         public Map<String,String> inputHttpHeaders_x;
         public Map<String,String> outputHttpHeaders_x;
         public String clientCertName_x;
-        public String clientCert_x; 
+        public String clientCert_x;  
         public String clientCertPasswd_x; 
         public Integer timeout_x;
         public PedidosMayoreoLegadosSoap()
@@ -838,7 +838,7 @@ public class WsPedidosMayoreoLegados {
            this.timeout_x = 120000;
        }
         private String[] ns_map_type_info = new String[]{'http://sukarne.com/sap/PedidosMayoreoLegados', 'WsPedidosMayoreoLegados', 'http://SuKarne.com/pi/SE/PedidosGeneraEntrega_SF_to_ECC', 'sukarneComPiSePedidosgeneraentregaS', 'http://SuKarne.com/pi/SDL/ComposicionEmbarque', 'sukarneComPiSdlComposicionembarque'};
-        
+        //YA
         public WsPedidosMayoreoLegados.RespuestaOfBoolean ActualizaFolioEntrega(String folio,String folioEntrega) {
             WsPedidosMayoreoLegados.ActualizaFolioEntrega_element request_x = new WsPedidosMayoreoLegados.ActualizaFolioEntrega_element();
             request_x.folio = folio;
@@ -861,6 +861,7 @@ public class WsPedidosMayoreoLegados {
             response_x = response_map_x.get('response_x');
             return response_x.ActualizaFolioEntregaResult;
         }
+        //ya
         public WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados GenerarPedidoMayoreo(WsPedidosMayoreoLegados.DatosPedidoLegado pedidos) {
             WsPedidosMayoreoLegados.GenerarPedidoMayoreo_element request_x = new WsPedidosMayoreoLegados.GenerarPedidoMayoreo_element();
             request_x.pedidos = pedidos;
@@ -869,7 +870,7 @@ public class WsPedidosMayoreoLegados {
             WsPedidosMayoreoLegados.GenerarPedidoMayoreoResponse_element response_x;
             Map<String, WsPedidosMayoreoLegados.GenerarPedidoMayoreoResponse_element> response_map_x = new Map<String, WsPedidosMayoreoLegados.GenerarPedidoMayoreoResponse_element>();
             response_map_x.put('response_x', response_x);
-            try{
+            
             WebServiceCallout.invoke(
               this,
               request_x,
@@ -882,13 +883,11 @@ public class WsPedidosMayoreoLegados {
               'GenerarPedidoMayoreoResponse',
               'WsPedidosMayoreoLegados.GenerarPedidoMayoreoResponse_element'}
             );
-             }catch(system.CalloutException ex)
-            {
-            	system.debug('Error SERVICO ____>'+ex.getStackTraceString());
-            }
+            
             response_x = response_map_x.get('response_x');
             return response_x.GenerarPedidoMayoreo;
         }
+        //YA
         public WsPedidosMayoreoLegados.RespuestaOfBoolean ActualizaPSVPedidos(WsPedidosMayoreoLegados.PedidosPSV Pedidos) {
             WsPedidosMayoreoLegados.ActualizaPSVPedidos_element request_x = new WsPedidosMayoreoLegados.ActualizaPSVPedidos_element();
             request_x.Pedidos = Pedidos;
@@ -910,6 +909,7 @@ public class WsPedidosMayoreoLegados {
             response_x = response_map_x.get('response_x');
             return response_x.ActualizaPSVPedidosResult;
         }
+         /* YA*/
         public sukarneComPiSePedidosgeneraentregaS.DT_SE_PedidosGeneraEntrega_Resp GeneraEntrega(WsPedidosMayoreoLegados.SI_OS_SE_to_ECC_PedidosGeneraEntregaRequest Folios) {
             WsPedidosMayoreoLegados.GeneraEntrega_element request_x = new WsPedidosMayoreoLegados.GeneraEntrega_element();
             request_x.Folios = Folios;
@@ -931,7 +931,7 @@ public class WsPedidosMayoreoLegados {
             response_x = response_map_x.get('response_x');
             return response_x.GeneraEntregaResult;
         }
-       
+       /* YA*/
         public WsPedidosMayoreoLegados.RespuestaOfBoolean GuardaFolioEmbarque(WsPedidosMayoreoLegados.EnvioEmbarqueSAP EnvioEmbarque) {
             WsPedidosMayoreoLegados.GuardaFolioEmbarque_element request_x = new WsPedidosMayoreoLegados.GuardaFolioEmbarque_element();
             request_x.EnvioEmbarque = EnvioEmbarque;

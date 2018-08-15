@@ -26,7 +26,7 @@ private class OpportunityParserControllerTest implements WebServiceMock {
         new OpportunityParserController.SobjectSaveResult();
         new OpportunityParserController.OpportunityToLineItems();
     }
-	
+  
     static testMethod void coverCustomSettings()
     {
         OpportunityParserController.OpportunityAndOppProductMapping mapping = OpportunityParserController.getCustomSettingValues();
@@ -49,7 +49,7 @@ private class OpportunityParserControllerTest implements WebServiceMock {
         oppProductsJSON = prodsJSONNoExistente();
         OpportunityParserController.SobjectSaveResult result4 = OpportunityParserController.insertOpportunitiesANDLineItems(oppRecordsJSON, oppProductsJSON);
     }
-	    
+      
     static testMethod void coverInsert(){
         String oppRecordsJSON = oppJSON();
         String oppProductsJSON = prodsJSON();
@@ -73,7 +73,7 @@ private class OpportunityParserControllerTest implements WebServiceMock {
                 if(oppResult==null){continue;}
             }
         }
-		
+    
         Test.stopTest();
     }
     
@@ -91,15 +91,15 @@ private class OpportunityParserControllerTest implements WebServiceMock {
             opp.Canal_Factura__r = ofi; 
             opp.Account = new Account();
             opp.Cliente__r = new Account();
-		OpportunityParserController.validarOpp( opp, false );   
+    OpportunityParserController.validarOpp( opp, false );   
             opp.Fecha_de_Embarque__c = today.addDays(35);
             opp.Fecha_de_Entrega__c = today.addDays(33);
         OpportunityParserController.validarOpp( opp, false ); 
         OpportunityParserController.validarOpp( opp, true ); 
-        	ofi.IdPlanta__c = '1';
+          ofi.IdPlanta__c = '1';
         Account acc = new Account();
-        	acc.Canal_Distribucion__c = 'Exportacion - EX';
-        	acc.Sociedad__c = 'Vizcattle - 303';
+          acc.Canal_Distribucion__c = 'Exportacion - EX';
+          acc.Sociedad__c = 'Vizcattle - 303';
             opp.Canal_Factura__r = ofi;
             opp.Account = acc;
         OpportunityParserController.validarOpp( opp, true ); 
@@ -166,51 +166,51 @@ private class OpportunityParserControllerTest implements WebServiceMock {
         '{"Folio_Temporal__c":"4","Cliente__c":"41716","AccountId":"803968","Fecha_de_Embarque__c":"'+sFechaEmbarque+'","Fecha_de_Entrega__c":"'+sFechaEntrega+'","Canal_Factura__c":"959"},'+
         '{"Folio_Temporal__c":"5","Cliente__c":"41716","AccountId":"803968","Fecha_de_Embarque__c":"'+sFechaEmbarque+'","Fecha_de_Entrega__c":"'+sFechaEntrega2+'","Canal_Factura__c":"64"},'+
         '{"Folio_Temporal__c":"6","Cliente__c":"12064","AccountId":"803194","Fecha_de_Embarque__c":"'+sFechaEmbarque+'","Fecha_de_Entrega__c":"'+sFechaEntrega2+'","Canal_Factura__c":"64"}]';
-		*/
+    */
         return json;
     }
     
     static String prodsJSON(){
         String json = '['+
             '{"key":"1",'+
-            	'"value":['+
-            		'{"Origen_Surtido__c":"64","ProductCode":"13","Quantity":"10","Volumen__c":"300","Unidad__c":"CJ","UnitPrice":"85.0000","Tipo_de_Precio__c":"PK","Importe__c":"25500","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"959","ProductCode":"12","Quantity":"9","Volumen__c":"270","Unidad__c":"CJ","UnitPrice":"85.5000","Tipo_de_Precio__c":"PK","Importe__c":"23085","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"}]}]';
-        	/*
+              '"value":['+
+                '{"Origen_Surtido__c":"64","ProductCode":"13","Quantity":"10","Volumen__c":"300","Unidad__c":"CJ","UnitPrice":"85.0000","Tipo_de_Precio__c":"PK","Importe__c":"25500","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
+                '{"Origen_Surtido__c":"959","ProductCode":"12","Quantity":"9","Volumen__c":"270","Unidad__c":"CJ","UnitPrice":"85.5000","Tipo_de_Precio__c":"PK","Importe__c":"23085","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"}]}]';
+          /*
             '{"key":"2",'+
-            	'"value":['+
-            		'{"Origen_Surtido__c":"959","ProductCode":"1148","Quantity":"8","Volumen__c":"240","Unidad__c":"CJ","UnitPrice":"168.5000","Tipo_de_Precio__c":"PK","Importe__c":"40440","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"959","ProductCode":"1149","Quantity":"7","Volumen__c":"210","Unidad__c":"CJ","UnitPrice":"168.5000","Tipo_de_Precio__c":"PK","Importe__c":"35385","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"}]},'+
+              '"value":['+
+                '{"Origen_Surtido__c":"959","ProductCode":"1148","Quantity":"8","Volumen__c":"240","Unidad__c":"CJ","UnitPrice":"168.5000","Tipo_de_Precio__c":"PK","Importe__c":"40440","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
+                '{"Origen_Surtido__c":"959","ProductCode":"1149","Quantity":"7","Volumen__c":"210","Unidad__c":"CJ","UnitPrice":"168.5000","Tipo_de_Precio__c":"PK","Importe__c":"35385","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"}]},'+
             '{"key":"3","value":[{"Origen_Surtido__c":"64","ProductCode":"1","Quantity":"6","Volumen__c":"180","Unidad__c":"CJ","UnitPrice":"99.0000","Tipo_de_Precio__c":"PK","Importe__c":"17820","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"}]},'+
             '{"key":"4","value":[{"Origen_Surtido__c":"959","ProductCode":"12","Quantity":"8","Volumen__c":"240","Unidad__c":"CJ","UnitPrice":"103.4000","Tipo_de_Precio__c":"PK","Importe__c":"24816","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"}]},'+
             '{"key":"5","value":[{"Origen_Surtido__c":"64","ProductCode":"13","Quantity":"7","Volumen__c":"210","Unidad__c":"CJ","UnitPrice":"103.4000","Tipo_de_Precio__c":"PK","Importe__c":"21714","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"64","ProductCode":"1148","Quantity":"6","Volumen__c":"180","Unidad__c":"CJ","UnitPrice":"156.9500","Tipo_de_Precio__c":"PK","Importe__c":"28251","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"64","ProductCode":"1149","Quantity":"8","Volumen__c":"240","Unidad__c":"CJ","UnitPrice":"156.9500","Tipo_de_Precio__c":"PK","Importe__c":"37668","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"}]},'+
+                '{"Origen_Surtido__c":"64","ProductCode":"1148","Quantity":"6","Volumen__c":"180","Unidad__c":"CJ","UnitPrice":"156.9500","Tipo_de_Precio__c":"PK","Importe__c":"28251","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
+                '{"Origen_Surtido__c":"64","ProductCode":"1149","Quantity":"8","Volumen__c":"240","Unidad__c":"CJ","UnitPrice":"156.9500","Tipo_de_Precio__c":"PK","Importe__c":"37668","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"}]},'+
             '{"key":"6","value":[{"Origen_Surtido__c":"64","ProductCode":"1","Quantity":"10","Volumen__c":"300","Unidad__c":"CJ","UnitPrice":"68.5000","Tipo_de_Precio__c":"PK","Importe__c":"20550","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"64","ProductCode":"5","Quantity":"9","Volumen__c":"270","Unidad__c":"CJ","UnitPrice":"103.2000","Tipo_de_Precio__c":"PK","Importe__c":"27864","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"64","ProductCode":"12","Quantity":"8","Volumen__c":"240","Unidad__c":"CJ","UnitPrice":"90.1000","Tipo_de_Precio__c":"PK","Importe__c":"21624","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"64","ProductCode":"13","Quantity":"5","Volumen__c":"150","Unidad__c":"CJ","UnitPrice":"91.4000","Tipo_de_Precio__c":"PK","Importe__c":"13710","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"64","ProductCode":"40","Quantity":"3","Volumen__c":"90","Unidad__c":"CJ","UnitPrice":"80.0000","Tipo_de_Precio__c":"PK","Importe__c":"7200","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"64","ProductCode":"42","Quantity":"4","Volumen__c":"120","Unidad__c":"CJ","UnitPrice":"101.2000","Tipo_de_Precio__c":"PK","Importe__c":"12144","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"64","ProductCode":"410","Quantity":"7","Volumen__c":"210","Unidad__c":"CJ","UnitPrice":"99.5000","Tipo_de_Precio__c":"PK","Importe__c":"20895","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"64","ProductCode":"811","Quantity":"8","Volumen__c":"240","Unidad__c":"CJ","UnitPrice":"97.6000","Tipo_de_Precio__c":"PK","Importe__c":"23424","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
-            		'{"Origen_Surtido__c":"64","ProductCode":"2145","Quantity":"9","Volumen__c":"270","Unidad__c":"CJ","UnitPrice":"105.4400","Tipo_de_Precio__c":"PK","Importe__c":"28468.8","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"}]}]';
-			*/
+                '{"Origen_Surtido__c":"64","ProductCode":"5","Quantity":"9","Volumen__c":"270","Unidad__c":"CJ","UnitPrice":"103.2000","Tipo_de_Precio__c":"PK","Importe__c":"27864","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
+                '{"Origen_Surtido__c":"64","ProductCode":"12","Quantity":"8","Volumen__c":"240","Unidad__c":"CJ","UnitPrice":"90.1000","Tipo_de_Precio__c":"PK","Importe__c":"21624","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
+                '{"Origen_Surtido__c":"64","ProductCode":"13","Quantity":"5","Volumen__c":"150","Unidad__c":"CJ","UnitPrice":"91.4000","Tipo_de_Precio__c":"PK","Importe__c":"13710","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
+                '{"Origen_Surtido__c":"64","ProductCode":"40","Quantity":"3","Volumen__c":"90","Unidad__c":"CJ","UnitPrice":"80.0000","Tipo_de_Precio__c":"PK","Importe__c":"7200","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
+                '{"Origen_Surtido__c":"64","ProductCode":"42","Quantity":"4","Volumen__c":"120","Unidad__c":"CJ","UnitPrice":"101.2000","Tipo_de_Precio__c":"PK","Importe__c":"12144","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
+                '{"Origen_Surtido__c":"64","ProductCode":"410","Quantity":"7","Volumen__c":"210","Unidad__c":"CJ","UnitPrice":"99.5000","Tipo_de_Precio__c":"PK","Importe__c":"20895","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
+                '{"Origen_Surtido__c":"64","ProductCode":"811","Quantity":"8","Volumen__c":"240","Unidad__c":"CJ","UnitPrice":"97.6000","Tipo_de_Precio__c":"PK","Importe__c":"23424","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"},'+
+                '{"Origen_Surtido__c":"64","ProductCode":"2145","Quantity":"9","Volumen__c":"270","Unidad__c":"CJ","UnitPrice":"105.4400","Tipo_de_Precio__c":"PK","Importe__c":"28468.8","Tipo_de_Inventario__c":"1","Observaciones__c":"Tarima Azul"}]}]';
+      */
         return json;
     }
 
     static String oppJSONVacios(){
         String json = '['+
-        	'{"Folio_Temporal__c":"1","Cliente__c":"","AccountId":"","Fecha_de_Embarque__c":"","Fecha_de_Entrega__c":"","Canal_Factura__c":""}]';        
+          '{"Folio_Temporal__c":"1","Cliente__c":"","AccountId":"","Fecha_de_Embarque__c":"","Fecha_de_Entrega__c":"","Canal_Factura__c":""}]';        
         return json;
     }
     
     static String prodsJSONVacios(){
         String json = '['+
             '{"key":"1",'+
-            	'"value":['+
-            		'{"Origen_Surtido__c":"","ProductCode":"13","Quantity":"","Volumen__c":"","Unidad__c":"","UnitPrice":"","Tipo_de_Precio__c":"","Importe__c":"","Tipo_de_Inventario__c":"","Observaciones__c":""},'+
-            		'{"Origen_Surtido__c":"","ProductCode":"12","Quantity":"","Volumen__c":"","Unidad__c":"","UnitPrice":"","Tipo_de_Precio__c":"","Importe__c":"","Tipo_de_Inventario__c":"","Observaciones__c":""}]}]';
+              '"value":['+
+                '{"Origen_Surtido__c":"","ProductCode":"13","Quantity":"","Volumen__c":"","Unidad__c":"","UnitPrice":"","Tipo_de_Precio__c":"","Importe__c":"","Tipo_de_Inventario__c":"","Observaciones__c":""},'+
+                '{"Origen_Surtido__c":"","ProductCode":"12","Quantity":"","Volumen__c":"","Unidad__c":"","UnitPrice":"","Tipo_de_Precio__c":"","Importe__c":"","Tipo_de_Inventario__c":"","Observaciones__c":""}]}]';
         return json;
     }
 

@@ -2131,13 +2131,7 @@ public class ctrlrPedidoOtrosCanales {
                          
                          ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, ResponseNSC.Mensaje));*/
                          isLocked = true;
-                         for(pedidosOtrosCanalesUtils.producto p : productos)
-                         {
-                              if(p.item.Estatus__c == 3)
-                              {
-                                  p.item.Estatus__c = 1;
-                              }
-                         }
+                         
                      /*}
                       else
                      {
@@ -2146,6 +2140,13 @@ public class ctrlrPedidoOtrosCanales {
                      }
                      */
                 }
+                for(pedidosOtrosCanalesUtils.producto p : productos)
+                         {
+                              if(p.item.Estatus__c == 3)
+                              {
+                                  p.item.Estatus__c = 1;
+                              }
+                         }
             }
         }
         catch( Exception e ) {
@@ -2387,6 +2388,10 @@ public class ctrlrPedidoOtrosCanales {
             }
             if( p.item.UnitPrice == null || p.item.UnitPrice == 0 ) {
                 p.item.UnitPrice.addError('Por favor consulte precios antes de intentar guardar!'); return false;
+            }
+            system.debug('UNIDAD__C=> ' +  p.item.Unidad__c);
+            if( String.isBlank(p.item.Unidad__c)) {
+                p.item.Unidad__c.addError('Por favor indique la unidad de medida!'); return false;
             }
           /*  if( p.item.Importe__c == null || p.item.Importe__c == 0 ) {
                 p.item.Importe__c.addError('Por favor asegúrese que las cantidades ingresadas son correctas!'); return false;

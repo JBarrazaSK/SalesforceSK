@@ -20,6 +20,11 @@ public with sharing class WsEntregas {
     }
     public class GeneraEntregaSF_a_SAPSoap {
         public String endpoint_x = 'http://salesforce1.apps.sukarne.com:2562/SKServiciosExternos/SalesForce/GeneraEntregaSF_a_SAP.asmx';
+        public GeneraEntregaSF_a_SAPSoap(){
+            endpoints__c ep = endpoints__c.getInstance();
+        	this.endpoint_x = ep.WSEntregasSFSAP__c;
+        }
+        
         public Map<String,String> inputHttpHeaders_x;
         public Map<String,String> outputHttpHeaders_x;
         public String clientCertName_x;

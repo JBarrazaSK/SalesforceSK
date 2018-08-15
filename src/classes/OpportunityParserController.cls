@@ -219,12 +219,12 @@ public with sharing class OpportunityParserController {
     @RemoteAction
     public static SobjectSaveResult insertOpportunitiesANDLineItems( String oppRecordsJSON, String oppProductsJSON) {
 
-		map<string,string> mapFrontera = new  map<string,string>();
-	     for( Frontera__c f: Frontera__c.getall().values() ) {
-	                if( f == null ) { continue; }
-	                mapFrontera.put(f.Id_Frontera__c,f.Id_Frontera__c+'-'+f.Name);
+        map<string,string> mapFrontera = new  map<string,string>();
+         for( Frontera__c f: Frontera__c.getall().values() ) {
+                    if( f == null ) { continue; }
+                    mapFrontera.put(f.Id_Frontera__c,f.Id_Frontera__c+'-'+f.Name);
 
-	            }
+                }
 
         SobjectSaveResult sobjectSaveResult = new sobjectSaveResult();
         System.debug('pedidos:' + oppRecordsJSON);
@@ -298,7 +298,7 @@ public with sharing class OpportunityParserController {
             saveResult.folioTmp = folio;
             saveResult.record = pedido;
             oppResults.put(folio, saveResult);
-			      String canalDistribucion;
+                  String canalDistribucion;
             if(String.isNotBlank(errorMsg)){
                 error = true;
                 saveResult.isSuccess = false;
@@ -319,7 +319,7 @@ public with sharing class OpportunityParserController {
             Map<String, SaveResult> mapaProd = new Map<String, SaveResult>();
             String unidad = '';
             contador = 0;
-            canalDistribucion = pedido.Account.Canal_Distribucion__c.right(2);
+            canalDistribucion =!(Test.isRunningTest())? pedido.Account.Canal_Distribucion__c.right(2):'EX';
             for(OpportunityLineItem item:productos){
                 SaveResult resultItem = new SaveResult();
                 resultItem.folioTmp = folio;
@@ -348,7 +348,7 @@ public with sharing class OpportunityParserController {
                     resultItem.errorMsg = errorMsgItem;
                     continue;
                 } else {
-                	resultItem.isSuccess = true;
+                    resultItem.isSuccess = true;
                 }
                 item.Tipo_de_Inventario__c = getTipoInventario(item.Tipo_de_Inventario__c);
                 item.Unidad__c = item.Unidad__c.left(1);
@@ -361,13 +361,13 @@ public with sharing class OpportunityParserController {
                     item.Cajas_x_Pallet__c = pbe.Product2.CsxPalletInt__c;
                 }
                 else {
-                	item.Cajas_x_Pallet__c = pbe.Product2.Cajas_Tarima__c;
+                    item.Cajas_x_Pallet__c = pbe.Product2.Cajas_Tarima__c;
                 }
                 item.Peso_Promedio__c = pbe.Product2.Peso_Promedio__c;
             }
             pedido.Unidad__c = unidad;
         }
-		System.debug('ERROR:'+error);
+        System.debug('ERROR:'+error);
         if(error){
             sobjectSaveResult.opportunitySaveResults = oppResults.values();
             List<SaveResult> listItemResults = new List<SaveResult>();
@@ -404,7 +404,7 @@ public with sharing class OpportunityParserController {
                 saveResult.folioTmp = folio;
                 saveResult.record = pedido;
                 oppResults.put(folio, saveResult);
-				System.debug('No. Cliente: '+numeroCliente);
+                System.debug('No. Cliente: '+numeroCliente);
                 Map<String, List<ListaPreciosWS.Precios>> mapaPreciosPorProducto = mapaPreciosPorCliente.get(numeroCliente);
                 if(mapaPreciosPorProducto==null){
                     error = true; saveResult.issuccess = false; saveResult.errorMsg = 'No existen precios disponibles para el cliente:' + numeroCliente; continue;
@@ -515,7 +515,7 @@ public with sharing class OpportunityParserController {
             }
 
             if(pedidosViz.size()>0){
-	            mapaPreciosPorClienteViz = OpportunityParserWS.validarPreciosMayoristas(pedidosViz, mapaProductos, true );
+                mapaPreciosPorClienteViz = OpportunityParserWS.validarPreciosMayoristas(pedidosViz, mapaProductos, true );
                 System.debug('MapaPreciosViz: '+mapaPreciosPorClienteViz);
                 for(Opportunity pedido:pedidosViz){
                     String folio = pedido.Folio_Temporal__c;
@@ -528,7 +528,7 @@ public with sharing class OpportunityParserController {
                     }
                     else {
                         numeroCliente = canal.IdClienteViz__c;
-                    	numeroCliente = numeroCliente.leftPad(10, '0');
+                        numeroCliente = numeroCliente.leftPad(10, '0');
                     }
                     Map<String, List<ListaPreciosWS.Precios>> mapaPreciosPorProducto = mapaPreciosPorClienteViz.get(numeroCliente);
                     if(mapaPreciosPorProducto==null){
@@ -561,10 +561,10 @@ public with sharing class OpportunityParserController {
                                 item.TipoPrecioViz__c = precioWS.pve_tipprec;
                                 if(precioWS.precio== null || precioWS.precio <= 0)
                                 {
-                                	error = true;
-		                            SaveResult prodResult = mapaProdResult.get(item.ProductCode);
-		                            prodResult.isSuccess = false;
-		                            prodResult.errorMsg += '  Precio en 0.00  para el producto : ' + item.ProductCode + ' del cliente Viz: ' + numeroCliente;
+                                    error = true;
+                                    SaveResult prodResult = mapaProdResult.get(item.ProductCode);
+                                    prodResult.isSuccess = false;
+                                    prodResult.errorMsg += '  Precio en 0.00  para el producto : ' + item.ProductCode + ' del cliente Viz: ' + numeroCliente;
                                 }
                             }
                         }
@@ -625,172 +625,172 @@ public with sharing class OpportunityParserController {
                 Integer piezas = 0;
                 if(item.Unidad__c=='K'){
                   if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'PI' )
-		        	{
-		        			 kg = item.Volumen__c;
-		        			 vol = kg;
-		        			 piezas = Integer.ValueOf(kg/prod.Peso_Promedio__c);
-		        			 cajas = Math.round(piezas / prod.Piezas_por_caja__c);
-		        	}
+                    {
+                             kg = item.Volumen__c;
+                             vol = kg;
+                             piezas = Integer.ValueOf(kg/prod.Peso_Promedio__c);
+                             cajas = Math.round(piezas / prod.Piezas_por_caja__c);
+                    }
 
-		        	else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'PI' )
-		        	{
-		        			 kg = item.Volumen__c;
-		        			 vol = kg ;
-		        			 piezas = Integer.ValueOf(kg/prod.Peso_Promedio__c);
-		        			 cajas = Math.round(piezas / prod.Piezas_por_caja__c);
-		        	}
-		        	else if(item.Tipo_de_Precio__c == 'PK' && prod.Unidad_de_medida_base__c == 'PI'  )
-		        	{
-		        			vol= item.Volumen__c;
-				            kg = vol;
-				            piezas = Math.round(kg / prod.Peso_Promedio__c);
-				            cajas = Math.round(piezas / prod.Piezas_por_caja__c);
+                    else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'PI' )
+                    {
+                             kg = item.Volumen__c;
+                             vol = kg ;
+                             piezas = Integer.ValueOf(kg/prod.Peso_Promedio__c);
+                             cajas = Math.round(piezas / prod.Piezas_por_caja__c);
+                    }
+                    else if(item.Tipo_de_Precio__c == 'PK' && prod.Unidad_de_medida_base__c == 'PI'  )
+                    {
+                            vol= item.Volumen__c;
+                            kg = vol;
+                            piezas = Math.round(kg / prod.Peso_Promedio__c);
+                            cajas = Math.round(piezas / prod.Piezas_por_caja__c);
 
-		        	}
-		        	else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'CJ' )
-		        	{
-		        			vol = item.Volumen__c;
-		        			cajas = Math.round(vol / prod.Peso_Promedio__c);
-		        			kg = item.Volumen__c;
-		        			piezas =  Math.round( cajas * prod.Piezas_por_caja__c);
-		        	}
-		        	else
-		        	{
-		        		 kg = item.Volumen__c;
-	                    cajas = Math.round(kg / item.Peso_Promedio__c);
-	                    //piezas = Math.round(cajas*prod.Piezas_por_caja__c);
-	                    vol = item.Volumen__c;
-		        	}
+                    }
+                    else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'CJ' )
+                    {
+                            vol = item.Volumen__c;
+                            cajas = Math.round(vol / prod.Peso_Promedio__c);
+                            kg = item.Volumen__c;
+                            piezas =  Math.round( cajas * prod.Piezas_por_caja__c);
+                    }
+                    else
+                    {
+                         kg = item.Volumen__c;
+                        cajas = Math.round(kg / item.Peso_Promedio__c);
+                        //piezas = Math.round(cajas*prod.Piezas_por_caja__c);
+                        vol = item.Volumen__c;
+                    }
 
                 }else if(item.Unidad__c=='C'){
 
 
-                	System.debug('item.Tipo_de_Precio__c :: '+item.Tipo_de_Precio__c);
-                	System.debug('prod.Unidad_de_medida_base__c:: '+prod.Unidad_de_medida_base__c);
-                	if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'PI' )
-		        	{
-		        			System.debug('PP');
-		        			Integer p = Math.round(item.Quantity*prod.Piezas_por_caja__c);
-				            if( p < 1 ) { p = 1; }
-				            piezas = p;
-				            cajas = integer.ValueOf(item.Quantity);
-				            vol= decimal.ValueOf(p) * prod.Peso_Promedio__c;
-				            kg = vol;
-		        	}
-		        	else if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'CJ' )
-		        	{
-		        			System.debug('PP');
-		        			Integer p = Math.round(item.Quantity*prod.Piezas_por_caja__c);
-				            if( p < 1 ) { p = 1; }
-				            piezas = p;
-				            cajas = integer.ValueOf(item.Quantity);
-				            vol= decimal.ValueOf(cajas) * prod.Peso_Promedio__c;
-				            kg = vol;
-		        	}
-		        	else if(item.Tipo_de_Precio__c == 'PK' && prod.Unidad_de_medida_base__c == 'PI'  )
-		        	{
-		        			System.debug('PP');
-		        			Integer p = Math.round(item.Quantity*prod.Piezas_por_caja__c);
-				            if( p < 1 ) { p = 1; }
-				            piezas = p;
-				            cajas = integer.ValueOf(item.Quantity);
-				            vol= decimal.ValueOf(p) * prod.Peso_Promedio__c;
-				            kg = vol;
-		        	}
-		        	else if (item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'CJ'  )
-		        	{
-		        		 kg = double.ValueOf(item.Quantity) * item.Peso_Promedio__c;
-		        		 vol = kg * KG_LB;
-		        		 cajas = integer.ValueOf(item.Quantity);
+                    System.debug('item.Tipo_de_Precio__c :: '+item.Tipo_de_Precio__c);
+                    System.debug('prod.Unidad_de_medida_base__c:: '+prod.Unidad_de_medida_base__c);
+                    if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'PI' )
+                    {
+                            System.debug('PP');
+                            Integer p = Math.round(item.Quantity*prod.Piezas_por_caja__c);
+                            if( p < 1 ) { p = 1; }
+                            piezas = p;
+                            cajas = integer.ValueOf(item.Quantity);
+                            vol= decimal.ValueOf(p) * prod.Peso_Promedio__c;
+                            kg = vol;
+                    }
+                    else if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'CJ' )
+                    {
+                            System.debug('PP');
+                            Integer p = Math.round(item.Quantity*prod.Piezas_por_caja__c);
+                            if( p < 1 ) { p = 1; }
+                            piezas = p;
+                            cajas = integer.ValueOf(item.Quantity);
+                            vol= decimal.ValueOf(cajas) * prod.Peso_Promedio__c;
+                            kg = vol;
+                    }
+                    else if(item.Tipo_de_Precio__c == 'PK' && prod.Unidad_de_medida_base__c == 'PI'  )
+                    {
+                            System.debug('PP');
+                            Integer p = Math.round(item.Quantity*prod.Piezas_por_caja__c);
+                            if( p < 1 ) { p = 1; }
+                            piezas = p;
+                            cajas = integer.ValueOf(item.Quantity);
+                            vol= decimal.ValueOf(p) * prod.Peso_Promedio__c;
+                            kg = vol;
+                    }
+                    else if (item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'CJ'  )
+                    {
+                         kg = double.ValueOf(item.Quantity) * item.Peso_Promedio__c;
+                         vol = kg * KG_LB;
+                         cajas = integer.ValueOf(item.Quantity);
 
-		        	}
-		        	else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'PI' )
-		        	{
-		        			cajas = math.round(item.Quantity);
-		        			piezas =  Math.round( item.Quantity * prod.Piezas_por_caja__c);
-		        			vol = (piezas * prod.Peso_Promedio__c) * KG_LB ;
-		        			kg = vol/KG_LB;
+                    }
+                    else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'PI' )
+                    {
+                            cajas = math.round(item.Quantity);
+                            piezas =  Math.round( item.Quantity * prod.Piezas_por_caja__c);
+                            vol = (piezas * prod.Peso_Promedio__c) * KG_LB ;
+                            kg = vol/KG_LB;
 
-		        	}
-		        	else{
-	                    kg = item.Quantity * item.Peso_Promedio__c;
-	                    vol = kg;
-	                    cajas = Math.round(kg / item.Peso_Promedio__c);
-		        	}
+                    }
+                    else{
+                        kg = item.Quantity * item.Peso_Promedio__c;
+                        vol = kg;
+                        cajas = Math.round(kg / item.Peso_Promedio__c);
+                    }
                     //piezas = Math.round(cajas*prod.Piezas_por_caja__c);
                 }else if(item.Unidad__c=='P'){
-                	if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'PI' )
-		        	{
-		        			System.debug('PP');
-		        			Integer cj = Math.round(item.Quantity/prod.Piezas_por_caja__c);
-				            if( cj < 1 ) { cj = 1; }
-				            cajas = cj;
-				            vol =  item.Quantity * item.Peso_Promedio__c;
-				            kg = vol;
-				            item.Cantidad__c = item.Quantity ;
+                    if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'PI' )
+                    {
+                            System.debug('PP');
+                            Integer cj = Math.round(item.Quantity/prod.Piezas_por_caja__c);
+                            if( cj < 1 ) { cj = 1; }
+                            cajas = cj;
+                            vol =  item.Quantity * item.Peso_Promedio__c;
+                            kg = vol;
+                            item.Cantidad__c = item.Quantity ;
 
-		        	}else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'CJ' )
-		        	{
-		        			cajas = Math.round(item.Quantity / prod.Piezas_por_caja__c);
-		        			vol = (cajas * prod.Peso_Promedio__c) * KG_LB ;
-		        			kg = vol/KG_LB;
-		        			piezas =  Math.round( item.Quantity);
-		        			item.Cantidad__c = piezas;
-		        	}
-		        	else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'PI' )
-		        	{
+                    }else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'CJ' )
+                    {
+                            cajas = Math.round(item.Quantity / prod.Piezas_por_caja__c);
+                            vol = (cajas * prod.Peso_Promedio__c) * KG_LB ;
+                            kg = vol/KG_LB;
+                            piezas =  Math.round( item.Quantity);
+                            item.Cantidad__c = piezas;
+                    }
+                    else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'PI' )
+                    {
 
-		        			piezas +=  Math.round( item.Quantity);
-		        			cajas = Math.round(item.Quantity / prod.Piezas_por_caja__c);
-		        			vol = (piezas * prod.Peso_Promedio__c) * KG_LB ;
-		        			kg = vol/KG_LB;
-		        			item.Cantidad__c = piezas;
-		        			System.debug('vol DL '+ vol);
+                            piezas +=  Math.round( item.Quantity);
+                            cajas = Math.round(item.Quantity / prod.Piezas_por_caja__c);
+                            vol = (piezas * prod.Peso_Promedio__c) * KG_LB ;
+                            kg = vol/KG_LB;
+                            item.Cantidad__c = piezas;
+                            System.debug('vol DL '+ vol);
 
-		        	}
-		        	else{
-		                    System.debug('Piezas...');
-		                    piezas += Math.round(item.Quantity);
-		                    cajas = Math.round(item.Quantity / prod.Piezas_por_caja__c);
-		                    kg = cajas * item.Peso_Promedio__c;
-		                    vol = kg;
-		        	}
+                    }
+                    else{
+                            System.debug('Piezas...');
+                            piezas += Math.round(item.Quantity);
+                            cajas = Math.round(item.Quantity / prod.Piezas_por_caja__c);
+                            kg = cajas * item.Peso_Promedio__c;
+                            vol = kg;
+                    }
                 }else if(item.Unidad__c=='L'){
-                	if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'PI' )
-		        	{
-		        			 kg = item.Volumen__c / KG_LB;
-		        			 vol = item.Volumen__c;
-		        			 piezas = Integer.ValueOf(kg/prod.Peso_Promedio__c);
-		        			 cajas = Math.round(piezas / prod.Piezas_por_caja__c);
-		        	}
-		        	else if(item.Tipo_de_Precio__c == 'PK' && prod.Unidad_de_medida_base__c == 'PI'  )
-		        	{
-		        			vol= item.Volumen__c;
-				            kg = item.Volumen__c /KG_LB;
-				            piezas = Math.round(kg / prod.Peso_Promedio__c);
-				            cajas = Math.round(piezas / prod.Piezas_por_caja__c);
+                    if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'PI' )
+                    {
+                             kg = item.Volumen__c / KG_LB;
+                             vol = item.Volumen__c;
+                             piezas = Integer.ValueOf(kg/prod.Peso_Promedio__c);
+                             cajas = Math.round(piezas / prod.Piezas_por_caja__c);
+                    }
+                    else if(item.Tipo_de_Precio__c == 'PK' && prod.Unidad_de_medida_base__c == 'PI'  )
+                    {
+                            vol= item.Volumen__c;
+                            kg = item.Volumen__c /KG_LB;
+                            piezas = Math.round(kg / prod.Peso_Promedio__c);
+                            cajas = Math.round(piezas / prod.Piezas_por_caja__c);
 
-		        	}
-		        	else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'PI'  )
-		        	{
-		        			vol= item.Volumen__c;
-				            kg = item.Volumen__c /KG_LB;
-				            piezas = Math.round(kg / prod.Peso_Promedio__c);
-				            cajas = Math.round(piezas / prod.Piezas_por_caja__c);
+                    }
+                    else if(item.Tipo_de_Precio__c == 'DL' && prod.Unidad_de_medida_base__c == 'PI'  )
+                    {
+                            vol= item.Volumen__c;
+                            kg = item.Volumen__c /KG_LB;
+                            piezas = Math.round(kg / prod.Peso_Promedio__c);
+                            cajas = Math.round(piezas / prod.Piezas_por_caja__c);
 
-		        	}
-		        	else
-		        	{
-	                    kg = item.Volumen__c / KG_LB;
-	                    cajas = Math.round(kg / item.Peso_Promedio__c);
-	                    vol = item.Volumen__c;
-		        	}
+                    }
+                    else
+                    {
+                        kg = item.Volumen__c / KG_LB;
+                        cajas = Math.round(kg / item.Peso_Promedio__c);
+                        vol = item.Volumen__c;
+                    }
                 }
                 Integer tmpPallets = 0;
                 if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' || pedido.Cliente__r.Organizacion_de_Ventas__c.right(4) == '3031' ) { tmpPallets = Math.round(cajas / prod.CsxPalletInt__c); }
                 else { tmpPallets = Math.round(cajas / prod.Cajas_Tarima__c); }
                 if(tmpPallets<1){tmpPallets=1;}
-				        item.Pallets__c = tmpPallets;
+                        item.Pallets__c = tmpPallets;
                 item.Volumen__c = vol;
                 item.quantity = cajas;
                 item.Cajas__c = cajas;
@@ -808,7 +808,7 @@ public with sharing class OpportunityParserController {
                 Double precioViz = item.Precio_Unitario_Viz__c;
                 if(precioViz!=null && tipoPrecioViz!=null){
                     Double importeViz = calcularImporte(tipoPrecioViz, uom, vol, kg, cajas, precioViz,piezas);
-	                item.Importe_Total_Viz__c = importeViz;
+                    item.Importe_Total_Viz__c = importeViz;
                 }
 
             }
@@ -856,7 +856,7 @@ public with sharing class OpportunityParserController {
             }else if(tipoPrecio.startsWith('D')){
                 tipoPrecio = 'USD';
             }else if(tipoPrecio.startsWith('Y')){
-             	tipoPrecio = 'YEN';
+                tipoPrecio = 'YEN';
             }
             PedidosOtrosCanalesUtils.ValidacionCredito esvalido;
             String eMsg = '';
@@ -864,18 +864,18 @@ public with sharing class OpportunityParserController {
             
             if(canalDistribucion.left(1) == 'E')
             {
-	            	try {
-	                esvalido = PedidosOtrosCanalesUtils.validarCredito( clienteSAP, '',
-	                    totPedidoSF, tipoPrecio, sociedad, 0, '');
-	            } catch( Exception e ) {
-	                eMsg = 'Error al validar crédito';
-	                System.debug('ERR:Consultando WS de validación de Crédito: '+e.getMessage());
-	            }
+                    try {
+                    esvalido = PedidosOtrosCanalesUtils.validarCredito( clienteSAP, '',
+                        totPedidoSF, tipoPrecio, sociedad, 0, '');
+                } catch( Exception e ) {
+                    eMsg = 'Error al validar crédito';
+                    System.debug('ERR:Consultando WS de validación de Crédito: '+e.getMessage());
+                }
             }
             else
             {
-            	esvalido = new PedidosOtrosCanalesUtils.ValidacionCredito();
-             	esvalido.aprobado = true;
+                esvalido = new PedidosOtrosCanalesUtils.ValidacionCredito();
+                esvalido.aprobado = true;
             }
             
 
@@ -921,17 +921,29 @@ public with sharing class OpportunityParserController {
         List<SaveResult> resultadosSAP = new List<SaveResult>();
         Boolean blnError = false;
         list<WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados> respuestaLegados = null;
-        
+        System.debug('MAPPRECIOS=> '+ mapaProductos);
         respuestaLegados =  OpportunityParserWS.guardarPedidoslegados(procesar.values(), mapaProductos);
-        
+        System.debug('RESPUESTALEGADOS=> '+ respuestaLegados);
          for(WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados respuesta : respuestaLegados)
          {
-         	 if(respuesta==null){continue;}
+             if(respuesta==null){continue;}
+               SaveResult svResult = new SaveResult();
                 Integer idPedido = respuesta.SdlIdPedidoSalesForce;
-                
+             
+             System.debug('IDPEDIDO=> '+ idPedido);
+             if(idPedido == null || idPedido == 0)
+             {
+                  	System.debug('Mensaje::' + respuesta.mensaje);
+                    String respuestaMensaje = respuesta.mensaje;
+                    svResult.isSuccess = false;
+                    svResult.errorMsg = respuesta.mensaje;
+                    blnError = true;
+                 
+             }else
+             {                
+            
                 Opportunity opp = procesar.get(idPedido);
                 System.debug('PedidoMasivo: '+opp+' IdPedido: '+idPedido);
-                SaveResult svResult = new SaveResult();
                 String folio = opp.Folio_Temporal__c;
                 svResult.folioTmp = folio;
                 svResult.record = opp;
@@ -949,7 +961,7 @@ public with sharing class OpportunityParserController {
                     opp.Folio_Pedido_SDL__c = respuesta.SdlFolioPedidoSDL;
                     opp.Folio_Embarque__c = respuesta.SdlFolioEmbarqueSDL;
                     opp.Numero_Pedido_SAP__c = respuesta.SapShip_To;
-                    opp.Numero_de_Pedido_NSC__c = respuesta.NscNumeroPedido; 
+                    opp.Numero_de_Pedido_NSC__c = string.isNotBlank(respuesta.NscNumeroPedido)? String.valueOf(Integer.valueOf(respuesta.NscNumeroPedido)):''; 
                     opp.Frontera__c = mapFrontera.get(opp.Frontera__c);
                     procesados.put(idPedido, opp);
                     System.debug('Alta en SAP exitosa:' + opp);
@@ -962,6 +974,7 @@ public with sharing class OpportunityParserController {
                     mapaProductos.remove(folio);
                     
                 }
+             }
          }
 
         if(blnError){
@@ -995,7 +1008,14 @@ public with sharing class OpportunityParserController {
         sobjectSaveResult.opportunitySaveResults = oppsResults;
         sobjectSaveResult.opportunityProductSaveResults = itemsResults;
         update mapEstrategiasMod.values();
-        return sobjectSaveResult;
+        for(SaveResult sr :oppsResults)
+        {
+        	if(sr.Bloqueado != null)
+        	{
+        		PedidosOtrosCanalesUtils.submitForApproval(sr.Bloqueado,'Se Envio para su aprobacion (Cierre)','Cierre');
+        	}
+        }
+        return sobjectSaveResult; 
     }
 
 
@@ -1016,7 +1036,7 @@ public with sharing class OpportunityParserController {
         }
         if(tipoPrecio=='PP')
         {
-        	return piezas * precio;
+            return piezas * precio;
         }
         if( tipoPrecio=='PC'){
             return qtty * precio;
@@ -1094,6 +1114,8 @@ public with sharing class OpportunityParserController {
         public sobject record{get;set;}
         public String folioTmp {get;set;}
         public String credito {get;set;}
+        public opportunity Bloqueado {get;set;}
+        
 
         public SaveResult(){}
 
@@ -1108,9 +1130,9 @@ public with sharing class OpportunityParserController {
     //--Wrapper to wrap diffrent type of object saveResults
     @TestVisible
     public class SobjectSaveResult {
-        public List<SaveResult> opportunitySaveResults 			{get; set;}
-        public List<SaveResult> opportunityProductSaveResults 	{get; set;}
-        public String exceptions								{get; set;}
+        public List<SaveResult> opportunitySaveResults          {get; set;}
+        public List<SaveResult> opportunityProductSaveResults   {get; set;}
+        public String exceptions                                {get; set;}
     }
 
     @TestVisible
@@ -1194,7 +1216,7 @@ public with sharing class OpportunityParserController {
         for(Opportunity opp : mapaPedidos.values() ) {
             opp.CloseDate = opp.Fecha_de_Embarque__c;
             opp.StageName = '1 - Pedido Colocado';
-			
+            
             if(String.isNotBlank(opp.Cliente__c)){
                 String codigo = opp.Cliente__c;
                 codigo = codigo.leftPad(10, '0');
@@ -1222,14 +1244,15 @@ public with sharing class OpportunityParserController {
                 }
             }
             
-	            if(!Test.isRunningTest()){
-		            if( opp.Account.Canal_Distribucion__c.right(2) == 'EX' && (opp.Account.Sociedad__c.right(3) == '303' || opp.Account.Sociedad__c.right(3) == '300') ) {
-		                if( String.isBlank(opp.OC__c ) ) {
-		                    opp.StageName = '10 - Pedido Bloqueado';
-		                   system.debug('PedidoBloqueado: '+ opp.StageName);
-		                }
-		            }
-	        }
+                if(!Test.isRunningTest()){
+                     opp.Account   = PedidosOtrosCanalesUtils.retrieveCteInfo( opp.AccountId );
+                    if( opp.Account.Canal_Distribucion__c.right(2) == 'EX' && (opp.Account.Sociedad__c.right(3) == '303' || opp.Account.Sociedad__c.right(3) == '300') ) {
+                        if( String.isBlank(opp.OC__c ) ) {
+                            opp.StageName = '10 - Pedido Bloqueado';
+                           system.debug('PedidoBloqueado: '+ opp.StageName);
+                        }
+                    }
+            }
         }
         return mapaPedidos;
     }
