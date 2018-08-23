@@ -208,9 +208,9 @@ public static Boolean ActualizaPSV {get;set;}
             list<PedidosOtrosCanalesUtils.Producto> productos =  OpportunityParserUtils.GenerarListaProductos(OpportunityLineItems.get(pedido.Folio_Temporal__c)); 
 	        String obsProducto = productos[0].item.Observaciones__c == null ? '' : productos[0].item.Observaciones__c;
             if(pedido.Canal__c=='A'){
-	            obs = 'Carga masiva autoservicio ' + obsProducto;
+	            obs = 'CMA - ' + obsProducto;
 	        }else if(pedido.Canal__c=='M'){
-	            obs = 'Carga masiva mayoreo ' + obsProducto;
+	            obs = 'CMM - ' + obsProducto;
 	        }else if(pedido.Canal__c=='E'){
 	            obs = 'Carga masiva exportación';
 	        }

@@ -215,26 +215,27 @@ textarea {
 
     <apex:form id="form" >
     	<apex:pageMessages />
-        <apex:pageBlock id="generales">
+       
+           <apex:pageBlock id="generales">
             <apex:pageBlockButtons location="top" >
                 <apex:actionStatus id="actionStatusSubmit" onstart="hideActionButtons()" onstop="showActionButtons()">
                     <apex:facet name="stop">
                         <apex:outputPanel styleClass="outputPanelActionButtons">
                          <apex:outputPanel rendered="{!pedido.Reenviar__c &&  !TieneEntregaSAP}" >
-                        	 <input type="button" class="btn" onclick="ConsultarPedidosOC(2)" value= "Reenviar Pedido" name="btnModificado23" style="color: #fff;background-color: GREEN;border-color: #5cb85c;background-image:none;font-weight=bold;" ></input>
+                             <input type="button" class="btn" onclick="ConsultarPedidosOC(2)" value= "Reenviar Pedido" name="btnModificado23" style="color: #fff;background-color: GREEN;border-color: #5cb85c;background-image:none;font-weight=bold;" />
                            </apex:outputPanel>
                             <apex:outputPanel rendered="{!!pedido.Reenviar__c || TieneEntregaSAP}">
                             
-                            <apex:outputPanel rendered="{!pedido.Id != null}" >
-                                <input type="button" class="btn" onclick="ConsultarPedidosOC(1)" value= "Guardar" name="btnModificado" style="color: #fff;background-color: GREEN;border-color: #5cb85c;background-image:none;font-weight=bold;" ></input>
+                                <apex:outputPanel rendered="{!pedido.Id != null}" >
+                                    <input type="button" class="btn" onclick="ConsultarPedidosOC(1)" value= "Guardar" name="btnModificado" style="color: #fff;background-color: GREEN;border-color: #5cb85c;background-image:none;font-weight=bold;" />
                                 </apex:outputPanel>
-                                <apex:outputPanel rendered="{!pedido.Id == null}">
-                                    <input type="button" class="btn" onclick="ConsultarPedidosOC(2)" value= "Guardar" name="btnModificado22" style="color: #fff;background-color: GREEN;border-color: #5cb85c;background-image:none;font-weight=bold;" ></input>
-                                    </apex:outputPanel> 
+                        <apex:outputPanel rendered="{!pedido.Id == null}">
+                            <input type="button" class="btn" onclick="ConsultarPedidosOC(2)" value= "Guardar" name="btnModificado22" style="color: #fff;background-color: GREEN;border-color: #5cb85c;background-image:none;font-weight=bold;" />
+                           </apex:outputPanel> 
                                  <apex:commandButton styleclass="btn"  onclick="ConsultarPedidosOC()" action="{!guardarPedido}" value="Guardar" status="actionStatusDispo"  id="btnGuardarOC" timeout="60000" style="background: GREEN; color:white; font-weight=bold; display:none;"   />
                                
-                <apex:outputPanel rendered="{!pedido.Id!=null&&!pedido.Pedido_Cancelado__c}">
-                    <input type="button" class="btn" onclick="openModal('ConfirmCancelacion')" value= "Cancelar pedido" name="btnModificado" style="background: #f68b0e;" ></input>
+                    <apex:outputPanel rendered="{!pedido.Id!=null&&!pedido.Pedido_Cancelado__c}">
+                        <input type="button" class="btn" onclick="openModal('ConfirmCancelacion')" value= "Cancelar pedido" name="btnModificado" style="background: #f68b0e;" />
                       <!-- <apex:commandButton value="Cancelar pedido" action="{!cancelarPedido}" rendered="{!pedido.Id!=null&&!pedido.Pedido_Cancelado__c}" style="background: #f68b0e;" disabled="{!isLocked}" /> -->
                     </apex:outputPanel>
 
@@ -266,14 +267,19 @@ textarea {
                     <td id="tdNumeroClienteSAP">
                         <apex:outputText value="{!codigoCliente}" style="width:80px" rendered="{!pedido.Id != null}" />
                         <apex:inputText id="idCliente" value="{!codigoCliente}" style="width:80px" rendered="{!pedido.Id == null}" >
-                            <apex:actionSupport action="{!buscarSAP}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales,outputPanelProductos" />
-                        </apex:inputText><div class="requiredBlock"></div>
+                            <apex:actionSupport action="{!buscarSAP}" event="onchange"
+                                                status="actionStatusSucursal" timeout="60000" rerender="generales,outputPanelProductos" />
+                        </apex:inputText>
+                        <div class="requiredBlock"></div>
                     </td>
                     <td colspan="2">
                         <apex:outputText value="{!pedido.Cliente__r.Name}" style="width:80px" rendered="{!pedido.Id != null}" />
                         <div class="requiredInput"><div class="requiredBlock"></div>
                             <apex:inputField taborderhint="1" value="{!pedido.Cliente__c}" rendered="{!pedido.Id == null}" >
-                                <apex:actionSupport action="{!buscarPorCliente}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales,outputPanelProductos" />
+                                <apex:actionSupport action="{!buscarPorCliente}"
+                                                    event="onchange"
+                                                    status="actionStatusSucursal"
+                                                    timeout="60000" rerender="generales,outputPanelProductos" />
                             </apex:inputField>
                         </div>
                         <apex:actionStatus id="actionStatusSucursal">
@@ -293,14 +299,19 @@ textarea {
                     <td id="tdNumeroClienteSAP">
                         <apex:outputText value="{!codigoSucursal}" style="width:80px" rendered="{!pedido.Id != null}" />
 						<apex:inputText value="{!codigoSucursal}"  style="width:80px" rendered="{!pedido.Id == null}" >
-                            <apex:actionSupport action="{!buscarSucursal}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales" />
+                            <apex:actionSupport action="{!buscarSucursal}"
+                                                event="onchange"
+                                                status="actionStatusSucursal"
+                                                timeout="60000" rerender="generales,outputPanelProductos" />
                         </apex:inputText><div class="requiredBlock"></div>
                     </td>
                     <td colspan="2" >
                         <apex:outputText value="{!pedido.Account.Name}" style="width:80px" rendered="{!pedido.Id != null}" />
                         <div class="requiredInput"><div class="requiredBlock"></div>
                             <apex:inputField taborderhint="2" value="{!pedido.SucursalAux__c}" rendered="{!pedido.Id == null}" >
-                                <apex:actionSupport action="{!buscarSucursalPorNombre}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales" />
+                                <apex:actionSupport action="{!buscarSucursalPorNombre}"
+                                                    event="onchange" status="actionStatusSucursal" timeout="60000"
+                                                    rerender="generales,outputPanelProductos" />
                             </apex:inputField>
                     	</div>
                     </td>
@@ -315,14 +326,26 @@ textarea {
                     <td>
                         <apex:outputText value="{!ofiCodigo}" style="width:80px" rendered="{!pedido.Id != null}" />
                         <apex:inputText value="{!ofiCodigo}"  style="width:80px" rendered="{!pedido.Id == null}">
-                            <apex:actionSupport action="{!buscarOfiCodigo}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales,outputPanelProductos" />
+                            <apex:actionSupport action="{!buscarOfiCodigo}"
+                                                event="onchange"
+                                                status="actionStatusSucursal"
+                                                timeout="60000"
+                                                rerender="generales,outputPanelProductos" />
                         </apex:inputText>
                     </td>
                     <td colspan="2" >
-                        <apex:outputText value="{!pedido.Canal_Factura__r.Name}" style="width:80px" rendered="{!pedido.Id != null}" />
-                        <div class="requiredInput"><div class="requiredBlock"></div>
-                            <apex:inputField taborderhint="2" value="{!pedido.Canal_Factura__c}" rendered="{!pedido.Id == null}">
-                                <apex:actionSupport action="{!buscarXOfiVt}" event="onchange" status="actionStatusSucursal" timeout="60000" rerender="generales,outputPanelProductos" />
+                        <apex:outputText value="{!pedido.Canal_Factura__r.Name}"
+                                         style="width:80px"
+                                         rendered="{!pedido.Id != null}" />
+                        <div class="requiredInput">
+                            <div class="requiredBlock"></div>
+                            <apex:inputField taborderhint="2"
+                                             value="{!pedido.Canal_Factura__c}"
+                                             rendered="{!pedido.Id == null}">
+                                <apex:actionSupport action="{!buscarXOfiVt}" event="onchange"
+                                                    status="actionStatusSucursal"
+                                                    timeout="60000"
+                                                    rerender="generales,outputPanelProductos" />
                             </apex:inputField>
                         </div>
                     </td>

@@ -1,5 +1,5 @@
 <apex:page showHeader="true" sidebar="false" controller="OpportunityParserController">
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js" />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script src="https://cdn.tinymce.com/4/tinymce.min.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800" rel="stylesheet" />
     <html>
@@ -42,14 +42,14 @@
             <div class="container">
                 <div class="headcontainer"><h1 class="headerSection">Data Import Service</h1></div>
                 
-                <div id="errorMsg" class=""/>
+                <div id="errorMsg" class=""></div>
                 <div id="showStatusDiv" style="display:none;">
                     <apex:image value="{!$Resource.spinner}" width="100" height="100"/>
                 </div> 
                 <div>
-                    <textarea id="excel_data" style="width:100%;height:150px;" class="mceEditor" /><br/>
+                    <textarea id="excel_data" style="width:100%;height:150px;" class="mceEditor" > </textarea><br/>
                 </div>
-                <div class="processBlk" align="center"><input type="button" onClick="generateTable(event);" value="Process data" class="procesBtn"/></div>
+                <div id="btnEnviarPedido" class="processBlk" align="center"><input type="button" id="btnProcess" onClick="generateTable(event);" value="Process data" class="procesBtn"/></div>
                 <div class="excel_table" style="display:none">
                      <h1 style="font-size: 15px; font-weight: bold; text-align: center; display: block;">Pedidos</h1>
                      <table class="list slds-table slds-table--bordered" border="0" cellspacing="0" cellpadding="0" id="opportunityTable" width="100%">
@@ -92,7 +92,7 @@
       var missingExternalIdsOpportunities = [];
       var contador = 0;
       var Respuesta = 0;
-      var tiempoEspera = 10000;
+      var tiempoEspera = 30000;
     // Set timeout at page level
         tinymce.init({
             selector: "#excel_data",
@@ -137,6 +137,7 @@
                             showErrorMsgs('Custom setting for field mapping not found');
                         }
                         $('#showStatusDiv').hide();
+                        $('#btnEnviarPedido').show(); 
                     } else if (event.type === 'exception') {
                         showErrorMsgs(event.message);
                         console.log(event.where);
@@ -148,15 +149,17 @@
             );
         }
         var EXTERNALID = 'Folio_Temporal__c';
+        
         function generateTable(event) {
-            //console.log(EXTERNALID);
+            
+           
         	parsedResult = [];
       		parsedResult2 = [];
             $("#errorMsg").hide();
             
             var mapOpprtunityToLineItems = new Map();
             $('#showStatusDiv').show();
-            
+            $("#btnEnviarPedido").hide();
             event.stopPropagation();
             
             //--Clear tables
@@ -314,6 +317,7 @@
 									    			EnviarPedido(opportunitiesToInsertBlock,opportunitiesLineItems);
 									    			contadorRegistros++; 
 									    },  tiempoEspera * i );	
+									    
 						} // terminia ciclo for
 						 
 						
@@ -325,12 +329,13 @@
             } else {
                 showErrorMsgs('Please enter records in editor OR Headers are missing');
             }
-            
+             $("#btnProcess").show();
         }
              
         function failure() {
         	console.log('failure');
             $('#showStatusDiv').hide();
+            $('#btnEnviarPedido').show(); 
             showErrorMsgs('Insertion Fail');
         }
         String.prototype.replaceAll = function (toReplace, replaceWith)
@@ -358,9 +363,11 @@
 			                                   Respuesta++;
 			                                   if(contador == Respuesta) 
 												{
-													$('#showStatusDiv').hide(); 
+													$('#showStatusDiv').hide();
+													$('#btnEnviarPedido').show(); 
 												}
-			                                } else {
+			                                } 
+			                                else {
 			                                    showErrorMsgs(result.exceptions);
 			                                }
 			                                 
@@ -379,6 +386,7 @@
             $("#errorMsg").text(msg);
             $("#errorMsg").show();
             $('#showStatusDiv').hide();   
+            $('#btnEnviarPedido').show(); 
         }
         
         function buildOppResultTable(result, opportunitiesToInsert) {

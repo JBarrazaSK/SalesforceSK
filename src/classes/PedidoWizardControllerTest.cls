@@ -68,8 +68,8 @@ private class PedidoWizardControllerTest implements WebServiceMock {
         controller.stepForth();
         controller.product2XproductCodeMap.get('0');
         controller.pedidoWrapper.indexToRemove = 0;
-        //controller.pedidoWrapper.removePedidoItem();
-        //controller.pedidoWrapper.clearPedidoItemList();
+        controller.pedidoWrapper.removePedidoItem();
+        controller.pedidoWrapper.clearPedidoItemList();
         controller.pedidoWrapper.addPedidoItem();
         controller.pedidoWrapper.pedidoItemList[0].Producto__c = product2.Id;
         controller.submit();
@@ -149,7 +149,7 @@ private class PedidoWizardControllerTest implements WebServiceMock {
          Oficina_de_Venta__c ofiVta = new Oficina_de_Venta__c();        
         	ofiVta.Codigo__c = '103'; 
         	ofiVta.Descripcion__c = 'BNM MANAGUA' ;
-        	ofiVta.Opera_en_SAP__c =  true;
+        	//ofiVta.Opera_en_SAP__c =  true;
         upsert ofiVta;     
         return ofiVta;
     }

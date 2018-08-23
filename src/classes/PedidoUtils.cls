@@ -45,7 +45,7 @@ public with sharing class PedidoUtils {
     public ExternalSources externalSources { get; set; }
     public Set<String> setProductos;
 
-
+    public PedidoUtils(){}
     public Map<String, Product2> product2XproductCodeMap {
         get {
             if(product2XproductCodeMap == null) {
@@ -292,7 +292,37 @@ public with sharing class PedidoUtils {
         );
     }
 
-
+public static Account queryAccountSetProspecto(String leadID) {
+	lead prospecto = [select Cliente_de_contado__c,id from lead where id=:leadID];
+	list<account> cuenta = new list<account>();
+	string clienteId;
+	if(prospecto != null && string.isNotBlank(prospecto.Cliente_de_contado__c))
+	{
+		 clienteId = 'SUC - '+prospecto.Cliente_de_contado__c;	
+	}
+	
+        cuenta = [
+            SELECT Id, Cadena__c, Canal_Distribucion__c, Canal_Padre__c, Correo_Electronico__c,
+                DiasEntrega__c, Name, Numero_Cliente_SAP__c, Organizacion_de_Ventas__c,
+                Ramo__c, RFC_Generico__c, Territorio__c,
+                Canal_de_Distribucion_NSC__r.Codigo__c, Canal_de_Distribucion_NSC__r.Name,
+                Parent.Numero_Cliente_SAP__c, Parent.Tipo_de_Credito__c, Parent.RFC__c,
+                Parent.RFC_Generico__c,
+            	Oficina_de_Ventas__r.Codigo__c,
+                Tipo_Surtido__c,
+                RecordType.Name,Sector__c
+            FROM Account
+            WHERE Estatus_Cliente__c = 'Activo'
+                AND RecordType.Name = 'Sucursal'
+                AND Numero_Cliente_SAP__c= :clienteId];
+                
+         if(cuenta.size() > 0)
+         {
+         	return cuenta[0];
+         }
+         else
+         {return null;}
+    }
 
     public class CustomException extends Exception {}
 
@@ -354,7 +384,7 @@ public with sharing class PedidoUtils {
         }
 
         public void setPedidoData() {
-            tipoSurtido = Integer.valueOf(pedido.TipoSurtido__c.left(1));
+            tipoSurtido = Integer.valueOf(pedido.TipoSurtido__c == null ? '0': pedido.TipoSurtido__c.left(1));
             pedido.Fecha_de_Entrega__c = pedido.FechaSurtidoProgramada__c.date();
             pedido.Importe__c = importe;
             if(String.isNotBlank(pedido.Prospecto__c)) {
@@ -985,6 +1015,7 @@ public with sharing class PedidoUtils {
         		result.SALES_ITEMS_IN.ITEMS_Linea.add(elem1);
         		
         		elem2.TipoCliente 			= 'WE';
+                System.debug('PROSPECTO=> '+ pedidoWrapper.pedido.Prospecto__c +' ID '+pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c);
         		elem2.Cliente 				= pedidoWrapper.pedido.Prospecto__c != null ? pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c :accountWrapper.account.Numero_Cliente_SAP__c.right(10);
         		result.SALES_PARTNERS.PARTNERS_Linea.add(elem2);
         		elem2 = new ABCPedidos_SF_to_ECC.PARTNERS_Linea_element();
@@ -1178,7 +1209,9 @@ public with sharing class PedidoUtils {
                 //pedidoDetalleWS.nCanalDistribucion = pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(accountWrapper.ofiVentas) : accountWrapper.canal;
                 if(String.isNotBlank(pedidoWrapper.pedido.Numero_de_Pedido_NSC__c) && pedidoWrapper.pedido.Numero_de_Pedido_NSC__c.isNumeric()) pedidoDetalleWS.nPedidoCliente = Integer.valueOf(pedidoWrapper.pedido.Numero_de_Pedido_NSC__c);
                 pedidoDetalleWS.nRenglon = i+1;
-                pedidoDetalleWS.nProducto = Integer.valueOf(pedidoWrapper.pedidoItemList[i].Producto__r.ProductCode);
+                system.debug('PEDIDOIEM=> '+ pedidoWrapper.pedidoItemList[i].Producto__c);
+                string productCode = pedidoWrapper.pedidoItemList[i].Producto__r == null ? '0':pedidoWrapper.pedidoItemList[i].Producto__r.ProductCode;
+                pedidoDetalleWS.nProducto = Integer.valueOf(productCode);
                 pedidoDetalleWS.nMarca = 0;
             
                 system.debug('UNIDADES=> '+ unidades);
@@ -1368,7 +1401,8 @@ public with sharing class PedidoUtils {
                 //pedidoDetalleWS.nCanalDistribucion = pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(accountWrapper.ofiVentas) : accountWrapper.canal;
                 if(String.isNotBlank(pedidoWrapper.pedido.Numero_de_Pedido_NSC__c) && pedidoWrapper.pedido.Numero_de_Pedido_NSC__c.isNumeric()) pedidoDetalleWS.nPedidoCliente = Integer.valueOf(pedidoWrapper.pedido.Numero_de_Pedido_NSC__c);
                 pedidoDetalleWS.nRenglon = i+1;
-                pedidoDetalleWS.nProducto = Integer.valueOf(pedidoWrapper.pedidoItemList[i].Producto__r.ProductCode);
+                string productoCode = pedidoWrapper.pedidoItemList[i].Producto__r == null ? '0':pedidoWrapper.pedidoItemList[i].Producto__r.ProductCode;
+                pedidoDetalleWS.nProducto = Integer.valueOf(productoCode);
                 pedidoDetalleWS.nMarca = 0;
                
                 if( unidades == null ) {
@@ -1519,6 +1553,7 @@ public with sharing class PedidoUtils {
             if(inventarioXProductCodeMap==null){
                inventarioXProductCodeMap = new Map<String, ProductoInventarioQueryNSCWS.Inventario>();
             }
+            system.debug('PRODUCTO=> '+ pi.Producto__c);
             ProductoInventarioQueryNSCWS.Inventario inv = inventarioXProductCodeMap.get(pi.Producto__r.ProductCode);
             if(inv==null){
                 throw new CustomException(pi.Producto__r.ProductCode + ': No se encontro el producto en el inventario');

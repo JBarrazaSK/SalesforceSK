@@ -39,6 +39,8 @@ public with sharing class PedidoWizardController {
                 accountWrapper.isSelectable = false;
             } else if(recordIdPrefix == SObjectType.Lead.getKeyPrefix()) {
                 pedidoWrapper.pedido.Prospecto__c = recordId;
+               
+                
             } else if(recordIdPrefix == SOBjectType.Pedido__c.getKeyPrefix()) {
                 pedidowrapper.queryPedido(recordId);
                 queryAccount();
@@ -46,6 +48,17 @@ public with sharing class PedidoWizardController {
             }
         } else if(parameterMap.containsKey('CF00N500000030Mvx_lkid')) {
             pedidoWrapper.pedido.Prospecto__c = parameterMap.get('CF00N500000030Mvx_lkid');
+             account cuenta =  PedidoUtils.queryAccountSetProspecto(pedidoWrapper.pedido.Prospecto__c);
+                if(cuenta != null)
+                {
+	                pedidoWrapper.pedido.Cuenta__c = cuenta.Id;
+	                queryAccount();
+	                if( accountWrapper.tipoSurtido != null ) {
+	                    pedidoWrapper.pedido.TipoSurtido__c = accountWrapper.account.Tipo_Surtido__c;
+	                    pedidoWrapper.tipoSurtido = accountWrapper.tipoSurtido;
+	                }
+	                //accountWrapper.isSelectable = false;
+                }
         }         
        if(accountWrapper != null && accountWrapper.ofiventas != null)
        {	           
@@ -69,7 +82,19 @@ public with sharing class PedidoWizardController {
         }
         
     }
-
+	public void queryAccount(string numeroCliente) {
+        accountWrapper.queryAccount(pedidoWrapper.pedido.Cuenta__c);
+        if(pedidoWrapper.pedido.Id == null) {
+            pedidoWrapper.pedido.Cuenta__c = accountWrapper.account.Id;
+            pedidoWrapper.pedido.TipoSurtido__c = accountWrapper.account.RecordType.Name == 'Sucursal' && accountWrapper.account.DiasEntrega__c != null && accountWrapper.account.Canal_de_Distribucion_NSC__r.Id != null ? '3 - RUTA' : '4 - LOCAL';
+            if( accountWrapper.tipoSurtido != null ) {
+                System.debug('TIPO SURTIDO: ' + accountWrapper.tipoSurtido);
+                pedidoWrapper.pedido.TipoSurtido__c = accountWrapper.account.Tipo_Surtido__c;
+                pedidoWrapper.tipoSurtido = accountWrapper.tipoSurtido;
+            }
+        }
+        
+    }
     public void stepForth() {
         String tipoSurtido = pedidoWrapper.pedido.TipoSurtido__c;
         System.debug('Tipo Surtido'+ tipoSurtido);

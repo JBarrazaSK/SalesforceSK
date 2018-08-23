@@ -22,6 +22,7 @@ public without sharing class LeadTrigger {
     public static void asignaCampos(List<Lead> leadNewList) {
         for(Lead lead : leadNewList) {
             lead.Nombre_DNM1__c = lead.OwnerId;
+            lead.Estructura_de_venta__c = lead.Canal_de_Distribucion_NSC__r.Estructura_de_venta__c;
             if(lead.Dias_de_Entrega__c == null){
                 lead.Dias_de_Entrega__c='Lunes; Martes; Miércoles; Jueves; Viernes; Sábado';
             }
@@ -239,7 +240,7 @@ Codigo__c = codigoTransporte
             Ext_Fax__c,
             Fecha_de_cumpleanos__c,Telefono_Contacto__c,Celular_Contacto__c,Correo_Electronico_Contacto__c
             ,Organizacion_de_Ventas__c,Ramo_Codigo__c,Clave_de_Pais__c,Sociedad__c,Zona_de_Ventas__c,Oficina_de_Venta__r.Codigo__c
-            ,Moneda_Cliente__c,Localidad_Ciudad__r.name,Municipio_Delegacion__r.name,Estado__r.Clave_Estado__c,Status,Respuesta_Servicio__c,Prioridad_de_Entrega__c 
+            ,Moneda_Cliente__c,Localidad_Ciudad__r.name,Municipio_Delegacion__r.name,Estado__r.Clave_Estado__c,Status,Respuesta_Servicio__c,Prioridad_de_Entrega__c,Cliente_de_contado__c 
             FROM Lead
             WHERE Id in :leadIds
             ALL ROWS
@@ -274,6 +275,7 @@ Codigo__c = codigoTransporte
                         if(arregloRespuesta != null && arregloRespuesta.size() > 1)
                         {
                             mapProspectos.get(lead.Cliente.AUSP.ID_Prospecto).Id_prospecto_sap__c = arregloRespuesta[0];
+                            mapProspectos.get(lead.Cliente.AUSP.ID_Prospecto).Cliente_de_contado__c = arregloRespuesta[1];
                             nombre = mapProspectos.get(lead.Cliente.AUSP.ID_Prospecto).Name +' '+ mapProspectos.get(lead.Cliente.AUSP.ID_Prospecto).Apellido_Materno__c;
                             System.debug('Se creo con exito SAP: ' + response.Msg_1);
                             
@@ -320,7 +322,7 @@ Codigo__c = codigoTransporte
             update mapProspectos.values();
             
         } catch(Exception e) {
-            System.debug('error prospecto: ' + e);
+            System.debug('error prospecto: '+ e.getLineNumber());
             error = e.getMessage();
         }
         /*

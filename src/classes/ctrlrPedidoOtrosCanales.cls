@@ -2110,9 +2110,10 @@ public class ctrlrPedidoOtrosCanales {
         {
         pedido.reenviar__c = false;
         }
+            System.debug('PEDIDO_ID_EXTERNO:: '+ pedido.Id_Externo__c);
           pedido = PedidosOtrosCanalesUtils.ValidarPedidoModificado( pedido, productos, false,pedidoOld,ProductosOld,ContainsDelete, ProductosEliminado);  
-			
-			 if(pedido == null)
+			System.debug('VALIDARPEDIDOMODIFICADO:: '+ pedido);
+			 if(pedido == null || pedido.Id_Externo__c == null)
          		return;
          	
             if( (String.isNotBlank(pedido.Numero_de_Pedido_NSC__c) && pedido.Numero_de_Pedido_NSC__c != '0') || (string.isNotBlank(pedido.Numero_Pedido_SAP__c ) && pedido.Numero_Pedido_SAP__c != '0'))

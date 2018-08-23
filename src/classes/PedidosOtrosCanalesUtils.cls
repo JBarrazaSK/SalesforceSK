@@ -1193,9 +1193,16 @@ return pedido;
             }
             try
             {
-                mensaje  = 'Pedido registrado con éxito.';   
+                mensaje  = 'Pedido registrado con éxito.';                
+                Opportunity pedido2 =  pedido;
+                system.debug('reenviar pedido :: '+ pedido);
                 pedido = PedidosOtrosCanalesUtils.responseWS(pedido,DatosPedidos);
-                if(pedido == null) return null;
+                
+                if(pedido == null){
+                    system.debug('reenviar pedido2 :: '+ pedido2);
+                    pedido2.Id_Externo__c = null;
+                    return pedido2;
+                }
                 system.debug('reenviar pedido :: '+ pedido.reenviar__c +'');
             }
             catch(Exception e)
@@ -2339,7 +2346,7 @@ return bandera;
         DatosPedidoNSC.bPedidoRechazado=               false;
         DatosPedidoNSC.bCapturadoDespuesDeCierre=      false;
         DatosPedidoNSC.bFacturaNoFiscal=               false; 
-        DatosPedidoNSC.nCostoFlete=                    pedido.Flete__c;
+        DatosPedidoNSC.nCostoFlete=                    pedido.Flete__c == null ? 0 : pedido.Flete__c;
         DatosPedidoNSC.bEnviadoCorporativo=            false;
         DatosPedidoNSC.bPedidoCanceladoPorElSistema=   false;
         DatosPedidoNSC.bPedidoTransmitido=             false;

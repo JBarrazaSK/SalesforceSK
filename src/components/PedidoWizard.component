@@ -1263,7 +1263,7 @@ function rowOff(element) {
 							</apex:facet>
 						</apex:actionStatus></td>
 					<td class="labelCol">Tipo de surtido:</td>
-					<td><apex:inputField value="{!pedidoWrapper.pedido.TipoSurtido__c}" required="true"
+					<td><apex:inputField value="{!pedidoWrapper.pedido.TipoSurtido__c}" required="true" 
 							onchange="validateTipoSurtido(this, '{!IF(accountWrapper.account.Id != null, accountWrapper.account.DiasEntrega__c, 'N/A')}')" />
 					</td>
 				</tr>
@@ -1428,7 +1428,7 @@ function rowOff(element) {
 				</tr>
 				<tr>
 					<td class="labelCol">Tipo de surtido:</td>
-					<td><apex:inputField value="{!pedidoWrapper.pedido.TipoSurtido__c}" required="true"
+					<td><apex:inputField value="{!pedidoWrapper.pedido.TipoSurtido__c}" required="true" html-disabled="true" 
 							onchange="validateTipoSurtido(this, '{!accountWrapper.account.DiasEntrega__c}')"
 							rendered="{!pedidoWrapper.pedido.Id == null}" /> <!--<apex:outputField value="{!pedidoWrapper.pedido.TipoSurtido__c}" rendered="{!pedidoWrapper.pedido.Id == null}"/>-->
 						<apex:outputField value="{!pedidoWrapper.pedido.TipoSurtido__c}"
