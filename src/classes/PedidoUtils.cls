@@ -151,7 +151,7 @@ public with sharing class PedidoUtils {
     }
     
     public void stepForth(Boolean pedidoMultiple, Boolean cierrePlazas,Map<Integer,BalanceoNSCWS.BalanceoProductos>  inventario,Map<Integer,InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element>  inventarioSAP, Map<String,String> productos, Account accRef, ListaPreciosQueryNSCWS.RespuestaOfListOfPrecios lPrecios) {
-        String tipoSurtido = accountWrapper.account.Tipo_Surtido__c.left(1);
+        String tipoSurtido = accountWrapper.account.Tipo_Surtido__c == null ? '0': accountWrapper.account.Tipo_Surtido__c.left(1);
         String oficinaVentasName = accountWrapper.oficinaVentasName;
         if(accRef==null){
             queryAccount();
@@ -159,6 +159,7 @@ public with sharing class PedidoUtils {
             //queryAccount(accRef);
         }
         pedidoWrapper.pedido.TipoSurtido__c = tipoSurtido;
+        system.debug('ValidaCuenta=>> '+!accountWrapper.isValidAccountWrapper() +' HASMESSAGE '+ ApexPages.hasMessages() );
         if(ApexPages.hasMessages() || !accountWrapper.isValidAccountWrapper()) {
             accountWrapper.oficinaVentasName = oficinaVentasName;
             return;
@@ -1553,7 +1554,7 @@ public static Account queryAccountSetProspecto(String leadID) {
             if(inventarioXProductCodeMap==null){
                inventarioXProductCodeMap = new Map<String, ProductoInventarioQueryNSCWS.Inventario>();
             }
-            system.debug('PRODUCTO=> '+ pi.Producto__c);
+            system.debug('PRODUCTO=> '+ pi.Producto__r.ProductCode);
             ProductoInventarioQueryNSCWS.Inventario inv = inventarioXProductCodeMap.get(pi.Producto__r.ProductCode);
             if(inv==null){
                 throw new CustomException(pi.Producto__r.ProductCode + ': No se encontro el producto en el inventario');
@@ -2027,20 +2028,25 @@ public static Account queryAccountSetProspecto(String leadID) {
         }
          private DisponibilidadInventarioSAP.DT_SE_DisponibilidadInventario_Resp retrieveInventarioSap(Integer cliente, string sucursal, Integer tipoSurtido, Integer canal, String ordenCompra) {
             
-            WSDisponibilidadInventarioSAP.DisponibilidadInventarioSAPSoap servicio = new WSDisponibilidadInventarioSAP.DisponibilidadInventarioSAPSoap();
-            DisponibilidadInventarioSAP.DT_SE_DisponibilidadInventario_Req request = new DisponibilidadInventarioSAP.DT_SE_DisponibilidadInventario_Req();
+             WSDisponibilidadInventarioSAP.DisponibilidadInventarioSAPSoap servicio = new WSDisponibilidadInventarioSAP.DisponibilidadInventarioSAPSoap();
+             DisponibilidadInventarioSAP.DT_SE_DisponibilidadInventario_Req request = new DisponibilidadInventarioSAP.DT_SE_DisponibilidadInventario_Req();
+             DisponibilidadInventarioSAP.DT_SE_DisponibilidadInventario_Resp respuesta =  new DisponibilidadInventarioSAP.DT_SE_DisponibilidadInventario_Resp();
        		request.NumeroClienteSap =  String.ValueOf(cliente);
 	        request.SucursalSap = String.ValueOf(sucursal);
 	        request.TipoSurtido = String.ValueOf(tipoSurtido);
              
 	        request.Canal = String.ValueOf(canal);
 	        request.OrdenCompra = ordenCompra;
+             system.debug('RESPUESTA_DISPO=> '+ request);
             servicio.timeout_x = PedidoUtils.WEB_SERVICE_TIMEOUT;
       
             for(Integer i=1; i < = PedidoUtils.MAX_CALLOUT_RETRIES; i++) {
-                try {
-                    return servicio.ConsultarDisponibilidadSAP(request);
+                try {                    
+                    respuesta =  servicio.ConsultarDisponibilidadSAP(request);                   
+                    system.debug('RESPUESTA_DSIPONIBILIADA=> '+  respuesta);
+                    return respuesta;
                 } catch(Exception e) {
+                    
                     if(i == PedidoUtils.MAX_CALLOUT_RETRIES) {
                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, PedidoUtils.INVENTARIO_WEB_SERVICE_ERROR+e.getMessage()));
                     }

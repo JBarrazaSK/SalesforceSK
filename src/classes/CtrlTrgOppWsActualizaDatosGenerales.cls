@@ -1021,49 +1021,97 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
         request.pedidoDatosGenerales = PedidosOtrosCanalesUtils.CrearPedidoDatosGenerales(pedido,areaResp,TipoAutorizado,'1');
         system.debug('WsActualizarDatosGenerales:: pedidoDatosGenerales ' + request.pedidoDatosGenerales);
         integer contador = 1;
-                map<String,opportunityLineItem> MapaCantidadProductos = new map<String,opportunityLineItem>();
+                //map<String,opportunityLineItem> MapaCantidadProductos = new map<String,opportunityLineItem>();
+                set<string> setDetalle = new  set<string>();
                 for(PedidosOtrosCanalesUtils.producto p : productos)
                 {
                     if(p.item == null)
                              continue;
-
-                        if(MapaCantidadProductos.containsKey(p.codigo))
-                        {     
-
-                            MapaCantidadProductos.get(p.codigo).Cajas__c = integer.ValueOf(MapaCantidadProductos.get(p.codigo).Cajas__c) + integer.ValueOf(p.item.Cajas__c);
-                            //if(areaResp == 'E' )
-                                    //MapaCantidadProductos.get(p.codigo).Kilos__c =  integer.ValueOf(MapaCantidadProductos.get(p.codigo).Kilos__c) /PedidosOtrosCanalesUtils.CONVERSION_KILO_POUND;
-                        }
-                        else
-                        {
-                                opportunityLineItem oppl = p.item.clone(false, false, false, false);
-                                
-                                if(p.item.Unidad__c =='C' || p.item.Unidad__c =='P')
-                                    oppl.Cajas__c =  integer.ValueOf(p.item.Cantidad__c);
-                                //if(areaResp == 'E')
-                                    //oppl.Kilos__c =  integer.ValueOf(p.item.Kilos__c/PedidosOtrosCanalesUtils.CONVERSION_KILO_POUND);
-                                    
-                                MapaCantidadProductos.put(p.codigo,oppl);
-                        }
+						
+					if(setDetalle.contains(p.codigo))
+             			 continue;
+             			 
+			            Integer cantidad   = 0;
+			            Integer cajasTt     = 0;
+			            Decimal cantidadKGS = 0;
+			            Decimal librasPeso   = 0;
+			            Decimal importeTxP   = 0.0;
+			            Decimal importeTxPV = 0.0;
+                        String obs       = '';
+                         for(PedidosOtrosCanalesUtils.producto prod : productos)
+                			{
+                				if(p.item == null)
+                             		continue;
+                             
+                				if(p.codigo != prod.codigo)
+                						continue;
+                				
+                				 OpportunityLineItem item = prod.item;
+                				 
+                				  		
+	                				 //CANTIDAD CAJAS
+					                Integer cajas = 0;
+					                try{
+					                    cajas = Integer.valueOf(item.Cajas__c);
+					                }catch(Exception e){
+					                    System.debug('Error en conversion de cajas');
+					                }
+					                if(cajas==null){cajas = 0;}
+                				   //ACUMULADO
+					                Integer tmpVolumen = 0;
+					               
+					                try{tmpVolumen=Integer.valueOf(item.Volumen__c);}catch(Exception e){System.debug('Error en conversión de volumen');}
+					                if(tmpVolumen==null){tmpVolumen=0;}
+					                
+					                cajasTt += cajas; 
+					                cantidad += Integer.valueOf(item.Cantidad__c);
+					                cantidadKGS += item.Kilos__c;
+					                librasPeso += tmpVolumen;
+					                if(item.Importe__c!=null){
+					                    importeTxP += item.Importe__c;
+					                }
+					                if(item.Importe_Total_Viz__c!=null){
+					                    importeTxPV += item.Importe_Total_Viz__c;
+					                }
+					                if(item.Observaciones__c!=null){
+					                    obs += ( (String.isNotBlank(item.Rango_Surtido__c)?item.Rango_Surtido__c:'') + ' ' + item.Observaciones__c);
+					                }
+                			}
+                			    opportunityLineItem oppl = new opportunityLineItem();
+					            oppl.Cajas__c = cajasTt;
+					            oppl.kilos__c = cantidadKGS.setScale(2);
+					            oppl.Volumen__c = librasPeso.setScale(2);
+					            oppl.Importe__c = importeTxP.setScale(2);
+					            oppl.Observaciones__c = obs;
+            					oppl.Cantidad__c = cantidad;
+            					oppl.Tipo_de_Precio__c  = p.item.Tipo_de_Precio__c;
+            					oppl.UnitPrice  = p.item.UnitPrice;
+            					oppl.Product2  = p.item.Product2;
+            					oppl.Estatus__c  = p.item.Estatus__c;
+            					oppl.Origen_Surtido__c  = p.item.Origen_Surtido__c;
+            					oppl.Tipo_de_Inventario__c  = p.item.Tipo_de_Inventario__c;
+            					oppl.Unidad__c  = p.item.Unidad__c;
+            					
+            					
+                     
                     d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
-                    d = PedidosOtrosCanalesUtils.CrearDetalleNSCSDL(p.item,contador++, request.pedidoDatosGenerales.TipoMoneda,p.codigo,pedido);
+                    d = PedidosOtrosCanalesUtils.CrearDetalleNSCSDL(oppl,contador++, request.pedidoDatosGenerales.TipoMoneda,p.codigo,pedido);
                     if(d != null)
+                    {
                         detalleWs.add(d);
+                        setDetalle.add(p.codigo);
+                    }
                 }
-                for(opportunityLineItem p : MapaCantidadProductos.values())
-                {
-                  /*  d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
-                    d = PedidosOtrosCanalesUtils.CrearDetalleNSCSDL(p,contador++, request.pedidoDatosGenerales.TipoMoneda,p.ProductCode,pedido);
-                    if(d != null)
-                        detalleWs.add(d);
-        */
-                }
+              
         for(ProductosEliminado__c pe : ProductosEliminado )
-        {
-            d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
-            d = PedidosOtrosCanalesUtils.CrearDetalleNSCSDLEliminado(30, request.pedidoDatosGenerales.TipoMoneda,pe.CodigoProducto__c);
-            if(d != null)
-                    detalleWs.add(d);
+        { 
+             if(!setDetalle.contains(pe.CodigoProducto__c))
+             {
+		            d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
+		            d = PedidosOtrosCanalesUtils.CrearDetalleNSCSDLEliminado(30, request.pedidoDatosGenerales.TipoMoneda,pe.CodigoProducto__c);
+		            if(d != null)
+		                    detalleWs.add(d);
+             }
         }
         System.debug('PEDIDODETALLE=> '+ detalleWs);
         arregloDetalle.DetallePedidoMayoreo  =  new list<WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo>();

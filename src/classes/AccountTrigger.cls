@@ -384,7 +384,7 @@ public without sharing class AccountTrigger {
         c.Cliente.KNVP[0].NoTienda = account.No_Tienda__c;
         
         c.Cliente.KNVV = new clienteInsertSAPPIWS.KNVV_element();
-        //System.debug('OrganizacionDeVentas: ' + orgVta.Codigo_OrgVta__c);
+        System.debug('OrganizacionDeVentas: ' + orgVta.Codigo_OrgVta__c);
         c.Cliente.KNVV.Organizaciondeventas = orgVta.Codigo_OrgVta__c;//getSAPCode(account.Organizacion_de_Ventas__c);
         c.Cliente.KNVV.CanaldeDistribucion = getSAPCode(account.Canal_Distribucion__c);
         c.Cliente.KNVV.Sector = getSAPCode(account.Sector__c);
@@ -418,7 +418,7 @@ public without sharing class AccountTrigger {
             if(String.isBlank(error)) {
                 account.Numero_cliente_SAP__c = response.Msg_1;
                 update account;  
-                Account accountSucursal = account.clone(false, true);
+                Account accountSucursal = account.clone(false, true);  
                 accountSucursal.Name = 'SUC - '+accountSucursal.Name;
                 accountSucursal.Numero_cliente_SAP__c = 'SUC - '+account.Numero_cliente_SAP__c;
                 accountSucursal.ParentId = account.Id;
@@ -428,7 +428,8 @@ public without sharing class AccountTrigger {
                 upsert accountSucursal Numero_cliente_SAP__c;
             }
         } catch(Exception e) {
-            error = e.getMessage();
+            error = e.getMessage(); 
+            system.debug('Error WS: '+ e.getMessage());
         }
         if(!String.isBlank(error)) {
             error = 'Ha ocurrido un error el proceso de envío a SAP de la cuenta "'+account.Name+'" con id '+account.Id+': \n\n'+error+'\n\nComuníquese con el administrador del sistema para solucionar el problema.';

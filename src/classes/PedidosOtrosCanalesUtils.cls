@@ -1062,8 +1062,7 @@ p.item.Estatus__c = 1;
             ActualizarCamposPedido(pedidoSinMod);
             ActualizarCamposOpportunityLineItem(productosSinModificacion);
         }
-        /*(String.isNotBlank(pedido.Numero_de_Pedido_NSC__c) && pedido.Numero_de_Pedido_NSC__c != '0') 
-|| (string.isNotBlank(pedido.Numero_Pedido_SAP__c ) && pedido.Numero_Pedido_SAP__c != '0')*/
+
         if(!pedido.Reenviar__c && string.isNotBlank(pedido.id)) 
         {
             system.debug('MODIFICACION=>');         
@@ -1087,7 +1086,7 @@ p.item.Estatus__c = 1;
                 }
              if(productoEliminado != null && productoEliminado.size() > 0)
              {
-                 ResponseNSC = EnviarModificacionPedido(pedido,areaResp,productos, productoEliminado);                         
+             	  ResponseNSC = EnviarModificacionPedido(pedido,areaResp,productos, productoEliminado);                         
                  
              }else{
                  ResponseNSC = WsActualizarDatosGenerales(pedido,areaResp, productos,2,'1');
@@ -1895,6 +1894,7 @@ return bandera;
         Map<String, List<PedidosOtrosCanalesUtils.Producto>> mapProductos = PedidosOtrosCanalesUtils.getProdsXCodigo( productos );
         System.debug('Mapa Productos: '+ mapProductos);
         List<WsPedidosMayoreoLegados.PedidoMayoreoDetalle> productosWS = new List<WsPedidosMayoreoLegados.PedidoMayoreoDetalle>();
+       
         for( String codigo: mapProductos.keySet() ) {
             System.debug('Ensamblando detalle...');
             List<PedidosOtrosCanalesUtils.Producto> prodsAux = mapProductos.get(codigo);
@@ -1981,6 +1981,7 @@ return bandera;
             
             System.debug('Armando Inventario...');
             List<WsPedidosMayoreoLegados.PedidoMayoreoInventario> listInventario = new List<WsPedidosMayoreoLegados.PedidoMayoreoInventario>();
+            
             for( PedidosOtrosCanalesUtils.Producto prod: prodsAux ) {
                 if( prod == null ) { continue; }
                 OpportunityLineItem item = prod.item;
@@ -2070,6 +2071,7 @@ return bandera;
             WsPedidosMayoreoLegados.ArrayOfPedidoMayoreoInventario inventarioWS = new WsPedidosMayoreoLegados.ArrayOfPedidoMayoreoInventario();
             inventarioWS.PedidoMayoreoInventario = listInventario;
             p.inventario = inventarioWS;
+            
             Decimal rPallet = (pallets - Math.abs(pallets));
             p.pallets = Integer.valueOf(pallets+(1-rPallet));
             if( pedido.Unidad__c == 'P' ) {
@@ -2147,29 +2149,57 @@ return bandera;
         map<string,string> mapUnidadMedida = crearUnidadMedidaSap();
         map<Integer,producto> mapProductosConConsecutivo = new map<Integer,producto>();
         productosSap = new  map<string,producto>();
+         set<string> setDetalle = new  set<string>();
         for(producto p : productos)
         {
             if(p.codigo == '')
                 continue;
             
+            if(setDetalle.contains(p.codigo))
+	         continue;  
+	         
             productosSap.put(string.ValueOf(consecutivo),p);    
             item = new WsPedidosMayoreoLegados.SALES_ITEMS_IN();
             item.ITM_NUMBER= string.ValueOf(consecutivo * 10);
             item.MATERIAL=    p.codigo;
-            if(p.item.Unidad__c =='C' || p.item.Unidad__c =='P')
-            {
-                item.TARGET_QTY=  String.ValueOf(p.item.Cantidad__c);
-            }
-            else
-            {
-                item.TARGET_QTY=  String.ValueOf(p.item.Volumen__c);
-            }
+            
+            Decimal cantidad   = 0;
+            Decimal Volumen = 0;
+		
+			for(producto pr : productos)
+	        {
+	            if(pr.codigo == '')
+	                continue;            
+	            
+	            
+	              
+	            if(pr.codigo != p.codigo )
+	                continue;  
+
+	            cantidad +=  pr.item.Cantidad__c;
+	            Volumen +=  pr.item.Volumen__c;
+	            
+	        }
+
+	        
+	        if(p.item.Unidad__c =='C' || p.item.Unidad__c =='P')
+	            {
+	                item.TARGET_QTY=  String.ValueOf(cantidad);
+	            }
+	            else
+	            {
+	                item.TARGET_QTY=  String.ValueOf(Volumen);
+	            }
             item.PLANT=       pedido.Canal_Factura__r.Centro__c;
-            item.TARGET_QU=   mapUnidadMedida.get(p.item.Unidad__c);
-            item.SALES_UNIT=  mapUnidadMedida.get(p.item.Unidad__c);
-            mapProductosConConsecutivo.put(Integer.ValueOf(item.ITM_NUMBER),p);
-            pedidoSap.ItemsIn.SALES_ITEMS_IN.add(item);
-            consecutivo++;
+	        item.TARGET_QU=   mapUnidadMedida.get(p.item.Unidad__c);
+	        item.SALES_UNIT=  mapUnidadMedida.get(p.item.Unidad__c);
+	        if(!setDetalle.contains(p.codigo))
+	        {
+		        mapProductosConConsecutivo.put(Integer.ValueOf(item.ITM_NUMBER),p);
+		        pedidoSap.ItemsIn.SALES_ITEMS_IN.add(item);
+		        setDetalle.add(p.codigo);
+	            consecutivo++;
+	        }
         }
         /// termina el arreglo de productos
         /// arreglo de Partners
@@ -2419,17 +2449,22 @@ return bandera;
         map<string,Integer> MapaMarcas = crearMapaMarcas();
         map<string,string> MapaUnidad = crearUnidadMedidaCabecero();
         map<string,Integer> MapaUnidadMedida = crearUnidadMedida();
-        
+        integer Codproducto;
+        set<string> setDetalle = new set<string>();
         for(producto p : productos)
         {
             if(p.codigo == '')
                 continue;
             
+            if(setDetalle.contains(p.codigo))
+            	continue;
+            	
             pedidoDetalle = new WsPedidosMayoreoLegados.PedidoDetalle();
             pedidoDetalle.nCanalDistribucion = codigo !='0'?Integer.ValueOf(codigo):Integer.ValueOf(pedido.Canal_Factura__r.Codigo__c);
             pedidoDetalle.nPedidoCliente=      0; 
             pedidoDetalle.nRenglon = consecutivo++;
             pedidoDetalle.nProducto = Integer.ValueOf(p.codigo);
+            Codproducto = Integer.ValueOf(p.codigo);
             if(p.item.Product2.Marca__c != null)
             {
                 pedidoDetalle.nMarca  = MapaMarcas.get(p.item.Product2.Marca__c.trim());
@@ -2442,12 +2477,46 @@ return bandera;
             pedidoDetalle.nTipoGanado = null;
             pedidoDetalle.nCalidadCanal= null;
             pedidoDetalle.nCondicionCajaCanal= null;
-            pedidoDetalle.nCantidadPedidaUnidadMovimiento = p.item.Volumen__c;
-            pedidoDetalle.nCantidadPedida= p.item.Volumen__c;
-            pedidoDetalle.nCantidadConfirmadaUnidadMovimiento= p.item.Volumen__c;
-            pedidoDetalle.nCantidadConfirmada= p.item.Volumen__c;
-            pedidoDetalle.nPiezasPedidas = Integer.Valueof(p.item.Cantidad__c);
-            pedidoDetalle.nPiezasConfirmadas = Integer.Valueof(p.item.Cantidad__c);
+           
+            Decimal CantidadPedida   = 0;
+            Decimal CantidadPedidaUnidadMovimiento   = 0;
+            Decimal CantidadConfirmadaUnidadMovimiento     = 0;
+            Decimal CantidadConfirmada = 0;
+            integer nPiezasPedidas   = 0;
+            integer nPiezasConfirmadas   = 0;
+            Decimal nImporte = 0.0;
+            
+            // calcular Cantidades
+            for(producto pr : productos)
+	        {
+	        	 if(pr.codigo == '')
+                	continue;
+                
+                 if(pr.item.Estatus__c == 2)
+                	continue;
+	            
+	            if(Codproducto == Integer.ValueOf(pr.codigo))
+	            {
+	            	
+	            	CantidadPedida += pr.item.Volumen__c;
+	            	CantidadPedidaUnidadMovimiento += pr.item.Volumen__c;
+				    CantidadConfirmadaUnidadMovimiento += pr.item.Volumen__c;
+					CantidadConfirmada += pr.item.Volumen__c;
+					nPiezasPedidas += Integer.Valueof(pr.item.Cantidad__c);
+					nPiezasConfirmadas += Integer.Valueof(pr.item.Cantidad__c);
+					nImporte += pr.item.importe__c;  
+		           
+	            }
+	        }
+	        pedidoDetalle.nCantidadPedidaUnidadMovimiento = CantidadPedidaUnidadMovimiento;
+		    pedidoDetalle.nCantidadPedida = CantidadPedida;
+		    pedidoDetalle.nCantidadConfirmadaUnidadMovimiento = CantidadConfirmadaUnidadMovimiento;
+		    pedidoDetalle.nCantidadConfirmada = CantidadConfirmada;
+		    pedidoDetalle.nPiezasPedidas = nPiezasPedidas;
+		    pedidoDetalle.nPiezasConfirmadas = nPiezasConfirmadas;
+		    pedidoDetalle.nImporte = nImporte;
+            pedidoDetalle.nTipoPrecioOriginal = 0;
+            
             pedidoDetalle.nCantidadBalanceadaUnidadMovimiento = 0;
             pedidoDetalle.nCantidadBalanceada= 0;
             pedidoDetalle.nPiezasBalanceadas= 0;
@@ -2477,17 +2546,8 @@ return bandera;
             pedidoDetalle.nPrecioUnitarioOriginal = p.item.UnitPrice;
             pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
             
-            /*  if( pedido.Cliente__r.Canal_Distribucion__c.right(2) == 'EX' && String.isNotBlank( pedido.Canal_Factura__r.IdPlanta__c ) && pedido.Cliente__r.Sociedad__c.right(3) == '303' )
-{
-pedidoDetalle.nPrecioUnitarioOriginal = p.item.Precio_Unitario_Viz__c;
-pedidoDetalle.nPrecioUnitarioOtorgado = p.item.Precio_Unitario_Viz__c;
-}   
-else
-{
-pedidoDetalle.nPrecioUnitarioOriginal = p.item.UnitPrice;
-pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
-} */
-            pedidoDetalle.nImporte = p.item.importe__c;
+
+           
             pedidoDetalle.nMoneda = MapaMonedas.get(pedido.Cliente__r.Moneda_Cliente__c.right(3));
             pedidoDetalle.nTipoCambio = 1;
             pedidoDetalle.cObservacion = p.item.Observaciones__c==null ?'':p.item.Observaciones__c;
@@ -2495,35 +2555,8 @@ pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
             pedidoDetalle.cObservacionIncumplimiento='';
             pedidoDetalle.nDiasMinimosProduccion=null;
             pedidoDetalle.nDiasMaximosProduccion=null;
-            system.debug('TIPO PRECIO => '+ p.item.Tipo_de_Precio__c);
-            if(p.item.Tipo_de_Precio__c =='PK')
-            {
-                pedidoDetalle.nTipoPrecioOriginal=1;
-            }
-            if(p.item.Tipo_de_Precio__c =='DL')
-            {
-                pedidoDetalle.nTipoPrecioOriginal=2;
-            }
-            if(p.item.Tipo_de_Precio__c =='PC')
-            {
-                pedidoDetalle.nTipoPrecioOriginal=3;
-            }
-            if(p.item.Tipo_de_Precio__c =='DC')
-            {
-                pedidoDetalle.nTipoPrecioOriginal=4;
-            }
-            if(p.item.Tipo_de_Precio__c =='PP')
-            {
-                pedidoDetalle.nTipoPrecioOriginal=5;
-            }
-            if(p.item.Tipo_de_Precio__c =='DP')
-            {
-                pedidoDetalle.nTipoPrecioOriginal=6;
-            }
-            if(p.item.Tipo_de_Precio__c =='DK')
-            {
-                pedidoDetalle.nTipoPrecioOriginal=7;
-            }
+           
+           
             pedidoDetalle.nContenidoProducto=3;
             pedidoDetalle.bEsProductoFR = null;
             pedidoDetalle.nRangoInventario = null;
@@ -2532,6 +2565,7 @@ pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
             pedidoDetalle.bEsPesoEstandard=false;
             pedidoDetalle.nContenidoCaja=0;
             DatosPedidoNSC.Detalle.PedidoDetalle.add(pedidoDetalle);
+            setDetalle.add(string.valueOf(Codproducto));
         }
         return DatosPedidoNSC;
     }
@@ -2915,7 +2949,7 @@ pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
         WsActualizaDatosGenerales_NSC_SDL.ActualizarDatosGenerales_element requestUpdate = CtrlTrgOppWsActualizaDatosGenerales.WsActualizarDatosGeneralesPedidoOC(pedido,areaResp,productos,2,ProductosEliminado);
         return services.ActualizarDatosGenerales(requestUpdate.pedidoDatosGenerales, requestUpdate.PedidoMayoreo);
     }
-    public static map<string,String> ObtenerAprobadores()
+    public static map<string,String> ObtenerAprobadores() 
     {
         map<string,String> mapAprobadores = new map<string,String>();
         for(Aprobadores_Cierres__c ap :Aprobadores_Cierres__c.getall().values())
@@ -3068,7 +3102,8 @@ pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
         system.debug('WsActualizarDatosGenerales:: pedidoDatosGenerales ' + request.pedidoDatosGenerales);
         integer contador = 1;
         list<prod> productMap = new list<prod>();
-        map<String,opportunityLineItem> MapaCantidadProductos = new map<String,opportunityLineItem>();
+       // map<String,opportunityLineItem> MapaCantidadProductos = new map<String,opportunityLineItem>();
+        set<string> setDetalle = new  set<string>();
         system.debug('PRODUCTOS=> '+productos);
         for(PedidosOtrosCanalesUtils.producto p : productos)
         {
@@ -3079,36 +3114,76 @@ pedidoDetalle.nPrecioUnitarioOtorgado = p.item.UnitPrice;
             
             if(p.item == null)
                 continue;
-            
-            if(MapaCantidadProductos.containsKey(p.codigo))
-            {
-                MapaCantidadProductos.get(p.codigo).Cajas__c = integer.ValueOf(MapaCantidadProductos.get(p.codigo).Cajas__c) + integer.ValueOf(p.item.Cajas__c);
-                MapaCantidadProductos.get(p.codigo).Kilos__c = integer.ValueOf(MapaCantidadProductos.get(p.codigo).Kilos__c) + integer.ValueOf(p.item.Kilos__c);
-            }
-            else
-            {
-                opportunityLineItem oppl = p.item;
-                if(p.item.Unidad__c =='C' || p.item.Unidad__c =='P')
-                    oppl.Cajas__c =  integer.ValueOf(p.item.Cantidad__c);
-                
-                MapaCantidadProductos.put(p.codigo,oppl);
-            }    
+            	
+					if(setDetalle.contains(p.codigo))
+             			 continue;
+             			 
+           				Integer cantidad   = 0;
+			            Integer cajasTt     = 0;
+			            Decimal cantidadKGS = 0;
+			            Decimal librasPeso   = 0;
+			            Decimal importeTxP   = 0.0;
+			            Decimal importeTxPV = 0.0;
+                        String obs       = '';
+                         for(PedidosOtrosCanalesUtils.producto prod : productos)
+                			{
+                				if(p.item == null)
+                             		continue;
+                             
+                				if(p.codigo != prod.codigo)
+                						continue;
+                				
+                				 OpportunityLineItem item = prod.item;
+	                				 //CANTIDAD CAJAS
+					                Integer cajas = 0;
+					                try{
+					                    cajas = Integer.valueOf(item.Cajas__c);
+					                }catch(Exception e){
+					                    System.debug('Error en conversion de cajas');
+					                }
+					                if(cajas==null){cajas = 0;}
+                				   //ACUMULADO
+					                Integer tmpVolumen = 0;
+					               
+					                try{tmpVolumen=Integer.valueOf(item.Volumen__c);}catch(Exception e){System.debug('Error en conversión de volumen');}
+					                if(tmpVolumen==null){tmpVolumen=0;}
+					                
+					                cajasTt += cajas; 
+					                cantidad += Integer.valueOf(item.Cantidad__c);
+					                cantidadKGS += item.Kilos__c;
+					                librasPeso += tmpVolumen;
+					                if(item.Importe__c!=null){
+					                    importeTxP += item.Importe__c;
+					                }
+					                if(item.Importe_Total_Viz__c!=null){
+					                    importeTxPV += item.Importe_Total_Viz__c;
+					                }
+					                if(item.Observaciones__c!=null){
+					                    obs += ( (String.isNotBlank(item.Rango_Surtido__c)?item.Rango_Surtido__c:'') + ' ' + item.Observaciones__c);
+					                }
+                			}
+                			    opportunityLineItem oppl = new opportunityLineItem();
+					            oppl.Cajas__c = cajasTt;
+					            oppl.kilos__c = cantidadKGS.setScale(2);
+					            oppl.Volumen__c = librasPeso.setScale(2);
+					            oppl.Importe__c = importeTxP.setScale(2);
+					            oppl.Observaciones__c = obs;
+            					oppl.Cantidad__c = cantidad;
+            					oppl.Tipo_de_Precio__c  = p.item.Tipo_de_Precio__c;
+            					oppl.UnitPrice  = p.item.UnitPrice;
+            					oppl.Product2  = p.item.Product2;
+            					oppl.Estatus__c  = p.item.Estatus__c;
+            					oppl.Origen_Surtido__c  = p.item.Origen_Surtido__c;
+            					oppl.Tipo_de_Inventario__c  = p.item.Tipo_de_Inventario__c;
+            					oppl.Unidad__c  = p.item.Unidad__c;
+        
             system.debug(' CODIGO=> '+p.codigo);
             d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();           
-            d = CrearDetalleNSCSDL(p.item,contador++, request.pedidoDatosGenerales.TipoMoneda,p.codigo,pedido);
+            d = CrearDetalleNSCSDL(oppl,contador++, request.pedidoDatosGenerales.TipoMoneda,p.codigo,pedido);
             if(d != null)
                 detalleWs.add(d);           
         }             
-        /* for(opportunityLineItem p : MapaCantidadProductos.values())
-{           
-d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
-System.debug('TipoMoneda:: '+ request.pedidoDatosGenerales.TipoMoneda);
-
-d = CrearDetalleNSCSDL(p,contador++, request.pedidoDatosGenerales.TipoMoneda,p.ProductCode,pedido);
-if(d != null)
-detalleWs.add(d);
-}
-*/
+       
         if(MapProductosEliminado != null)
         {
             if(MapProductosEliminado.get(pedido.id) != null)
@@ -3117,10 +3192,14 @@ detalleWs.add(d);
                 {
                     if(pe.OpportunityId__c == pedido.id)
                     {
-                        d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
-                        d = CrearDetalleNSCSDLEliminado(30, request.pedidoDatosGenerales.TipoMoneda,pe.CodigoProducto__c);
-                        if(d != null)
-                            detalleWs.add(d);
+                    	 if(!setDetalle.contains(pe.CodigoProducto__c))
+            			{
+            				 d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
+	                         d = CrearDetalleNSCSDLEliminado(30, request.pedidoDatosGenerales.TipoMoneda,pe.CodigoProducto__c);
+	                         if(d != null)
+	                            detalleWs.add(d);
+            			}
+                       
                     }
                 } 
             }
@@ -3295,7 +3374,7 @@ else{ PedidoDatosGenerales.TipoModificacionSAP = '1';} // 2*/
     public static WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo CrearDetalleNSCSDL(OpportunityLineItem producto,integer contador, integer TipoMoneda, string codigo, opportunity pedido)
     {
         
-        system.debug('CrearDetalleNSCSDL '+codigo+ ' PRODUCTO2=> '+producto.Product2.ProductCode);
+       
         WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo detalle = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();
         if(codigo == null){
             detalle = null;
@@ -3319,13 +3398,11 @@ else{ PedidoDatosGenerales.TipoModificacionSAP = '1';} // 2*/
         
         detalle.TipoPrecio  = producto.Tipo_de_Precio__c;
         detalle.PrecioUnitCte  = producto.UnitPrice;
-        detalle.PrecioConFleteCte  = producto.UnitPrice;//producto.Precio_Flete__c == null?0:producto.Precio_Flete__c;
+        detalle.PrecioConFleteCte  = producto.UnitPrice;
         detalle.ImporteTotalProducto  = producto.Importe__c;
         map<string,Integer> MapaUnidadMedida = crearUnidadMedida();
         detalle.UnidadMedida  = MapaUnidadMedida.get(producto.Tipo_de_Precio__c);
-        /* if(producto.Tipo_de_Precio__c =='DL')
-detalle.KgsPedidos  = producto.Volumen__c /CONVERSION_KILO_POUND;
-else*/
+
         detalle.KgsPedidos  = producto.kilos__c;
         
         detalle.LibrasPedidas  = producto.Volumen__c == null?0:producto.Volumen__c;
@@ -3342,7 +3419,7 @@ else*/
             detalle.Marca  = 1;
         }
         detalle.TipoMoneda  = TipoMoneda;
-        System.debug('producto.Unidad__c :'+producto.Unidad__c);
+
         map<string,string> mapUnidadMedida = crearUnidadMedidaSap();
         
         detalle.UnidadMedidaPrecio = mapUnidadMedida.get(producto.Unidad__c); //producto.UOM__c;

@@ -4,6 +4,7 @@ public class ExtCaseDEvNote {
     public string NumCaso {get;set;}   
     public Factura factura{get;set;}   
    
+    public ExtCaseDEvNote(){}
   public ExtCaseDEvNote(ApexPages.StandardController stdController) {
   		RecordType rt = [SELECT Id,Name FROM RecordType WHERE SobjectType='Case' and name = 'SK-Queja'];
         this.Caso = (Case)stdController.getRecord();
@@ -104,6 +105,7 @@ public EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req Gen
     request.Detalle = new list<EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element>();
     for(DetalleFactura dt : factura.ListaProductos )
     {
+        system.debug('DETALLE=>>'+dt.Cantidad_Dev);
     	if(dt.Cantidad_Dev  != null  && dt.Cantidad_Dev > 0)
     	{
     		if(dt.Cantidad_Dev <= Integer.Valueof(dt.Cantidad.trim()))
@@ -128,19 +130,21 @@ public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[]
 {
 		factura = new Factura();
   		factura.CodigoCliente = String.ValueOf(Datos[0].Cabecero.CodigoCliente).leftpad(10,'0');
-  		system.debug('CLIENTE=> '+ factura.CodigoCliente);
-  		this.caso.AccountId = TraerCuenta(String.ValueOf(Datos[0].Cabecero.CodigoCliente)).id;
-  		system.debug('CUENTA=> '+ this.caso.AccountId);  		
-  		String contacto = TraerContacto(this.caso.AccountId).Id;
+  		system.debug('CLIENTE=> '+ factura.CodigoCliente +' CodigoCliente=> '+ String.ValueOf(Datos[0].Cabecero.CodigoCliente));
+  		//this.caso.AccountId = TraerCuenta(String.ValueOf(Datos[0].Cabecero.CodigoCliente)).Id;
+  		system.debug('CUENTA=> '+ this.caso.AccountId);  
+    	String cuentaId = TraerCuenta(String.ValueOf(Datos[0].Cabecero.CodigoCliente)).Id;
+    	
+  		String contacto = TraerContacto(cuentaId).Id;
   		//this.Caso.Repartidor__c =  contacto;
-  		system.debug('REPARTIDOR__C ' + this.Caso.Repartidor__c);
+  		system.debug('REPARTIDOR__C ' + contacto);
   		
   		if(contacto == null)
 		{
 	  		showPageMessage('WARNING','No se encuentro un contacto asiciado a la cuenta.');
 	  		return;
 	  	}
-  		this.Caso.ContactId = contacto; 
+  		
   		factura.NombreCliente = String.ValueOf(Datos[0].Cabecero.CodigoCliente)+' - '+Datos[0].Cabecero.DescripcionCliente;
   		factura.OficinaVentas = Datos[0].Cabecero.OficinaVentas;
   		setPicklist(Datos[0].Cabecero.OficinaVentas);
@@ -167,6 +171,8 @@ public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[]
 		  		df.Importe = dt.Importe;
 		  		factura.ListaProductos.add(df);
   		}
+    this.Caso.ContactId = contacto; 
+    this.caso.AccountId = cuentaId; 
 }
 public void setPicklist(string OficinaVentas)
 {
@@ -199,8 +205,12 @@ public void setPicklist(string OficinaVentas)
 
 public Account TraerCuenta(string NumeroCliente)
 {
+    system.debug('TRAERCUENTA=> '+ NumeroCliente);
 	RecordType rt = [SELECT Id,Name FROM RecordType WHERE SobjectType='Account' and name = 'Sucursal'];
-	return [select id,Name from Account where Numero_Cliente_SAP__c =: 'SUC - '+NumeroCliente.leftpad(10,'0') and recordTypeID =:rt.Id ];
+    Account cuenta = new Account();
+    cuenta = [select id,Name from Account where Numero_Cliente_SAP__c =: 'SUC - '+NumeroCliente.leftpad(10,'0') and recordTypeID =:rt.Id ];
+    system.debug('CUENTA=> '+ cuenta);
+	return cuenta;
 } 
 public Contact TraerContacto (string IdCuenta)
 {

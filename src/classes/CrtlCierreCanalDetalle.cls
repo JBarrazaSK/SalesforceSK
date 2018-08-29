@@ -178,6 +178,12 @@ public CrtlCierreCanalDetalle()
 		 			ValorBoton = 'Continuar';
 		 			return;
 		 		}
+		 		 if(Approval.isLocked(ofv.Oficina.Id))
+	             {
+	                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'La Oficina de encuentra en aprobacion.'));
+	                return;
+	
+	             }
  				ApexPages.getMessages().clear();
  				ofv.oficina.cerrado__c = true;
 				ofv.oficina.Reaperturado__c = false;
@@ -226,10 +232,9 @@ public CrtlCierreCanalDetalle()
  	
  	for(oficinaCierre ofv : listaAMostrar)
  	{
+        system.debug('MOSTRAR=> ' +  ofv) ;
  		if(ofv.Seleccionado)
- 		{
- 			
- 			
+ 		{				
  			if(ofv.oficina.Reaperturado__c)
  			{
  				showPageMessage('WARNING','La oficina de ventas ya se encuentra Reaperturada');
@@ -249,6 +254,12 @@ public CrtlCierreCanalDetalle()
  			system.debug('ArregloMotivo: ----------------------->'+ArregloMotivo);
  			if(ofv.Oficina != null)
  			{
+ 				 if(Approval.isLocked(ofv.Oficina.Id))
+	             {
+	                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'La Oficina de encuentra en aprobacion.'));
+	                return;
+	
+	             }
  				if(ArregloMotivo[0] == 'true')
  				{
  					ofv.oficina.cerrado__c = true;
@@ -340,6 +351,12 @@ public CrtlCierreCanalDetalle()
  			}
  			if(ofv.Oficina != null)
  			{ 
+ 				 if(Approval.isLocked(ofv.Oficina.Id))
+	             {
+	                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, 'La Oficina de encuentra en aprobacion.'));
+	                return;
+	
+	             }
  				ArregloMotivo = Motivo.split('-');
  				if(ArregloMotivo[0] == 'true')
  				{
@@ -454,6 +471,7 @@ public CrtlCierreCanalDetalle()
  		}
  		catch(exception ex)
  		{
+            system.debug('ERROR=> ' +ex.getmessage());
  			showPageMessage('ERROR',ex.getmessage());
  			return null;
  		}
@@ -490,5 +508,6 @@ public static String dateToString(Date dFecha){
   		public Boolean Cerrado {get;set;}
   		public string horaCierreNueva {get;set;}
   		public Boolean Seleccionado {get;set;}
+     	
   }
 }

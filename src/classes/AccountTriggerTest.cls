@@ -8,17 +8,19 @@
 @isTest (SeeAllData = true)
 private class AccountTriggerTest {
     
+    static testmethod void test(){
+         crearGrupo();
+        
+    }
     static testMethod void syncAccount() {
         Colonia__c colonia = new Colonia__c(
             Codigo_Colonia__c = '0'
         );
         insert colonia;
-        
         Oficina_de_Venta__c ofiVta = new Oficina_de_Venta__c( Codigo__c = '453', Descripcion__c = 'BNM MANAGUA' );
         insert ofiVta;
         
-        Grupo_de_Vendedores__c gpoVendedores = new Grupo_de_Vendedores__c( Codigo__c = '696', Descripcion__c = 'T2 MANAGUA', TipoSurtido__c = '2 - Directo' );
-        insert gpoVendedores;
+       
         
         Account accountSucursal = new Account(
             Name = 'TEST',
@@ -47,8 +49,6 @@ private class AccountTriggerTest {
         Oficina_de_Venta__c ofiVta = new Oficina_de_Venta__c( Codigo__c = '453', Descripcion__c = 'BNM MANAGUA' );
         insert ofiVta;
         
-        Grupo_de_Vendedores__c gpoVendedores = new Grupo_de_Vendedores__c( Codigo__c = '696', Descripcion__c = 'T2 MANAGUA', TipoSurtido__c = '2 - Directo' );
-        insert gpoVendedores;
         
         Account account = new Account(
             Colonia__c = colonia.Id,
@@ -58,7 +58,7 @@ private class AccountTriggerTest {
             Telefono__c = '1234567890',
             Organizacion_de_Ventas__c = 'SUKARNE - SK01',
             Oficina_de_ventas__c = ofiVta.Id,
-            Grupo_de_Vendedores__c = gpoVendedores.Id
+            Grupo_de_Vendedores__c = obtenerGpo().Id
         );
         Account accountSucursal = new Account(
             Name = 'TEST',
@@ -102,6 +102,7 @@ private class AccountTriggerTest {
         
         Test.stopTest();
     }
+
     static testMethod void ActualizarCampos()
     {
     	Colonia__c colonia = new Colonia__c(
@@ -111,9 +112,6 @@ private class AccountTriggerTest {
         
         Oficina_de_Venta__c ofiVta = new Oficina_de_Venta__c( Codigo__c = '453', Descripcion__c = 'BNM MANAGUA' );
         insert ofiVta;
-        
-        Grupo_de_Vendedores__c gpoVendedores = new Grupo_de_Vendedores__c( Codigo__c = '696', Descripcion__c = 'T2 MANAGUA', TipoSurtido__c = '2 - Directo' );
-        insert gpoVendedores;
        
     	 Account account = new Account(
             Colonia__c = colonia.Id,
@@ -123,7 +121,7 @@ private class AccountTriggerTest {
             Telefono__c = '1234567890',
             Organizacion_de_Ventas__c = 'SUKARNE - SK01',
             Oficina_de_ventas__c = ofiVta.Id,
-            Grupo_de_Vendedores__c = gpoVendedores.Id
+            Grupo_de_Vendedores__c = obtenerGpo().Id
         );
         insert account;
         
@@ -146,6 +144,19 @@ private class AccountTriggerTest {
         lista.add(accountSucursal);
     	AccountTrigger c = new AccountTrigger();
     	AccountTrigger.asignaCamposChildAccounts(lista);
+    }
+        public static void crearGrupo(){
+        system.debug('ENTROGUARDARGRUPO');
+            Grupo_de_Vendedores__c gpoVendedores = new Grupo_de_Vendedores__c();            
+            gpoVendedores.Codigo__c = '105';
+            gpoVendedores.Descripcion__c = 'T2 MANAGUA';
+            gpoVendedores.TipoSurtido__c = '2 - Directo';
+            gpoVendedores.Name = 'GPO Vendedores 1';
+            upsert gpoVendedores;
+    }
+    public static Grupo_de_Vendedores__c obtenerGpo(){
+        
+        return [SELECT Id FROM Grupo_de_Vendedores__c limit 1];
     }
     static testMethod void PruebasEntidadesWS() {
         Test.setMock(WebServiceMock.class, new ClienteInsertSAPPIWSTest());

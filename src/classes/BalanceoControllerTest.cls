@@ -319,7 +319,7 @@ private class BalanceoControllerTest  implements WebServiceMock {
                 RecordType.Name from Account Where Name='TEST2']);
 
             ListaPreciosQueryNSCWS.ArrayOfPreciosXCliente listClientesLP = new ListaPreciosQueryNSCWS.ArrayOfPreciosXCliente();
-
+		BalanceoController.OperaEnSapOfiCerrada('123');
 
         Test.stopTest();
 	}

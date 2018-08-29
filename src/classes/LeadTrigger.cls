@@ -4,7 +4,7 @@
 * Company: gA
 * Email: obecerra@grupoassa.com
 * Created date: 12/09/2014
-**/
+**/ 
 public without sharing class LeadTrigger {
     
     public static Set<String> executedMethodNameSet = new Set<String>();
@@ -291,7 +291,8 @@ Codigo__c = codigoTransporte
                 }
                 else
                 {
-                    if(response.Texto_Msg.isNumeric())
+                    system.debug('RESPUESTA=> ' +  response);
+                    if(response.Texto_Msg != null && response.Texto_Msg.isNumeric())
                     {
                         if(arregloRespuesta != null && arregloRespuesta.size() > 1)
                         {
@@ -312,6 +313,7 @@ Codigo__c = codigoTransporte
                     }
                     else
                     {
+                       system.debug('RESPUESTA_ERROR_2=> ' +  response);
                         error = response.Msg_2;
                         mapProspectos.get(lead.Cliente.AUSP.ID_Prospecto).Respuesta_Servicio__c = response.Msg_2;
                         System.debug('Error: ' + response.Msg_2);

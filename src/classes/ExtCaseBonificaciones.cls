@@ -26,7 +26,7 @@ public without sharing class ExtCaseBonificaciones {
 	system.debug('rt '+ rt);
 	list<case> ListaCasos = [select id,CaseNumber,No_Factura__c from case where recordTypeId =: rt.Id and No_Factura__c =: NumeroFactura];
 	
-	system.debug('ListaCasos '+ ListaCasos);
+	system.debug('ListaCasos '+ ListaCasos +'NumeroFactua=> '+ NumeroFactura);
 	
 	if(ListaCasos != null && ListaCasos.size() > 0)
 	{
@@ -171,6 +171,7 @@ public EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element GenerarDetalle(Deta
 }
 public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[] Datos)
 {
+    system.debug('DATOS=> '+ Datos);
 		factura = new Factura(); 
   		factura.CodigoCliente = String.ValueOf(Datos[0].Cabecero.CodigoCliente);
   		factura.NombreCliente = String.ValueOf(Datos[0].Cabecero.CodigoCliente)+' - '+Datos[0].Cabecero.DescripcionCliente;

@@ -158,7 +158,7 @@ private class PedidoWizardControllerTest implements WebServiceMock {
         Oficina_de_Venta__c ofiVta = new Oficina_de_Venta__c();        
         ofiVta.Codigo__c = '105'; 
         ofiVta.Descripcion__c = 'BNM MANAGUAN' ;
-        ofiVta.Opera_en_SAP__c = true;
+        //ofiVta.Opera_en_SAP__c = true;
         upsert ofiVta;     
         return ofiVta;
     }

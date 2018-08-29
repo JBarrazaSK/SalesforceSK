@@ -17,11 +17,18 @@ public with sharing class ValidaProspectos{
     }
     
     public void Validate(){
+        system.debug('FECHA=> '+fecAccount.Aniversario_del_Negocio__c);
         if(fecAccount.Aniversario_del_Negocio__c == null)
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR,'Favor de seleccionar una fecha valida.'));
         else{
-            list<lead> prospSOQL = [SELECT Id,OwnerId,Canal_de_Distribucion_NSC__c,Estructura_de_venta__c,Name,Pais__r.Codigo_Pais__c,Telefono_Contacto__c, Telefono__c,Celular__c,Celular_Contacto__c,(SELECT ID FROM Visitas__r WHERE CreatedDate >= LAST_N_WEEKS:3),(SELECT ID FROM Pedidos__r WHERE CreatedDate >= LAST_N_WEEKS:3) FROM LEAD WHERE CreatedDate <=: fecAccount.Aniversario_del_Negocio__c AND Status = 'Aprobado Admin. Clientes' AND Estructura_de_venta__c =:gpoVendedor AND IsConverted = false];
+        	list<Id> idTarjet = new list<Id>();
+        	for(ProcessInstanceStep Proc : [SELECT OriginalActorId,ProcessInstance.TargetObjectId FROM ProcessInstanceStep WHERE OriginalActorId =: UserInfo.getUserId() and ProcessInstance.Status = 'Pending'])
+        		idTarjet.add(Proc.ProcessInstance.TargetObjectId);
+
+            system.debug('IDTARJET=> ' + idTarjet);
+            list<lead> prospSOQL = [SELECT Id,OwnerId,Canal_de_Distribucion_NSC__c,Estructura_de_venta__c,Name,Pais__r.Codigo_Pais__c,Telefono_Contacto__c, Telefono__c,Celular__c,Celular_Contacto__c,(SELECT ID FROM Visitas__r WHERE CreatedDate >= LAST_N_WEEKS:3),(SELECT ID FROM Pedidos__r WHERE CreatedDate >= LAST_N_WEEKS:3) FROM LEAD WHERE CreatedDate <=: fecAccount.Aniversario_del_Negocio__c AND Status = 'Aprobado Admin. Clientes' AND Id IN: idTarjet AND IsConverted = false];
             prospectos = new list<ProspectoWRP>();
+            system.debug('LEAD=> ' + prospSOQL);
             for(lead l: prospSOQL)
                 prospectos.add(new ProspectoWRP(l));
                 

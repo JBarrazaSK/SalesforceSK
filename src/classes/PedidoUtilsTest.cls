@@ -22,14 +22,22 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         }
     }
 
+    static testmethod void inicial(){
+      
+      
+    }
+    
     static testMethod void Test() {
 
     	Test.setMock(WebServiceMock.class, new PedidoUtilsTest());
         Test.setMock(WebServiceMock.class, new PedidoInsertNSCWSTest());
         Test.setMock(WebServiceMock.class, new BalanceoNSCWSTest());
+        Test.setMock(WebServiceMock.class, new ListaPreciosQueryNSCWSTest());
+        
+        
         Test.startTest();
         //Se prueba mediante ProductosBalanceoControllerTest y PedidoWizardTest
-        Test.stopTest();
+ 
         Account account = crearCliente();
         Pedido__c pedido =  crearPedido();
         PedidoItem__c pedidoItem =  crearItem();
@@ -47,17 +55,32 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         
         PedidoUtils.PedidoWrapper pedidoWrapper =  new PedidoUtils.PedidoWrapper();
         PedidoUtils.AccountWrapper accountWrapper  =new	PedidoUtils.AccountWrapper();
-        PedidoUtils.ExternalSources externalSources = new PedidoUtils.ExternalSources();        
+        PedidoUtils.ExternalSources externalSources = new PedidoUtils.ExternalSources();  
         
+        PedidoUtils controller = new PedidoUtils('');
+        controller.parseInventario(bp);
+        controller.parseInventario(inven);
+        PedidoUtils.queryAccountSetProspecto(obtenerLead().Id);
+        controller.queryAccount();
+        controller.queryAccount(account);
+        
+        pedidoWrapper.setPedidoDefaults(account, true);
+        pedidoWrapper.pedido =  pedido;
+
+        
+        accountWrapper.account = new Account();
         accountWrapper.account = obtenercuenta();
+        system.debug('ObtenreCuenta=> ' + obtenercuenta());
         accountWrapper.account.Organizacion_de_Ventas__c= 'VIZCATTLE CORPORATIO - 3031';
         accountWrapper.account.Sector__c = 'Comun - 00';
+        //accountWrapper.account.Tipo_Surtido__c = '';
+        
         accountWrapper.sucursal = '1';
         accountWrapper.cliente = 101010;
-        accountWrapper.orgVentas = '';
-        
-       // accountWrapper.isValidAccount();
+        accountWrapper.orgVentas = '';   
+        accountWrapper.canal = 105;
         accountWrapper.isValidAccountWrapper();
+        accountWrapper.oficinaVentasSelectOptionList = new List<SelectOption>();
 
         
 		
@@ -71,24 +94,29 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         Map<String,String> productos = null;
         Map<String,List<Gpo_Vendedores_Oficina_de_Ventas__c>>   gruposVendedores = new Map<String,List<Gpo_Vendedores_Oficina_de_Ventas__c>>();
         Map<Id, Product2> product2General = new Map<Id, Product2>(); 
-        //PedidoUtils controller = new PedidoUtils('', true,true, 1,inventario,inventarioSAP,productos,pedido,accountWrapper.account, lPrecios, gruposVendedores,product2General);
-		//controller.stepForth(true,true, inventario,  inventarioSAP,productos,  accountWrapper.account,lPrecios);
-		PedidoUtils controller = new PedidoUtils('');
-        controller.parseInventario(bp);
-        controller.parseInventario(inven);
-        PedidoUtils.queryAccountSetProspecto(obtenerLead().Id);
-
-        //pedidoWrapper.addPedidoItem();
-        pedidoWrapper.setPedidoDefaults(account, true);
-      	//pedidoWrapper.setPedidoData();
-        //pedidoWrapper.requiereAutorizacionPrecio();
-        pedidoWrapper.pedido =  pedido;
+		controller.stepForth(true, false, inventario, productos);
+	            
        	externalSources.setPedidoWS(pedidoWrapper,accountWrapper);
         externalSources.setPedidoSAPWS(pedidoWrapper, accountWrapper, false);
         externalSources.setPedidoWSSAP(pedidoWrapper, accountWrapper, false);
         externalSources.syncPedido(pedidoWrapper,accountWrapper);
+        externalSources.syncPedidoSAP(pedidoWrapper,accountWrapper,false);
+        
+        Set<Integer> productos2 =  new Set<integer>();
+        productos2.add(1);
+        productos2.add(2);
+        productos2.add(12);
+        externalSources.retrieveTipoManejoInventario(productos2, 105);
+        externalSources.retrieveTipoManejoInventarioSAP(productos2, 105);
+        externalSources.setIsClosedPlaza(1,accountWrapper.sucursal , 1, 105);
+        externalSources.dateToString(date.today(), 'yyyy-MM-dd');
+        ListaPreciosQueryNSCWS.ArrayOfPreciosXCliente clientes;
+       //externalSources.getListaPreciosMasivo(clientes);
+        
+        
         System.debug('ACCOUNT=> '+ accountWrapper.account.Oficina_de_Ventas__c);
-        //Integer Oficina =  Integer.valueOf(accountWrapper.account.Oficina_de_Ventas__r.Codigo__c);
+        
+        
         externalSources.OperaEnSap(105);
         externalSources.ValidarCierreCanal('16:00');
         Set<Integer> canales =  new Set<Integer>(); 
@@ -96,15 +124,41 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         canales.add(740);
         externalSources.OficinaVentaOperaSapMasivo(canales);      
         externalSources.setIsClosedPlazas(canales,103);
-        //externalSources.sendPedido(pedidoWS);
-        //externalSources.syncPedidoSAP(pedidoWrapper,accountWrapper);
-        externalSources.calculaEnBaseACajasConf(listaPedidoItem[0]);
+        Test.setMock(WebServiceMock.class, new WSDisponibilidadInventarioSAPMock());
         externalSources.setIsClosedPlaza(accountWrapper.cliente, accountWrapper.sucursal, accountWrapper.canal, pedidoWrapper.pedido.OficinaVentas__r!=null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c):null);
         externalSources.setInventarioXProductCodeMap(accountWrapper.cliente, accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c);
-        externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc);
+        externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc);       
+              
+        DisponibilidadInventarioSAP.Informacion_element inventarioDisp = new DisponibilidadInventarioSAP.Informacion_element();
+        inventarioDisp.InventarioActual = '0';
+        inventarioDisp.ComprometidoAlmacenHoy= '0';
+        inventarioDisp.ComprometidoAlmacenManana = '0';
+        inventarioDisp.DisponibilidadAlmacen= '0';
+        inventarioDisp.InventarioConfigurado= '0';
+        inventarioDisp.ComprasConfigManana= '0';
+        inventarioDisp.ResAlm= '0';
+        inventarioDisp.ResConf= '0';
+        inventarioDisp.PermiteApartarSinExistencias= '0'; 
+        // ExternalDataSource.CrearElementoInventario(inventarioDisp);
+
+   
+        pedidoWrapper.instanceNewPedidoItemList();
+        pedidoWrapper.queryPedidoParameters();
+        pedidoWrapper.setPedidoData();
+        PedidoInsertNSCWS.PedidoRespuesta response;
+        pedidoWrapper.assignWebServiceResponseData(response);
+        ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido responsee;
+        pedidoWrapper.assignWebServiceResponseData(responsee);
+        pedidoWrapper.requiereAutorizacionPrecio();
+        pedidoWrapper.queryPedido(string.valueOf(pedido.Id));
+        pedidoWrapper.asignaPedido(pedido);
+        pedidoWrapper.queryPedidoItem(String.valueOf(pedidoItem.Id));
+        pedidoWrapper.save();
+
+
         
        
-
+       Test.stopTest();
         
     
     }
@@ -120,7 +174,10 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         item.PiezasPedidas__c= 100;
         item.Pedido__c = obtenerPedido().Id;
         item.Precio_Requiere_Aprobacion__c =  true;
-        item.Producto__c = crearProducto().Id;
+        Product2 producto = crearProducto();
+        item.Producto__c = producto.Id;
+        item.Producto__r = producto;
+        
         item.Moneda__c ='D';
         item.Unidad__c = 'P';
        
@@ -153,10 +210,14 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         pedido.TipoSurtido__c = '1';
         pedido.Cuenta__c = '0012C00000FCWsuQAH';
        	pedido.Fecha_Registro__c = date.today();
-        pedido.Prospecto__c = crearLEAD().Id;   
+        Lead lead =  crearLEAD();
+        pedido.Prospecto__c =    lead.Id;
+        pedido.Prospecto__r =  lead;
         pedido.FechaSurtidoProgramada__c =  date.today();
         pedido.Forma_Pago__c = '1 - Contado';
-        pedido.OficinaVentas__c = obtenerOfiv().Id;
+        Oficina_de_Venta__c ofi =   obtenerOfiv();
+        pedido.OficinaVentas__c = ofi.Id;
+        //pedido.OficinaVentas__r = ofi;       
         pedido.Numero_de_Pedido_NSC__c = '';
         
         upsert pedido;
@@ -236,7 +297,6 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         	ofiVta.Codigo__c = '105'; 
         	ofiVta.Descripcion__c = 'BNM MANAGUA' ;
         	ofiVta.Opera_en_SAP__c =  true;
-        	//ofiVta.Opera_en_SAP__c =  true;
         upsert ofiVta;     
         return ofiVta;
     }
