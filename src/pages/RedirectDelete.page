@@ -1,0 +1,21 @@
+<apex:page standardcontroller="opportunityLineItem" >
+<apex:form >
+<h1>Espere un momento por favor esta siendo redireccionado....</h1>
+<script>
+    
+   var previousOnload = window.onload;        
+   window.onload = function() { 
+       if (previousOnload) { 
+           previousOnload();
+       }
+       init();
+   }
+   
+   function init() {
+       window.location.href ='/apex/vfpOtrosCanales?id={!opportunityLineItem.OpportunityID}';
+   }
+</script>
+<body onload="init();">      
+</body>
+</apex:form>
+</apex:page>

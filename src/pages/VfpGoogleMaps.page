@@ -2,7 +2,7 @@
     <apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.css" />
     <apex:includescript value="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.js" />
 
-    <div id="map" style="width: 600px; height: 400px"></div>
+    <div id="map" style="width: 800px; height: 400px"></div>
     <head>
         <script>
             var map = L.map('map').setView([{!Account.Geolocalizacion__Latitude__s}, {!Account.Geolocalizacion__Longitude__s}], 14);

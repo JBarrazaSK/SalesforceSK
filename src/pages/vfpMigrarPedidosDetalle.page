@@ -1,0 +1,212 @@
+<apex:page sidebar="false"  controller="ctrlMigrarPedidos" docType="html-5.0" standardStylesheets="true">
+ <style>
+ #showStatusDiv { position: fixed; background: rgba(0, 0, 0, 0.43); width: 100%; height: 100%; top: 0; left: 0; z-index: 999999; }
+  
+#showStatusDiv img { position: absolute; top: 50%; left: 50%; margin-right: 25px; }
+.errorClass {
+    background-color: red;
+}
+.normalClass {
+    background-color: green;
+}
+textarea {
+    resize: none;
+}
+.datePicker{
+        position: fixed;
+        z-index:10001;
+        width: auto;
+        height:auto;}
+        ::-webkit-inner-spin-button { display: none; }
+  </style>
+<apex:stylesheet value="{!URLFOR($Resource.popup, 'Css/EstilosPopUp.css')}"/>
+<apex:includeScript value="{!URLFOR($Resource.PedidoWizard, 'js/jquery-1.11.1.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.popup, 'js/popUp.js')}"/>
+<script type="text/javascript">ieStylesheetUrl = "{!URLFOR($Resource.PedidoWizard, 'css/PedidoWizardIE.css')}"</script>
+
+      <apex:form id="form" >
+  <apex:pageMessages />
+   <apex:pageBlock id="generales" title="Migracion de pedidos detalle" >
+
+   <table style="width: 90%;">
+    <tr>
+       
+        <td align="right">Oficina de Venta:</td> 
+        <td align="left"  style="width: 50px;">
+       <div class="requiredInput">
+           <div class="requiredBlock"></div>
+           <apex:inputText value="{!CodigoAlmacen}" id="inputSearchText" size="3" onblur="SearchProductEmbarque()"/>
+           </div>
+            
+        </td>
+      <td align="left" style="width: 100px;"> 
+            <apex:inputText value="{!NombreAlmacen}"  id="inputSearchText2" html-readOnly="true" style="width: 210px;"  />
+      </td>
+      <td align="left"> <input type="button" value="Buscar" class="btn" onclick="openModal('modalOfiVentas')" id="btnModal"/>
+            <apex:inputHidden value="{!AlmacenId}" id="HiddenId"/>
+            <apex:inputHidden value="{!CodigoAlmacen}" id="HiddenNumeroAlmacen"/>
+           
+      </td>
+        <td align="right">Fecha:</td>
+        <td> 
+          <div class="requiredInput">
+          <div class="requiredBlock"></div>
+          <apex:inputField value="{!pedido.Fecha_Registro__c}" id="FechaFiltro"/>
+          </div>
+      </td>
+      <td></td>
+         
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td><apex:commandButton action="{!getPedidos}" onclick="Consultar()" value="Consultar"  style="width: 100px;color: #fff;background-color: #0275d8;border-color: #0275d8;background-image:none;" id="theButton"  /></td>
+      <td></td>
+    </tr>
+   </table>
+  <br/>
+ <apex:pageBlockTable value="{!Listapedidos}" var="opp"> 
+ <apex:column headerValue="Pedido NSC" style="width: 35px;">
+    <apex:outputText value="{!opp.Numero_de_Pedido_NSC__c}"/>
+  </apex:column>
+  <apex:column headerValue="Cliente">
+    <apex:outputText value="{!opp.Cuenta__r.name}"/>
+  </apex:column>
+  <apex:column headerValue="Oficina de ventas">
+    <apex:outputText value="{!opp.OficinaVentas__r.name}"/>
+  </apex:column>
+   <apex:column headerValue="Pedido SAP" style="width: 35px;">
+    <apex:outputText value="{!opp.Numero_Pedido_SAP__c}"/>
+  </apex:column>
+  <apex:column headerValue="Mensaje">
+    <apex:outputText value="{!opp.Numero_Pedido_SAP__c}"/>
+  </apex:column>
+ </apex:pageBlockTable>
+ </apex:pageBlock>
+
+    <div id="modalOfiVentas" style="display:none">
+            <apex:pageBlock title="Búsqueda de Oficina de ventas">
+                <apex:pageBlockButtons location="top">
+                    <label class="labelCol">Nombre:</label>
+                    <input type="text" id="inputSearchText2" onkeyup="filterProductsEmbarque()"/>
+                </apex:pageBlockButtons>
+                <table class="list pageBlockTablePortafolio" border="0" cellpadding="0" cellspacing="0">
+                    <tr class="headerRow">
+                        <td>Código</td>
+                        <td>Descripción</td>
+                        <td style="display:none"></td>
+                    </tr>
+                    <apex:repeat value="{!MapAlmacenes}" var="productCode">
+                        <tr class="dataRow" onclick="selectItem('{!MapAlmacenes[productCode].Codigo__c}','{!MapAlmacenes[productCode].name}','{!MapAlmacenes[productCode].Id}','modalOfiVentas')" onmouseover="rowOn(this)" onmouseout="rowOff(this)">
+                            <td>{!MapAlmacenes[productCode].Codigo__c}</td>
+                            <td>{!MapAlmacenes[productCode].name}</td>
+                            <td style="display:none">
+                                {!MapAlmacenes[productCode].id}
+                                <input type="hidden" id="IdProducto" value="'{!MapAlmacenes[productCode].Id}'"/>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+              
+                <apex:pageBlockButtons location="bottom">
+                    <input type="button" value="Cerrar" class="btn" onclick="closeModal('modalOfiVentas')"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>
+    </div>
+    <!-- style="display: {!Display}"-->
+      <div id="overlay"  style="display: {!Display}"/>
+       <div id="showStatusDiv" style="display: none;">
+          <apex:image value="{!$Resource.spinner}" width="100" height="100"/>
+        </div>
+        <script type="text/javascript">
+       function SearchProductEmbarque() {
+              var encontrado = false;
+              var MasterID =$('[id$=inputSearchText]').val()
+              if(MasterID != '')
+              {
+                  $(".pageBlockTablePortafolio tr.dataRow").each(function() {
+                      if($(this).find("td:nth-child(1)").text().toLowerCase().trim() == MasterID){
+                         
+                            $('[id$=inputSearchText]').val($(this).find("td:nth-child(1)").text());
+                            $('[id$=inputSearchText2]').val($(this).find("td:nth-child(2)").text());
+                            var id = $(this).find("td:nth-child(3)").text().trim();
+                            $('[id$=HiddenId]').val(id);
+                             encontrado = true;
+                           
+                           
+                      }
+                
+                    
+                  });
+                   if(!encontrado)
+                    {
+                      $('[id$=inputSearchText2]').val('No se encontro el Producto');
+                     
+                    }
+              }
+                
+             
+      }   
+   
+    function changeValue(checkButton) {
+        var chk = document.getElementsByClassName('myChk');
+        console.log(checkButton.value);
+
+       for (var i=0; i<chk.length; i++) {
+
+              if(chk[i].name != checkButton.name)
+              {
+                chk[i].checked = false;
+              }
+             
+           
+        }
+    }
+   function openModalConfig(elementId, row) {
+
+  $('[id$=showStatusDiv]').show();
+  $('[id$=HiddenFecha]').val( $('[id$=FechaFiltro]').val());
+  $('[id$=HiddenNumeroAlmacen]').val( $('[id$=inputSearchText]').val());
+  $(".pageBlockTablePortafolio2 tr.dataRow").each(function() {
+      var inputCheckbox = $(this).find("td:nth-child(1)");
+      var seleccionado = inputCheckbox[0].childNodes;
+      
+      if($(this).find("td:nth-child(2)").text() == row )
+      {
+        
+        seleccionado[0].checked = true;
+            
+      }
+      else{ seleccionado[0].checked = false;}
+      
+    
+      
+    });
+}
+function validarSeleccionado(IsValido)
+{
+    $(".pageBlockTablePortafolio2 tr.dataRow").each(function() {
+      var inputCheckbox = $(this).find("td:nth-child(1)");
+      var seleccionado = inputCheckbox[0].childNodes;
+      
+      if($(this).find("td:nth-child(2)").text() == IsValido )
+      {
+        
+        seleccionado[0].checked = true;
+            
+      }
+      else{ seleccionado[0].checked = false;}
+      
+    
+      
+    });
+    Consultar();
+}
+
+</script>
+  </apex:form>
+
+</apex:page>

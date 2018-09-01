@@ -27,12 +27,28 @@ input[type=number] {
 }
 
 </style>
+<script type="text/javascript">
+    function IsNumeric(e){
+       
+    tecla = (document.all) ? e.keyCode : e.which;
+console.log(tecla);
+    //Tecla de retroceso para borrar, siempre la permite
+    if (tecla==8 || tecla == 46){
+        return true;
+    }
+        
+    // Patron de entrada, en este caso solo acepta numeros
+    patron =/[0-9]/;
+    tecla_final = String.fromCharCode(tecla);
+    return patron.test(tecla_final);
+}
+</script>
 <apex:sectionHeader title="Solicitud de Bonificaciones Operativas"/>
 <apex:form id="form">
     <apex:pageBlock title="" mode="edit"> 
     <apex:pagemessages id="message"/>
         <apex:pageBlockButtons >
-            <apex:commandButton action="{!GuardarCasoDevolucion}" value="Guardar" rendered="{!factura != null}"/>
+            <apex:commandButton action="{!GuardarCasoDevolucion}" value="Guardar" rendered="{!DisableGuardar}"/>
            
         </apex:pageBlockButtons>
           
@@ -79,7 +95,7 @@ input[type=number] {
              </apex:actionRegion>
                </apex:pageblocksectionitem>
             <apex:inputtext label="Moneda" value="{!factura.Moneda}" disabled="true"/>
-            <apex:input type="number" label="Importe General" value="{!factura.ImporteBonificar}" disabled="{!DisabledImporte}"/>
+            <apex:input label="Importe General" value="{!factura.ImporteBonificar}" disabled="{!DisabledImporte}" onKeyPress=" return IsNumeric(event)"/>
         </apex:pageBlockSection>
         <apex:pageBlockSection id="factura" title="Detalle Factura" columns="1" rendered="{!factura.ListaProductos != null}">
         <apex:pageBlockTable value="{!factura.ListaProductos}" var="opp">
@@ -103,10 +119,10 @@ input[type=number] {
                		<apex:outputText value="{!opp.Precio}" style="width:80px;"/>		
                </apex:column>
                <apex:column headerValue="Volumen real">
-               		<apex:input type="number" value="{!opp.VolumenReal}" style="width:80px;" disabled="{!DisabledVolumen}"/>		
+               		<apex:input value="{!opp.VolumenReal}" style="width:80px;" disabled="{!DisabledVolumen}" onKeyPress=" return IsNumeric(event)"/>		
                </apex:column>
                <apex:column headerValue="Precio real">
-               		<apex:input type="number" value="{!opp.PrecioReal}" style="width:80px;" disabled="{!DisabledPrecio}"/>		
+               		<apex:input value="{!opp.PrecioReal}" style="width:80px;" disabled="{!DisabledPrecio}" onKeyPress=" return IsNumeric(event)"/>		
                </apex:column>
 
             </apex:pageBlockTable> 

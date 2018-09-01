@@ -67,11 +67,12 @@ public void GuardarCasoDevolucion()
 			return;
 			
 		response = services.DevolucionSAP(request);
-		
+		system.debug('RESPONSE_GUARDARDEVOLUCION=> '+ response);
 		if(response != null)
 		{
 			if(response.TipoMensaje == 'OK')
 			{
+                this.caso.Folio_DocumentoSAP__c = String.isBlank(this.caso.Folio_DocumentoSAP__c) ? response.Datos.NumeroMov:','+response.Datos.NumeroMov;
 				insert this.caso;
 				NumCaso =  this.caso.CaseNumber;
 				showPageMessage('CONFIRM',response.Mensaje);
@@ -134,11 +135,13 @@ public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[]
   		//this.caso.AccountId = TraerCuenta(String.ValueOf(Datos[0].Cabecero.CodigoCliente)).Id;
   		system.debug('CUENTA=> '+ this.caso.AccountId);  
     	String cuentaId = TraerCuenta(String.ValueOf(Datos[0].Cabecero.CodigoCliente)).Id;
-    	
+    	if(cuentaId == null)
+		{
+	  		showPageMessage('WARNING','Cliente no cuenta con una sucursal configurada.');
+	  		return;
+	  	}
   		String contacto = TraerContacto(cuentaId).Id;
-  		//this.Caso.Repartidor__c =  contacto;
-  		system.debug('REPARTIDOR__C ' + contacto);
-  		
+  		system.debug('REPARTIDOR__C ' + contacto);  		
   		if(contacto == null)
 		{
 	  		showPageMessage('WARNING','No se encuentro un contacto asiciado a la cuenta.');
@@ -207,9 +210,15 @@ public Account TraerCuenta(string NumeroCliente)
 {
     system.debug('TRAERCUENTA=> '+ NumeroCliente);
 	RecordType rt = [SELECT Id,Name FROM RecordType WHERE SobjectType='Account' and name = 'Sucursal'];
+    system.debug('RECORD=> '+ rt);
     Account cuenta = new Account();
-    cuenta = [select id,Name from Account where Numero_Cliente_SAP__c =: 'SUC - '+NumeroCliente.leftpad(10,'0') and recordTypeID =:rt.Id ];
-    system.debug('CUENTA=> '+ cuenta);
+    try{
+        cuenta = [select id,Name from Account where Numero_Cliente_SAP__c =: 'SUC - '+NumeroCliente.leftpad(10,'0') and recordTypeID =:rt.Id ];
+        system.debug('CUENTA=> '+ cuenta);
+    }catch(Exception e)
+	{
+		
+	}
 	return cuenta;
 } 
 public Contact TraerContacto (string IdCuenta)
@@ -249,7 +258,7 @@ public class DetalleFactura
 	 public String MedidaUnidad     {get;set;}
 	 public String Cantidad         {get;set;}
 	 public Decimal Importe         {get;set;}
-	 public Integer Cantidad_Dev    {get;set;}
+	 public integer Cantidad_Dev    {get;set;}
 	 public string SubFamilia       {get;set;}
 	 public string Volumen          {get;set;}
 	 public Decimal Precio          {get;set;}

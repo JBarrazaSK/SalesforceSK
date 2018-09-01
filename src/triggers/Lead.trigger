@@ -9,13 +9,13 @@
  * Company: Lynx9 Soluciones
  * Email: sf@lynx9.com
  * Modified Date: 22/02/2016
- * Description: Solo se va a ejecutar para el tipo de registro "Prospecto Detalle"
+ * Description: Solo se va a ejecutar para el tipo de registro "Prospecto Detalle"  
  **/
 trigger Lead on Lead (before insert, before update, after insert, after update, before delete) {
     
     map<string,string> mapStatus = new map<string,string>();
     if(trigger.isBefore && trigger.isInsert) {
-        LeadTrigger.asignaCampos(trigger.new);
+        LeadTrigger.asignaCampos(trigger.new);  
         LeadTrigger.validaRFCUnico(trigger.new, null);
         LeadTrigger.asignaCamposEnBaseAColonia(trigger.new, null);
     }
@@ -24,6 +24,7 @@ trigger Lead on Lead (before insert, before update, after insert, after update, 
         LeadTrigger.validaRFCUnico(trigger.new, trigger.oldMap);
         LeadTrigger.asignaCamposEnBaseAColonia(trigger.new, trigger.oldMap);
         LeadTrigger.ValidarLeadDepurado(trigger.new, trigger.oldMap);
+        LeadTrigger.asignaCampos(trigger.new); 
         
     }
     

@@ -506,6 +506,7 @@ function setProducto(productCode, index) {
        	}
         var selectedOption = inputMoneda.val()+inputUnidad.val();
         var currencyArray = ["P", "D"];
+        console.log("UNIDADMEDIDA = "+inputUnidad.val());
         var unitArray = inputUnidad.val() == "K" || inputUnidad.val() == "L" ? ["K", "L"] : [inputUnidad.val()];
         var noOptions = { PL:1 };
         var tipoPrecioSelect = '<select onchange="processTipoPrecio('+index+')" id="selectTipoPrecio'+index+'">';

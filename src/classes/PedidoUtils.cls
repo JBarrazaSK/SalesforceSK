@@ -191,6 +191,7 @@ public with sharing class PedidoUtils {
             valContinuarPrecios = !cierrePlazas &&
                 externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc,lPrecios);
         }else{
+            
             	valContinuarPrecios = externalSources.setIsClosedPlaza(accountWrapper.cliente, accountWrapper.sucursal, accountWrapper.canal, pedidoWrapper.pedido.OficinaVentas__r!=null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c):null) &&
                 externalSources.setInventarioXProductCodeMap(accountWrapper.cliente, accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c) &&
                 externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc);
@@ -488,8 +489,8 @@ public static Account queryAccountSetProspecto(String leadID) {
             }
             Savepoint savepoint = Database.setSavepoint();
             try {
-                upsert pedido;
-                Set<Id> pedidoItemIdSet = new Set<Id>();
+               upsert pedido;
+               Set<Id> pedidoItemIdSet = new Set<Id>();
                 for(PedidoItem__c pedidoItem : pedidoItemList) {
                     pedidoItem.Id_externo_Producto_Pedido__c = leftPad0(pedidoItem.Producto__r.ProductCode, 10)+pedido.IdExterno__c;
                     if(pedidoItem.Pedido__c == null) {
@@ -509,9 +510,10 @@ public static Account queryAccountSetProspecto(String leadID) {
                     WHERE Pedido__c = :pedido.Id
                         AND Id NOT IN :pedidoItemIdSet
                 ];
+                system.debug('PEDIDOITEMLIST=> ' +pedidoItemList);
                 upsert pedidoItemList;
-                queryPedido(pedido.Id);
-                if(!pedido.Pedido_Cancelado__c) {
+               queryPedido(pedido.Id);
+               if(!pedido.Pedido_Cancelado__c) {
                 	if( pedido.Numero_Pedido_SAP__c != null)
                 	{
                 		ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, PedidoUtils.PEDIDO_INSERT_CONFIRM+'Folio SAP: '+pedido.Numero_Pedido_SAP__c+'.'));
@@ -532,6 +534,7 @@ public static Account queryAccountSetProspecto(String leadID) {
                 Database.rollback(savepoint);
                 ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, PedidoUtils.PEDIDO_INSERT_ERROR+e.getMessage()));
             }
+ 
         }
 
         private Datetime getNextWorkingDatetime(Boolean isClosedPlaza) {
@@ -579,6 +582,12 @@ public static Account queryAccountSetProspecto(String leadID) {
 
         public void queryAccount(String accountId) {
             if(String.isNotBlank(accountId) || String.isNotBlank(sucursal)) {
+            	
+            	if(String.isNotBlank(sucursal))
+            	{
+            		sucursal = 'SUC - ' + sucursal.leftpad(10,'0');
+            	}
+            	
                 List<Account> accountList = (List<Account>)Database.query(
                     'SELECT Id, Cadena__c, Canal_Distribucion__c, Canal_Padre__c, Correo_Electronico__c, ' +
                         'DiasEntrega__c, Name, Numero_Cliente_SAP__c, Organizacion_de_Ventas__c, ' +
@@ -593,7 +602,9 @@ public static Account queryAccountSetProspecto(String leadID) {
                     'WHERE Estatus_Cliente__c = \'Activo\' '+
                         'AND RecordType.Name = \'Sucursal\' '+
                         //'AND Numero_Cliente_SAP__c LIKE \'%'+accountId+'%\' '+
-                        (String.isNotBlank(accountId) ? 'AND Id = :accountId ' : String.isNotBlank(sucursal) ? 'AND Numero_Cliente_SAP__c LIKE \'%'+sucursal+'%\' ' : '')+
+                      //  (String.isNotBlank(accountId) ? 'AND Id = :accountId ' : String.isNotBlank(sucursal) ? 'AND Numero_Cliente_SAP__c LIKE \'%'+sucursal+'%\' ' : '')+
+                      
+                        (String.isNotBlank(accountId) ? 'AND Id = :accountId ' : String.isNotBlank(sucursal) ? 'AND Numero_Cliente_SAP__c = \'' + sucursal+ '\' ' : '')+
                     'LIMIT 2'
                 );
                 this.validateQueryAccount(accountList);
@@ -861,7 +872,7 @@ public static Account queryAccountSetProspecto(String leadID) {
             
             if(OperaEnSap(canal))
             {
-            	system.debug('sucursal: -------------------> '+ sucursal.leftPad(10, ''));
+            	system.debug('sucursal:-> '+ sucursal.leftPad(10, '') +' TIPOSURTIDO=> '+tipoSurtido);
             	DisponibilidadInventarioSAP.DT_SE_DisponibilidadInventario_Resp response = 	retrieveInventarioSap(cliente,sucursal,tipoSurtido,canal,ordenCompra);
             	system.debug('response: -------------------> '+ response);
             	if(response != null && response.TipoMensaje =='S') 
@@ -1216,6 +1227,7 @@ public static Account queryAccountSetProspecto(String leadID) {
                 pedidoDetalleWS.nMarca = 0;
             
                 system.debug('UNIDADES=> '+ unidades);
+                system.debug('UNIDAD=> '+ pedidoWrapper.pedidoItemList[i].Unidad__c);
                 if( unidades == null ) 
                 {             	
                 	
@@ -1618,6 +1630,7 @@ public static Account queryAccountSetProspecto(String leadID) {
         }
 
         private CierrePlazaPedidoQueryNSCWS.RespuestaOfListOfCierre retrieveCierrePlaza(Integer cliente, String sucursal, Integer canal, Integer canalDestino) {
+            system.debug('CierreDEPLAZA=> ' + 'Cliente '+cliente +' SUCURSAL '+sucursal + 'CANAL ' +canal + ' CANALDESTINO ' + canalDestino);
             CierrePlazaPedidoQueryNSCWS.CierrePedidosSoap request = new CierrePlazaPedidoQueryNSCWS.CierrePedidosSoap();
             request.timeout_x = PedidoUtils.WEB_SERVICE_TIMEOUT;
             for(Integer i=1; i<=MAX_CALLOUT_RETRIES; i++) {
@@ -1774,7 +1787,9 @@ public static Account queryAccountSetProspecto(String leadID) {
             request.timeout_x = 50000;
             for(Integer i=1; i<=PedidoUtils.MAX_CALLOUT_RETRIES; i++) {
                 try {
-                    return validatePedidoResponse(request.RegistrarPedido(pedidoWS));
+                    PedidoInsertNSCWS.RespuestaOfPedidoRespuesta respuesta = validatePedidoResponse(request.RegistrarPedido(pedidoWS));
+                    system.debug('RESPUESTA_NSC=> ' +respuesta);
+                    return respuesta;
                 } catch(Exception e) {
                     if(i == PedidoUtils.MAX_CALLOUT_RETRIES) {
                         ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, PedidoUtils.PEDIDO_WEB_SERVICE_ERROR+e.getMessage()));

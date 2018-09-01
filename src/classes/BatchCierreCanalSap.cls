@@ -2,7 +2,7 @@ global class BatchCierreCanalSap implements Database.Batchable<sObject>,Database
 	String fieldName ='id,name,Codigo__c,CEDIS__c,Hora_Cierre_dt__c,Nueva_Hora_Cierre_DT__c,OrganizacionesText__c,Reaperturado__c';
 	String query = 'select '+fieldName+' From Oficina_de_Venta__c ';
  	list<Bitacora__c> listaLog;
- global BatchCierreCanalSap() {
+ global BatchCierreCanalSap() { 
 			listaLog = new list<Bitacora__c>();
 	}
  global Database.QueryLocator start(Database.BatchableContext BC) {
@@ -20,8 +20,10 @@ global class BatchCierreCanalSap implements Database.Batchable<sObject>,Database
  	
  	if (scope.size() > 0)
 	{
+		
 			for(Oficina_de_Venta__c ofv : scope)
 			{
+				    System.debug('Nueva_Hora_Cierre_DT__c :: '+ofv.Nueva_Hora_Cierre_DT__c);
 					if(string.isNotBlank(ofv.Nueva_Hora_Cierre_DT__c) )
 					{
 						if(ValidarCierreCanal(ofv.Nueva_Hora_Cierre_DT__c))
@@ -92,7 +94,7 @@ global class BatchCierreCanalSap implements Database.Batchable<sObject>,Database
 	}
  }
  global Time CalcularHora(string HoraCierreDT)
- {
+ { 
  	   Time HoraCierre = null;
        string[] arregloHoracierre = HoraCierreDT.split(':'); 
        if(arregloHoracierre != null && arregloHoracierre.size() > 1)
@@ -109,6 +111,8 @@ global class BatchCierreCanalSap implements Database.Batchable<sObject>,Database
        if(arregloHoracierre != null && arregloHoracierre.size() > 1)
        {
        		HoraCierre = Time.newInstance(Integer.valueOf(arregloHoracierre[0]), Integer.valueOf(arregloHoracierre[1]), 0, 0);
+       		System.debug('HoraActual :: '+HoraActual);
+       		System.debug('HoraCierre :: '+HoraCierre);
        		if(HoraActual >= HoraCierre)
        		{
        			return true;

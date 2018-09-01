@@ -101,10 +101,12 @@ public class CierrePlazaPedidoQueryNSCWS {
         public String clientCertPasswd_x;
         public Integer timeout_x;
         private String[] ns_map_type_info = new String[]{'http://www.sukarne.com/ws/salesforce', 'CierrePlazaPedidoQueryNSCWS'};
-        public CierrePedidosSoap(){
-            PedidoParameters__c pp = PedidoParameters__c.getInstance();
-            this.endpoint_x = pp.EndpointPedidos__c + '/SKServiciosExternos/SalesForce/CierrePedidos.asmx';
-        }
+        public CierrePedidosSoap()
+        {
+        	endpoints__c ep = endpoints__c.getInstance();
+            system.debug('CIERREPEDIDOS=> '+ep.CierrePedidos__c);
+            this.endpoint_x = ep.CierrePedidos__c;
+        } 
         // FIXME Ya no existe el metodo, pero se utiliza en GINSA
         public CierrePlazaPedidoQueryNSCWS.RespuestaOfListOfCierre ValidaCierrePedidosMasivo(CierrePlazaPedidoQueryNSCWS.ArrayOfInt canales,Integer canalPadre) {
         	return null;

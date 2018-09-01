@@ -39,6 +39,17 @@ public with sharing class PedidoWizardController {
                 accountWrapper.isSelectable = false;
             } else if(recordIdPrefix == SObjectType.Lead.getKeyPrefix()) {
                 pedidoWrapper.pedido.Prospecto__c = recordId;
+                account cuenta =  PedidoUtils.queryAccountSetProspecto(pedidoWrapper.pedido.Prospecto__c);
+                if(cuenta != null)
+                {
+	                pedidoWrapper.pedido.Cuenta__c = cuenta.Id;
+	                queryAccount();
+	                if( accountWrapper.tipoSurtido != null ) {
+	                    pedidoWrapper.pedido.TipoSurtido__c = accountWrapper.account.Tipo_Surtido__c;
+	                    pedidoWrapper.tipoSurtido = accountWrapper.tipoSurtido;
+	                }
+	                //accountWrapper.isSelectable = false;
+                }
                
                 
             } else if(recordIdPrefix == SOBjectType.Pedido__c.getKeyPrefix()) {
@@ -118,11 +129,13 @@ public with sharing class PedidoWizardController {
        }
         if(pedidoWrapper.pedido.Id == null) {
             accountWrapper.oficinaVentasName = oficinaVentasName;
+            system.debug('OFICINAVENTA=> '+ accountWrapper.oficinaVentasName);
             accountWrapper.ofiventas = accountWrapper.getSAPCode(accountWrapper.oficinaVentasName);
+            system.debug('OFICINAVENTAACCOUNT=> '+  accountWrapper.ofiventas);
             pedidoWrapper.pedido.OficinaVentas__r = new Oficina_de_Venta__c(
                 Codigo__c = accountWrapper.ofiventas
             );
-             
+             system.debug('OFICINAVENTAACCOUNT=> '+  pedidoWrapper.pedido.OficinaVentas__r.Codigo__c);
                 if(accountWrapper != null && accountWrapper.oficinaVentasName != null){
                     String SapCode = accountWrapper.getSAPCode(accountWrapper.oficinaVentasName);
                    
@@ -131,8 +144,8 @@ public with sharing class PedidoWizardController {
                              OperaSap = true;
                          } 
                 }
-            /*
-            if(accountWrapper.oficinaVentasSelectOptionList != null && accountWrapper.oficinaVentasSelectOptionList.size() > 1 && accountWrapper.oficinaVentasName != null) {
+            
+            /*if(accountWrapper.oficinaVentasSelectOptionList != null && accountWrapper.oficinaVentasSelectOptionList.size() > 1 && accountWrapper.oficinaVentasName != null) {
                 accountWrapper.ofiventas = accountWrapper.getSAPCode(accountWrapper.oficinaVentasName);
                 pedidoWrapper.pedido.OficinaVentas__r = new Oficina_de_Venta__c(
                     Codigo__c = accountWrapper.ofiventas
@@ -212,22 +225,13 @@ public with sharing class PedidoWizardController {
 		        		 ApexPages.addMessage(myMsg);
 		        	}
 		        	else if(responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'W' )
-		        	{
-		        		/*if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null 
-							&& responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus == 'B'))      			 
-							{
-		        				pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[i]);		
-		        				pedidoWrapper.save();		        				
-							}*/
-		        		
+		        	{	        		
 		        		 myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,responseSAP.DT_SE_ABCPedidos_RespPedido[i].Mensaje);
-		        		 ApexPages.addMessage(myMsg);
-		        		 
+		        		 ApexPages.addMessage(myMsg);		        		 
 		        	}		        	     
-	            } 
-	           // pedidoWrapper.save();		         
+	            } 	         
         	}
-        }        	
+        } 
     }
 
     public Map<String, Product2> product2XproductCodeMap {

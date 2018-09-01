@@ -20,14 +20,21 @@ public without sharing class LeadTrigger {
     }
     
     public static void asignaCampos(List<Lead> leadNewList) {
+    	map<string,string> mapEstructuras = new  map<string,string>();
+    	 
+    	 for( Canal_de_Distribucion_NSC__c e :[select id,Estructura_de_venta__c from Canal_de_Distribucion_NSC__c])
+    	 {
+    	 	mapEstructuras.put(e.id,e.Estructura_de_venta__c);
+    	 }
         for(Lead lead : leadNewList) {
             lead.Nombre_DNM1__c = lead.OwnerId;
-            lead.Estructura_de_venta__c = lead.Canal_de_Distribucion_NSC__r.Estructura_de_venta__c;
+            lead.Estructura_de_venta__c = mapEstructuras.get(lead.Canal_de_Distribucion_NSC__c);
             if(lead.Dias_de_Entrega__c == null){
                 lead.Dias_de_Entrega__c='Lunes; Martes; Miércoles; Jueves; Viernes; Sábado';
             }
         }
-    }
+    }   
+   
     public static void ValidarLeadDepurado(List<Lead> leadNewList, Map<Id, Lead> leadOldMap){
         for(Lead lead : leadNewList) {
             if(leadOldMap != null ) {

@@ -62,8 +62,8 @@
                	<apex:outputText value="{!opp.Importe}"/>
                </apex:column>
                <apex:column headerValue="Cantidad de cajas a devolver">
-               		<apex:input type="number" value="{!opp.Cantidad_Dev}" style="width:80px;"/>		
-               </apex:column>
+               		<apex:input type="number" value="{!opp.Cantidad_Dev}" style="width:80px;"/>	
+              </apex:column>
 
             </apex:pageBlockTable> 
         </apex:pageBlockSection>

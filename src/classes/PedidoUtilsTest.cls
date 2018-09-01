@@ -6,7 +6,8 @@
  * Created date: 01/04/2015
  **/
 @isTest
-public with sharing class PedidoUtilsTest implements WebServiceMock {
+public with sharing class PedidoUtilsTest {
+/*implements WebServiceMock {
 	
 	public void doInvoke(Object stub, Object request, Map<String, Object> responseMap, String endpoint, String soapAction, String requestName, String responseNS, String responseName, String responseType) {
         if(stub instanceOf CierrePlazaPedidoQueryNSCWS.CierrePedidosSoap) {
@@ -19,25 +20,23 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
             new PedidoInsertNSCWSTest().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
         } else if(request instanceOf BalanceoNSCWS.GuardarPedidos_element) {
             new BalanceoNSCWSTest().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
+        } else if(request instanceOf WSDisponibilidadInventarioSAP.ConsultarDisponibilidadSAPResponse_element) {
+            new WSDisponibilidadInventarioSAPMock().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
         }
-    }
-
-    static testmethod void inicial(){
-      
-      
-    }
-    
+    }*/
     static testMethod void Test() {
 
-    	Test.setMock(WebServiceMock.class, new PedidoUtilsTest());
+  		//Test.setMock(WebServiceMock.class, new PedidoUtilsTest());
         Test.setMock(WebServiceMock.class, new PedidoInsertNSCWSTest());
         Test.setMock(WebServiceMock.class, new BalanceoNSCWSTest());
         Test.setMock(WebServiceMock.class, new ListaPreciosQueryNSCWSTest());
+        Test.setMock(WebServiceMock.class, new WSDisponibilidadInventarioSAPMock());
         
-        
+
         Test.startTest();
         //Se prueba mediante ProductosBalanceoControllerTest y PedidoWizardTest
- 
+ 		crearMonedas();
+        //crearCanalDistrubucion();
         Account account = crearCliente();
         Pedido__c pedido =  crearPedido();
         PedidoItem__c pedidoItem =  crearItem();
@@ -50,22 +49,29 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element inven = new InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element();
         inven.producto = '12';
         inven.disponible = 100;
-  
- 
-        
         PedidoUtils.PedidoWrapper pedidoWrapper =  new PedidoUtils.PedidoWrapper();
+        
+    	PedidoUtils controller = new PedidoUtils('');
+        pedidoWrapper.pedido = pedido;
+        controller.stepForth(true, false, null, null);
+        
+     
+        
+       
         PedidoUtils.AccountWrapper accountWrapper  =new	PedidoUtils.AccountWrapper();
         PedidoUtils.ExternalSources externalSources = new PedidoUtils.ExternalSources();  
         
-        PedidoUtils controller = new PedidoUtils('');
-        controller.parseInventario(bp);
-        controller.parseInventario(inven);
-        PedidoUtils.queryAccountSetProspecto(obtenerLead().Id);
-        controller.queryAccount();
-        controller.queryAccount(account);
-        
+       
+        /* 
+        //controller.parseInventario(bp);
+        //controller.parseInventario(inven);
+        //PedidoUtils.queryAccountSetProspecto(obtenerLead().Id);
+        //controller.queryAccount();
+        //controller.queryAccount(account);
+      
         pedidoWrapper.setPedidoDefaults(account, true);
         pedidoWrapper.pedido =  pedido;
+        pedidoWrapper.tipoSurtido = 1;
 
         
         accountWrapper.account = new Account();
@@ -73,15 +79,16 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         system.debug('ObtenreCuenta=> ' + obtenercuenta());
         accountWrapper.account.Organizacion_de_Ventas__c= 'VIZCATTLE CORPORATIO - 3031';
         accountWrapper.account.Sector__c = 'Comun - 00';
-        //accountWrapper.account.Tipo_Surtido__c = '';
-        
         accountWrapper.sucursal = '1';
         accountWrapper.cliente = 101010;
+        accountWrapper.clienteSAP = '01010';
         accountWrapper.orgVentas = '';   
         accountWrapper.canal = 105;
+        accountWrapper.gpoVendedores = '108';
         accountWrapper.isValidAccountWrapper();
         accountWrapper.oficinaVentasSelectOptionList = new List<SelectOption>();
-
+        accountWrapper.queryOficinaVentas();
+       // accountWrapper.queryAccount(string.valueOf(accountWrapper.account.Id));
         
 		
         List<PedidoItem__c> listaPedidoItem =  new List<PedidoItem__c>();
@@ -94,7 +101,11 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         Map<String,String> productos = null;
         Map<String,List<Gpo_Vendedores_Oficina_de_Ventas__c>>   gruposVendedores = new Map<String,List<Gpo_Vendedores_Oficina_de_Ventas__c>>();
         Map<Id, Product2> product2General = new Map<Id, Product2>(); 
+        
+        
+
 		controller.stepForth(true, false, inventario, productos);
+
 	            
        	externalSources.setPedidoWS(pedidoWrapper,accountWrapper);
         externalSources.setPedidoSAPWS(pedidoWrapper, accountWrapper, false);
@@ -112,11 +123,7 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         externalSources.dateToString(date.today(), 'yyyy-MM-dd');
         ListaPreciosQueryNSCWS.ArrayOfPreciosXCliente clientes;
        //externalSources.getListaPreciosMasivo(clientes);
-        
-        
-        System.debug('ACCOUNT=> '+ accountWrapper.account.Oficina_de_Ventas__c);
-        
-        
+                
         externalSources.OperaEnSap(105);
         externalSources.ValidarCierreCanal('16:00');
         Set<Integer> canales =  new Set<Integer>(); 
@@ -124,47 +131,48 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         canales.add(740);
         externalSources.OficinaVentaOperaSapMasivo(canales);      
         externalSources.setIsClosedPlazas(canales,103);
-        Test.setMock(WebServiceMock.class, new WSDisponibilidadInventarioSAPMock());
+       
         externalSources.setIsClosedPlaza(accountWrapper.cliente, accountWrapper.sucursal, accountWrapper.canal, pedidoWrapper.pedido.OficinaVentas__r!=null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c):null);
         externalSources.setInventarioXProductCodeMap(accountWrapper.cliente, accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c);
         externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc);       
               
-        DisponibilidadInventarioSAP.Informacion_element inventarioDisp = new DisponibilidadInventarioSAP.Informacion_element();
-        inventarioDisp.InventarioActual = '0';
-        inventarioDisp.ComprometidoAlmacenHoy= '0';
-        inventarioDisp.ComprometidoAlmacenManana = '0';
-        inventarioDisp.DisponibilidadAlmacen= '0';
-        inventarioDisp.InventarioConfigurado= '0';
-        inventarioDisp.ComprasConfigManana= '0';
-        inventarioDisp.ResAlm= '0';
-        inventarioDisp.ResConf= '0';
-        inventarioDisp.PermiteApartarSinExistencias= '0'; 
-        // ExternalDataSource.CrearElementoInventario(inventarioDisp);
 
-   
         pedidoWrapper.instanceNewPedidoItemList();
         pedidoWrapper.queryPedidoParameters();
         pedidoWrapper.setPedidoData();
-        PedidoInsertNSCWS.PedidoRespuesta response;
+        PedidoInsertNSCWS.PedidoRespuesta response =  new  PedidoInsertNSCWS.PedidoRespuesta ();
+        response.Canal = '000001';
+        response.Estatus = 1;
+        response.MotivoAutorizacion = '';
+        response.NumeroPedido = '0000110101';
+        response.PedidoRechazado =true;
+        response.RequiereAutorizacion = true;
+        response.TipoAutorizacionRemota = true;        
         pedidoWrapper.assignWebServiceResponseData(response);
-        ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido responsee;
-        pedidoWrapper.assignWebServiceResponseData(responsee);
+        
+ 		ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido responseData = new ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido();
+       	responseData.Estatus = 'B';
+        responseData.FolioPedidoSAP='';
+        responseData.FolioPedidoSalesforce = '';
+        pedidoWrapper.assignWebServiceResponseData(responseData);
+        responseData.Estatus = null;
+        responseData.FolioPedidoSAP='';
+        responseData.FolioPedidoSalesforce = '';
+        pedidoWrapper.assignWebServiceResponseData(responseData);
         pedidoWrapper.requiereAutorizacionPrecio();
         pedidoWrapper.queryPedido(string.valueOf(pedido.Id));
         pedidoWrapper.asignaPedido(pedido);
         pedidoWrapper.queryPedidoItem(String.valueOf(pedidoItem.Id));
+        pedidoWrapper.pedidoItemList = listaPedidoItem; 
         pedidoWrapper.save();
-
-
-        
-       
+*/
        Test.stopTest();
-        
+
     
     }
+    
     public static PedidoItem__c  crearItem(){
-        PedidoItem__c item  = new PedidoItem__c();
-        
+        PedidoItem__c item  = new PedidoItem__c();        
         item.Cajas__c = 10;
         item.Cajas_Balanceadas__c = 10;
         item.Cajas_Conf__c = 10;
@@ -176,10 +184,9 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         item.Precio_Requiere_Aprobacion__c =  true;
         Product2 producto = crearProducto();
         item.Producto__c = producto.Id;
-        item.Producto__r = producto;
-        
+        item.Producto__r = producto;        
         item.Moneda__c ='D';
-        item.Unidad__c = 'P';
+        item.Unidad__c = 'C';
        
         upsert item;
         return item;
@@ -200,8 +207,19 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         Unidades__c unidades =  new Unidades__c();
         unidades.name = 'P';
         unidades.ID_Unidad__c = 1;
-        
+        insert unidades;
+        Unidades__c unidadesCa =  new Unidades__c();
+        unidadesCa.name = 'C';
+        unidadesCa.ID_Unidad__c = 2;
+        insert unidadesCa;
         return unidades;
+    }
+    public static void crearMonedas(){
+        Monedas__c moneda = new Monedas__c();
+        moneda.Name ='MXN';
+        moneda.ID_Moneda__c=1;
+        insert moneda;
+        
     }
     public static Pedido__c crearPedido(){
         Pedido__c pedido = new Pedido__c();
@@ -217,6 +235,11 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         pedido.Forma_Pago__c = '1 - Contado';
         Oficina_de_Venta__c ofi =   obtenerOfiv();
         pedido.OficinaVentas__c = ofi.Id;
+        pedido.Forma_Pago_Original__c = '2 - Crédito';
+        pedido.Factura_No_Fiscal__c = true;
+        pedido.Orden_de_Compra__c = '1092';
+       
+        
         //pedido.OficinaVentas__r = ofi;       
         pedido.Numero_de_Pedido_NSC__c = '';
         
@@ -226,9 +249,9 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
     }
     public static Canal_de_Distribucion_NSC__c crearCanalDistrubucion(){
          Canal_de_Distribucion_NSC__c canalDistribucionNSC = new Canal_de_Distribucion_NSC__c(
-	            Codigo__c = '1000'
+	            Codigo__c = 'SK'//'1000'
 	        );
-	        upsert canalDistribucionNSC;
+	       upsert canalDistribucionNSC;
         return canalDistribucionNSC;
     }
     public static Lead crearLEAD()
@@ -244,7 +267,7 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
       		colonia = c[0];
         
         Lead lead = new Lead(
-            Canal_de_Distribucion_NSC__c = crearCanalDistrubucion().Id,
+            Canal_de_Distribucion_NSC__c = obtenerCanalDistribucion().Id,
             Company = 'TEST',
             FirstName = 'TEST',
             LastName = 'TEST',
@@ -279,13 +302,18 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
     {
          Account cliente = new Account(
             Name = 'TEST',
-            Numero_Cliente_SAP__c = '0',
+            Numero_Cliente_SAP__c = '112120',
             RFC__c = 'XXXXXXXXXXX1',
             Telefono__c = '0000000000',
             Oficina_de_Ventas__c = crearOficinaVenta().Id,
-            Grupo_de_Vendedores__c = crearGrupoVendedores().Id
+            Grupo_de_Vendedores__c = crearGrupoVendedores().Id,
+            Canal_de_Distribucion_NSC__c = crearCanalDistrubucion().Id,
+            Canal_de_Distribucion_NSC__r = obtenerCanalDistribucion()
+          
          );
         cliente.Numero_Cliente_SAP__c = '1000';
+        cliente.Canal_Distribucion__c = '';
+
         
         insert cliente;
         return cliente;
@@ -320,7 +348,7 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
     }
     public static Canal_de_Distribucion_NSC__c obtenerCanalDistribucion()
     {
-        return [SELECT id FROM Canal_de_Distribucion_NSC__c Limit 1];        
+        return [SELECT Id,Codigo__c FROM Canal_de_Distribucion_NSC__c Limit 1];        
     }
     public static Pedido__c obtenerPedido()
     {

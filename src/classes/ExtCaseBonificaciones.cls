@@ -11,6 +11,7 @@ public without sharing class ExtCaseBonificaciones {
     public Boolean DisabledVolumen            {get; set;}
     public Boolean DisabledPrecio             {get; set;}
     public Integer NumeroFactura 			  {get; set;}
+    public boolean DisableGuardar 			  {get; set;}
 /* public ExtCaseBonificaciones(ApexPages.StandardController stdController) {
   		RecordType rt = [SELECT Id,Name FROM RecordType WHERE SobjectType='Case' and name = 'SK-Queja'];
         this.Caso = (Case)stdController.getRecord();
@@ -22,9 +23,10 @@ public without sharing class ExtCaseBonificaciones {
  public ExtCaseBonificaciones(){Caso = new case();}
  public void ConsultarFactura()
 {
+    DisableGuardar =  true;
 	RecordType rt = [SELECT Id,Name FROM RecordType WHERE SobjectType='Case' and name = 'SK-Queja'];
 	system.debug('rt '+ rt);
-	list<case> ListaCasos = [select id,CaseNumber,No_Factura__c from case where recordTypeId =: rt.Id and No_Factura__c =: NumeroFactura];
+	list<case> ListaCasos = [select id,CaseNumber,No_Factura__c,Folio_DocumentoSAP__c from case where recordTypeId =: rt.Id and No_Factura__c =: NumeroFactura];
 	
 	system.debug('ListaCasos '+ ListaCasos +'NumeroFactua=> '+ NumeroFactura);
 	
@@ -65,8 +67,10 @@ public without sharing class ExtCaseBonificaciones {
 		}
 		catch(Exception ex)
 		{
+             DisableGuardar =  false;
 			showPageMessage('ERROR',ex.getMessage());
 			return;
+            
 		}
 	}
 	else
@@ -95,8 +99,11 @@ public void GuardarCasoDevolucion()
 		{
 			if(response.TipoMensaje == 'OK')
 			{
+               	this.caso.Folio_DocumentoSAP__c = String.isBlank(this.caso.Folio_DocumentoSAP__c) ? response.Datos.NumeroMov:','+response.Datos.NumeroMov;
 				update this.caso;
 				showPageMessage('CONFIRM',response.Mensaje);
+                DisableGuardar =  false;
+                factura.ListaProductos =  null;
 			}
 			else
 			{
@@ -138,35 +145,53 @@ public EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req Gen
 
     for(DetalleFactura dt : factura.ListaProductos )
     {
-   		request.Detalle.add(GenerarDetalle(dt,factura));
+        EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element generaDetalla = GenerarDetalle(dt,factura);
+        
+        if(generaDetalla== null)
+        {
+            request = null;
+            breaK;            
+        }else
+        {
+            request.Detalle.add(generaDetalla);
+        }     	
+
     }
     return request;
 }
 public EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element GenerarDetalle(DetalleFactura dt, factura factura)
 {	
+    system.debug('DETALLEFACTURA=>> '+ dt);
 	EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element elementoDetalle = new EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element();
-	if(TipoAplicacion == 'PRECIO')
-	{
-		elementoDetalle.Producto = Integer.Valueof(dt.CodigoProducto);
-    	elementoDetalle.Cantidad = Integer.Valueof(dt.Cantidad);
-    	elementoDetalle.Importe =  Decimal.ValueOf(dt.Volumen) * dt.PrecioReal;
-    	elementoDetalle.UnidadMedida = dt.MedidaUnidad;
-	}
-	else if(TipoAplicacion == 'PESO')
-	{
-		elementoDetalle.Producto = Integer.Valueof(dt.CodigoProducto);
-    	elementoDetalle.Cantidad = Integer.Valueof(dt.Cantidad);
-    	elementoDetalle.Importe =  dt.VolumenReal * dt.precio;
-    	elementoDetalle.UnidadMedida = dt.MedidaUnidad;
-	}
-	else
-	{
-		Decimal importeFactura   = 	 factura.ImporteBonificar / factura.ListaProductos.size();
-		elementoDetalle.Producto =   Integer.Valueof(dt.CodigoProducto.trim());
-    	elementoDetalle.Cantidad =   Integer.Valueof(dt.Cantidad.trim());
-    	elementoDetalle.Importe  =   importeFactura;
-    	elementoDetalle.UnidadMedida = dt.MedidaUnidad;
-	}
+    try
+    {
+        if(TipoAplicacion == 'PRECIO')
+        {
+            elementoDetalle.Producto = Integer.Valueof(dt.CodigoProducto.trim());
+            elementoDetalle.Cantidad = Integer.Valueof(dt.Cantidad.trim());
+            elementoDetalle.Importe =  Decimal.ValueOf(dt.Volumen.trim()) * dt.PrecioReal;
+            elementoDetalle.UnidadMedida = dt.MedidaUnidad;
+        }
+        else if(TipoAplicacion == 'PESO')
+        {
+            elementoDetalle.Producto = Integer.Valueof(dt.CodigoProducto.trim());
+            elementoDetalle.Cantidad = Integer.Valueof(dt.Cantidad.trim());
+            elementoDetalle.Importe =  dt.VolumenReal * dt.precio;
+            elementoDetalle.UnidadMedida = dt.MedidaUnidad;
+        }
+        else
+        {
+            Decimal importeFactura   = 	 factura.ImporteBonificar / factura.ListaProductos.size();
+            elementoDetalle.Producto =   Integer.Valueof(dt.CodigoProducto.trim());
+            elementoDetalle.Cantidad =   Integer.Valueof(dt.Cantidad.trim());
+            elementoDetalle.Importe  =   importeFactura;
+            elementoDetalle.UnidadMedida = dt.MedidaUnidad;
+        }
+    }
+    catch(Exception e){
+       showPageMessage('WARNING','Ocurrio un problema al generar la información para la bonificación. Favor de validar.');
+       elementoDetalle = null; 
+    }
 	return elementoDetalle;
 }
 public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[] Datos)
@@ -289,7 +314,7 @@ public class Factura
 	 public String Abonos 				        {get;set;}
 	 public String Saldo 				        {get;set;}
 	 public String Moneda 				        {get;set;}
-	 public Decimal ImporteBonificar   {get;set;}
+	 public Decimal ImporteBonificar   			{get;set;}
 	 public list<DetalleFactura> ListaProductos {get;set;}
 }
 public class DetalleFactura
