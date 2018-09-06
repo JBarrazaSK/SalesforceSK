@@ -210,7 +210,21 @@ public with sharing class PedidoUtils {
             externalSources.precioListXProductCodeMap = null;
         }
     }
-
+	
+    public static boolean validaProspecto(id idProspecto){
+        boolean respuesta = false;        
+        list<lead> prospecto = new list<lead>();        
+        system.debug('idProspecto=> '+  idProspecto);
+        if(idProspecto!=null)
+        {
+            prospecto =  [SELECT Status FROM lead WHERE id =: idProspecto]; 
+            system.debug('PROSPECTO=> '+  prospecto);
+            if(prospecto != null && prospecto[0].Status == 'Descartado')
+                    respuesta = true;
+        }
+        return respuesta;        
+    }
+    	 
     public ProductoInventarioQueryNSCWS.Inventario parseInventario(BalanceoNSCWS.BalanceoProductos bp){
         ProductoInventarioQueryNSCWS.Inventario inv = new ProductoInventarioQueryNSCWS.Inventario();
         inv.Producto = bp.Producto;
@@ -733,6 +747,7 @@ public static Account queryAccountSetProspecto(String leadID) {
             isClosedPlaza = false;
 			if(OficinaVentaCierre(canalDestino) && OperaEnSap(canalDestino))
 			{
+                system.debug('OFICINAVENTACIERRE=> TRUE');
 				isClosedPlaza = true; 
 			}
 	        else if(!OperaEnSap(canalDestino))
@@ -740,10 +755,11 @@ public static Account queryAccountSetProspecto(String leadID) {
 	        	CierrePlazaPedidoQueryNSCWS.RespuestaOfListOfCierre response = retrieveCierrePlaza(cliente, sucursal, canal, canalDestino);
 	            if(response != null) {
 	                isClosedPlaza = response.Datos.Cierre[0].cerrado == 1;
+                    system.debug('OFICINAVENTACIERRE=> 1');
 	            }
 	        }
             	
-            
+             system.debug('OFICINAVENTACIERRE=>1 '+ isClosedPlaza);
             return isClosedPlaza != null;
         }
         public Boolean OperaEnSap(Integer OficinaVentas)
@@ -976,6 +992,8 @@ public static Account queryAccountSetProspecto(String leadID) {
         		}
         	}
         	system.debug('FORMA DE PAGO=> '+ result.SALES_HEADER_IN.tipoPedido );
+            
+            result.SALES_HEADER_IN.tipoPedido =  pedidoWrapper.pedido.TipoSurtido__c.left(1);
         	
         	//result.SALES_HEADER_IN.DOC_TYPE = 'ZORC';ubtwf
 

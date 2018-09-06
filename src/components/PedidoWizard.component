@@ -13,8 +13,10 @@
 	<script type="text/javascript">
         function validateFechaSurtidoD() 
         {
+        	var IsClosedPlaza =$("#inputHiddenClosePlazas").val();
             var createdDate = "{!pedidoWrapper.pedido.CreatedDate}"
             var fechaCreacion = "{!pedidoWrapper.pedido.Fecha_Registro__c}";
+       		var fechaPedido = "{!pedidoWrapper.pedido.Fecha_Registro__c}";
             var UnidadMedidaAnterior;
             var hasError;
             var fechaSurtido = $("#tableGenerales2 .dateInput input");
@@ -54,6 +56,9 @@
                     hasError = !alert("Los domingos no se surten pedidos.\nSe reasigna el valor por defecto.");
                 }
                 */
+                fechaPedido = new Date(fechaPedido);
+                fechaPedido = new Date(fechaPedido.setDate(fechaPedido.getDate()+ 2));
+                
               	var fechaPedidoSurtido =  new Date(fechaCreacion);
                	createdDate =  new Date(createdDate);
                 var fechaCalculado = new Date(fechaPedidoSurtido.setDate(fechaPedidoSurtido.getDate()+ maxPresaleDays));
@@ -63,8 +68,9 @@
                 console.log(" \nFECHA SELECCIONADA "+ date 
                 			+" \nFECHACALCULADA "+fechaCalculado 
                 			+"\nDEFAULDATE "+defaultDate 
-                			+"\nFECHACREACION "+ createdDate);
-    
+                			+"\nFECHACREACION "+ fechaCreacion
+                           +"\nFECHAPEDIDO "+ fechaPedido +" getDate "+fechaPedido.getDate());
+                console.log("ParseFecha " + parseFecha(date) +" fechaPedido "+ parseFecha(fechaPedido));
                 if(!(Object.prototype.toString.call(date) === "[object Date]") || isNaN(date.getTime())) {
                     hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
                 } //else if(date < defaultDate) {
@@ -76,6 +82,9 @@
                 }
                 else if(date > fechaCalculado) {
                     hasError = !alert("El máximo de días de preventa permitidos es de "+maxPresaleDays+".\nSe reasigna el valor por defecto.");
+                }else if(IsClosedPlaza == 'true' && parseFecha(date) == parseFecha(fechaPedido))
+                {
+                	hasError = !alert("La plaza se encuentra cerrada. Fecha no válida.\nSe reasigna el valor por defecto.");
                 }
             } catch(exception) {
                 hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
@@ -88,6 +97,20 @@
    
         }
         
+   function parseFecha(today)
+    {
+        var dd = today.getDate();       
+        var mm = today.getMonth()+1; 
+        var yyyy = today.getFullYear();
+        if(dd<10) 
+            dd='0'+dd;
+        
+        if(mm<10) 
+            mm='0'+mm;
+        
+        today = mm+'/'+dd+'/'+yyyy;
+     return today;
+   }
     function cuentaDomingo(dat, fecha){
     var inicio = new Date(dat); //Fecha inicial
     var fin = new Date(fecha); //Fecha final
@@ -1384,6 +1407,7 @@ function rowOff(element) {
 			<apex:pageMessage summary="La plaza se encuentra cerrada. Sólo se permite capturar o modificar pedidos de preventa."
 				severity="warning" strength="1"
 				rendered="{!externalSources.IsClosedPlaza && isEditablePedido}" />
+            <input type="hidden" value="{!externalSources.IsClosedPlaza}" id="inputHiddenClosePlazas"/>
 			<apex:pageMessage summary="No se permite modificar o cancelar pedidos con fecha de surtido menor al día de hoy."
 				severity="info" strength="1"
 				rendered="{!!isEditablePedido && !pedidoWrapper.pedido.Pedido_Cancelado__c}" />
@@ -1437,14 +1461,19 @@ function rowOff(element) {
 							<apex:inputField value="{!pedidoWrapper.pedido.Muestra__c}"
 								onkeydown="onInputEnterKeydown(event)" />
 						</div></td>
-					<td class="labelCol">Pago de:</td>
-					<td colspan="2" id="tdFormaPago">						
+					<td class="labelCol">Pago de:  </td>                  
+					<td colspan="2" id="tdFormaPago">	
+                        
+                      <apex:outputField value="{!pedidoWrapper.pedido.Forma_Pago__c}"
+							rendered="{!pedidoWrapper.pedido.Forma_Pago__c != '2 - Crédito'}" />
+                        
 							<apex:variable value="{!IF(isEditablePedido && (accountWrapper.account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3'), true, IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (accountWrapper.account.Parent.RFC__c != null || accountWrapper.account.Parent.RFC_Generico__c != null), false, false))}"
 							var="isEditableFormaPago" /> 
 							<input type="hidden" value="{!pedidoWrapper.pedido.Forma_Pago__c}" id="inputPedidoFormaPago" />
-							<apex:inputField value="{!pedidoWrapper.pedido.Forma_Pago__c}" required="true"
-							onchange="setFacturaNoFiscal()" 
-							 />
+                        <apex:inputField value="{!pedidoWrapper.pedido.Forma_Pago__c}"
+                                         required="true"
+                                         rendered="{!IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3',true,false)}"
+                                         onchange="setFacturaNoFiscal()" />
 					</td>
 					<td class="labelCol">Imprime factura:</td>
 					<td class="width1"><apex:outputField value="{!pedidoWrapper.pedido.Factura__c}" /></td>

@@ -6,24 +6,29 @@
  - Created date: 29/01/2018
  -->
 <apex:page standardController="Case" extensions="ExtCaseDEvNote" title="Formulario de Contacto" docType="html-5.0" standardStylesheets="false">
+        <script type="text/javascript">
+    function soloNumeros(e){
+        var key = window.Event ? e.which : e.keyCode
+        return (key >= 48 && key <= 57)
+    }
+    </script>
 <apex:sectionHeader title="Formulario de Contacto"/>
 <apex:form id="form">
     <apex:pageBlock title="" mode="edit"> 
     <apex:pagemessages />
         <apex:pageBlockButtons >
-            <apex:commandButton action="{!GuardarCasoDevolucion}" value="Guardar"/>
-            <apex:commandButton action="{!cancel}" value="Cancelar"/>
+            <apex:commandButton action="{!GuardarCasoDevolucion}" value="Guardar" rendered="{!isVisbleGuardar}" />
         </apex:pageBlockButtons>
          <apex:pageBlockSection title="Filtros" columns="1">
          <apex:pageBlockSectionItem >
          <apex:outputLabel value="Número Factura"/>
-         <apex:inputField label="Número Factura" value="{!case.No_Factura__c}" required="true" />
+         <apex:inputtext label="Número Factura" value="{!Numfactura}" required="true" onkeypress="return soloNumeros(event)" />
           </apex:pageBlockSectionItem>
           <apex:pageBlockSectionItem >
           <apex:outputLabel value=""/>
              <apex:commandButton action="{!ConsultarFactura}" value="Consultar Factura"/>
           </apex:pageBlockSectionItem>
-            <apex:inputtext label="Número de caso" value="{!NumCaso}" disabled="true"/>
+            <apex:inputtext label="Número de caso" value="{!NumCaso}"  disabled="true"/>
             
         </apex:pageBlockSection> 
         <apex:pageBlockSection title="Datos Generales" columns="2" rendered="{!factura.ListaProductos != null}">
@@ -43,7 +48,7 @@
             <apex:inputField value="{!case.TIF__c}" rendered="{!Show}" required="true"/>
             <apex:inputField value="{!case.Description}"  style="width:300px; height:80px;"/>
         </apex:pageBlockSection>
-        <apex:pageBlockSection id="factura" title="Detalle Factura" columns="1" >
+        <apex:pageBlockSection id="factura" title="Detalle Factura" columns="1" rendered="{!isVisbleGuardar}" >
         <apex:pageBlockTable value="{!factura.ListaProductos}" var="opp">
 				<apex:column headerValue="Codigo"> 
                      <apex:outputText value="{!opp.CodigoProducto}"/>

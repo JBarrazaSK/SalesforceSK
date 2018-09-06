@@ -3,7 +3,7 @@
  * Email: sf@lynx9.com
  * Copyright © LYNX9 2015
  */ 
-public class ctrlReAssignCasesFromQueue {
+public without sharing class ctrlReAssignCasesFromQueue {
     
     public static final String GteRegQ = retrieveQueueId('QUEUE-Gerente-Regional');
     public static final String SupRepQ = retrieveQueueId('QUEUE-Supervisor-De-Reparto');

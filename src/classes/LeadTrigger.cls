@@ -26,12 +26,14 @@ public without sharing class LeadTrigger {
     	 {
     	 	mapEstructuras.put(e.id,e.Estructura_de_venta__c);
     	 }
+		system.debug('LEADNEWLISTA=> ' + leadNewList);
         for(Lead lead : leadNewList) {
-            lead.Nombre_DNM1__c = lead.OwnerId;
+           // lead.Nombre_DNM1__c = lead.OwnerId;
             lead.Estructura_de_venta__c = mapEstructuras.get(lead.Canal_de_Distribucion_NSC__c);
             if(lead.Dias_de_Entrega__c == null){
                 lead.Dias_de_Entrega__c='Lunes; Martes; Miércoles; Jueves; Viernes; Sábado';
             }
+            system.debug('LEAD=> ' + lead);
         }
     }   
    
@@ -257,7 +259,7 @@ Codigo__c = codigoTransporte
         System.debug('LEADS: ' + leadList);
         for (Lead lead: leadList){
             mapProspectos.put(lead.Id_Prospecto__c,lead);
-            ListaProspectosSap.add( CrearProspectoSap(lead,OldMapLead));
+            ListaProspectosSap.add(CrearProspectoSap(lead,OldMapLead));
         }
         
         String error;

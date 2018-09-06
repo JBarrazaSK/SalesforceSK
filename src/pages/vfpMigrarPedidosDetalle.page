@@ -55,7 +55,7 @@ textarea {
           </div>
       </td>
       <td></td>
-         
+          
     </tr>
     <tr>
       <td></td>
@@ -64,25 +64,25 @@ textarea {
       <td></td>
       <td></td>
       <td><apex:commandButton action="{!getPedidos}" onclick="Consultar()" value="Consultar"  style="width: 100px;color: #fff;background-color: #0275d8;border-color: #0275d8;background-image:none;" id="theButton"  /></td>
-      <td></td>
+      <td><apex:commandButton action="{!GuardarPedido}" onclick="Consultar()" value="Guardar"  style="width: 100px;color: #fff;background-color: #0275d8;border-color: #0275d8;background-image:none;" id="theButton2"  /></td>
     </tr>
    </table>
   <br/>
  <apex:pageBlockTable value="{!Listapedidos}" var="opp"> 
  <apex:column headerValue="Pedido NSC" style="width: 35px;">
-    <apex:outputText value="{!opp.Numero_de_Pedido_NSC__c}"/>
+    <apex:outputText value="{!opp.pedido.Numero_de_Pedido_NSC__c}"/>
   </apex:column>
   <apex:column headerValue="Cliente">
-    <apex:outputText value="{!opp.Cuenta__r.name}"/>
+    <apex:outputText value="{!opp.pedido.Cuenta__r.name}"/>
   </apex:column>
   <apex:column headerValue="Oficina de ventas">
-    <apex:outputText value="{!opp.OficinaVentas__r.name}"/>
+    <apex:outputText value="{!opp.pedido.OficinaVentas__r.name}"/>
   </apex:column>
    <apex:column headerValue="Pedido SAP" style="width: 35px;">
-    <apex:outputText value="{!opp.Numero_Pedido_SAP__c}"/>
+    <apex:outputText value="{!opp.Folio}"/>
   </apex:column>
   <apex:column headerValue="Mensaje">
-    <apex:outputText value="{!opp.Numero_Pedido_SAP__c}"/>
+    <apex:outputText value="{!opp.Mensaje}"/>
   </apex:column>
  </apex:pageBlockTable>
  </apex:pageBlock>

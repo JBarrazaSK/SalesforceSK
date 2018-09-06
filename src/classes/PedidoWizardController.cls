@@ -115,6 +115,12 @@ public with sharing class PedidoWizardController {
         Date fechaSurtido = null;
         queryAccount();
         pedidoWrapper.pedido.TipoSurtido__c = tipoSurtido;
+        if(PedidoUtils.validaProspecto(pedidoWrapper.pedido.Prospecto__c))
+        {
+            ApexPages.Message myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,'Favor de revisar, No se pueden realizar pedidos al prospecto con estado depurado.');
+            ApexPages.addMessage(myMsg);
+            return;          
+        }
         if(ApexPages.hasMessages() || !accountWrapper.isValidAccountWrapper()) {
             accountWrapper.oficinaVentasName = oficinaVentasName;
             return;
@@ -129,7 +135,7 @@ public with sharing class PedidoWizardController {
        }
         if(pedidoWrapper.pedido.Id == null) {
             accountWrapper.oficinaVentasName = oficinaVentasName;
-            system.debug('OFICINAVENTA=> '+ accountWrapper.oficinaVentasName);
+            system.debug('OFICINAVENTA=> '+ accountWrapper);
             accountWrapper.ofiventas = accountWrapper.getSAPCode(accountWrapper.oficinaVentasName);
             system.debug('OFICINAVENTAACCOUNT=> '+  accountWrapper.ofiventas);
             pedidoWrapper.pedido.OficinaVentas__r = new Oficina_de_Venta__c(
@@ -166,6 +172,7 @@ public with sharing class PedidoWizardController {
         else{pedidoWrapper.fecDoc = String.valueOf(pedidoWrapper.pedido.Fecha_Registro__c.addDays(Dias)).left(10).replaceAll('-', '');}
 
         externalSources = new PedidoUtils.ExternalSources();
+         system.debug('ACCOUNTWRAPER.ACCOUNT=> '+ accountWrapper.account.Parent.Tipo_de_Credito__c);
         if(
             externalSources.setIsClosedPlaza(accountWrapper.cliente, accountWrapper.sucursal, accountWrapper.canal, pedidoWrapper.pedido.OficinaVentas__r!=null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c):null) &&
             externalSources.setInventarioXProductCodeMap(accountWrapper.cliente, accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c) &&
@@ -208,6 +215,7 @@ public with sharing class PedidoWizardController {
         {    
         	if (responseSAP.DT_SE_ABCPedidos_RespPedido != null)
         	{  
+                system.debug('RESPONSESAP=> '+ responseSAP.DT_SE_ABCPedidos_RespPedido);
         		for(Integer i = 0; i<responseSAP.DT_SE_ABCPedidos_RespPedido.size();i++ )
         		{     			
 					if((responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus != null 
@@ -216,6 +224,7 @@ public with sharing class PedidoWizardController {
 		        				|| (responseSAP.DT_SE_ABCPedidos_RespPedido[i].TipoMensaje == 'W' // Ocurrio un problema de credito en SAP pero el pedido se ha creado,
 		        						&& responseSAP.DT_SE_ABCPedidos_RespPedido[i].Estatus == 'A')) // por lo tanto el salesforce tambien se crea.
 		        	{
+                        system.debug('RESPONSESAP_PEDIDO=> '+ responseSAP.DT_SE_ABCPedidos_RespPedido[i]);
 		        		pedidoWrapper.assignWebServiceResponseData(responseSAP.DT_SE_ABCPedidos_RespPedido[i]);
 		        		        pedidoWrapper.save();	
 		        	}	        	

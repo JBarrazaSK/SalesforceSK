@@ -1,5 +1,6 @@
 public without sharing class ExtCaseBonificaciones {
  	public Case Caso                          {get; set;}
+    public Case CasoConsultado                {get; set;}
     public boolean Show                       {get; set;}
     public string NumCaso                     {get; set;}    
     public Factura factura                    {get; set;} 
@@ -26,7 +27,7 @@ public without sharing class ExtCaseBonificaciones {
     DisableGuardar =  true;
 	RecordType rt = [SELECT Id,Name FROM RecordType WHERE SobjectType='Case' and name = 'SK-Queja'];
 	system.debug('rt '+ rt);
-	list<case> ListaCasos = [select id,CaseNumber,No_Factura__c,Folio_DocumentoSAP__c from case where recordTypeId =: rt.Id and No_Factura__c =: NumeroFactura];
+	list<case> ListaCasos = [select id,CaseNumber,No_Factura__c,Folio_DocumentoSAP__c from case where recordTypeId =: rt.Id and No_Factura__c =: NumeroFactura AND Status='EN PROCESO'];
 	
 	system.debug('ListaCasos '+ ListaCasos +'NumeroFactua=> '+ NumeroFactura);
 	
@@ -82,7 +83,7 @@ public void GuardarCasoDevolucion()
 {
 	
 	EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req request = GenerarRequestDevoluciones('K');
-	
+	system.debug('REQUEST '+ request);
 	if(request == null)
 		return;
 		
@@ -145,15 +146,15 @@ public EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req Gen
 
     for(DetalleFactura dt : factura.ListaProductos )
     {
-        EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element generaDetalla = GenerarDetalle(dt,factura);
+        EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element generaDetalle = GenerarDetalle(dt,factura);
         
-        if(generaDetalla== null)
+        if(generaDetalle== null)
         {
             request = null;
             breaK;            
         }else
         {
-            request.Detalle.add(generaDetalla);
+            request.Detalle.add(generaDetalle);
         }     	
 
     }
@@ -181,11 +182,11 @@ public EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element GenerarDetalle(Deta
         }
         else
         {
-            Decimal importeFactura   = 	 factura.ImporteBonificar / factura.ListaProductos.size();
-            elementoDetalle.Producto =   Integer.Valueof(dt.CodigoProducto.trim());
-            elementoDetalle.Cantidad =   Integer.Valueof(dt.Cantidad.trim());
-            elementoDetalle.Importe  =   importeFactura;
-            elementoDetalle.UnidadMedida = dt.MedidaUnidad;
+            Decimal importeFactura   = 	 	factura.ImporteBonificar / factura.ListaProductos.size();
+            elementoDetalle.Producto =   	Integer.Valueof(dt.CodigoProducto.trim());
+            elementoDetalle.Cantidad =   	Integer.Valueof(dt.Cantidad.trim());
+            elementoDetalle.Importe  =  	importeFactura;
+            elementoDetalle.UnidadMedida = 	dt.MedidaUnidad;
         }
     }
     catch(Exception e){

@@ -137,6 +137,7 @@ global  Boolean EnviarAServicio(Oficina_de_Venta__c oficina,string Estatus)
 					registro.Estado__c = 'Procesado';
 					registro.mensaje__c = '(Cierre de canal) La oficina de ventas no cuenta con  organizacion de ventas ' + oficina.Codigo__c;
 					listaLog.add(registro);
+                    return false;
 		 		}
 		 		request.OrganizacionVentas = oficina.OrganizacionesText__c.right(4);
 		 		request.Sector= '00';
@@ -187,6 +188,7 @@ global  Boolean EnviarAServicio(Oficina_de_Venta__c oficina,string Estatus)
  		}
  		catch(exception ex)
  		{
+            system.debug('CATHC=> ' + ex.getmessage());
  			Bitacora__c registro = new Bitacora__c();
 			registro.Clase__c = 'BatchCierreCanalSap';
 			registro.Estado__c = 'Error';

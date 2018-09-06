@@ -1,10 +1,13 @@
 public class ExtCaseDEvNote {
     private final Case Caso;
     public boolean Show {get;set;}
+    public boolean isVisbleGuardar {get;set;}
     public string NumCaso {get;set;}   
     public Factura factura{get;set;}   
-   
+    public string idCaso {get;set;}   
+    public string Numfactura {get;set;}   
     public ExtCaseDEvNote(){}
+ 
   public ExtCaseDEvNote(ApexPages.StandardController stdController) {
   		RecordType rt = [SELECT Id,Name FROM RecordType WHERE SobjectType='Case' and name = 'SK-Queja'];
         this.Caso = (Case)stdController.getRecord();
@@ -19,14 +22,20 @@ public class ExtCaseDEvNote {
         	this.caso.Status = 'Nuevo';
         	this.Caso.Repartidor__c =  new Contact().Id;
         }
+
     }  
-  
- 
-public void ConsultarFactura()
-{
+    public void limpiar()
+    {
+     
+        // this.caso =  new Case();        
+    } 
+    
+    public void ConsultarFactura()
+    {
+        isVisbleGuardar = true;
 	WsDevolucionesSAP.DevolucionesSapSoap services  = new WsDevolucionesSAP.DevolucionesSapSoap();
 	EntityConsultaFactura_SF_to_ECC.DT_SE_ConsultaFactura_Req requestFactura = new EntityConsultaFactura_SF_to_ECC.DT_SE_ConsultaFactura_Req();
-	requestFactura.NumeroFactura = String.ValueOf(this.caso.No_Factura__c);
+	requestFactura.NumeroFactura = String.ValueOf(Numfactura);
 	EntityConsultaFactura_SF_to_ECC.DT_SE_ConsultaFactura_Resp response = null;
 	try
 	{
@@ -36,7 +45,16 @@ public void ConsultarFactura()
 		{
 			if(response.TipoMensaje == 'S')
 			{
-				LlenarEntidadFactura(response.Datos);				
+				LlenarEntidadFactura(response.Datos);
+				RecordType rt = [SELECT Id,Name FROM RecordType WHERE SobjectType='Case' and name = 'SK-Queja'];
+				system.debug('rt '+ rt);
+				list<case> ListaCasos = [select id,CaseNumber,No_Factura__c,Folio_DocumentoSAP__c,ContactId,AccountId,SK_Categoria__c,Oficina_de_Ventas__c,SK_SubCategoria_Tipo__c,Nivel_Centro__c,SK_Escenario__c,Origen__c,SK_Descripcion_de_Caso_Causa__c,Repartidor__c,TIF__c,Description from case where recordTypeId =: rt.Id and No_Factura__c =: this.caso.No_Factura__c];		
+				if(ListaCasos != null && ListaCasos.size() > 0)
+				{
+					idCaso =  ListaCasos[0].id;
+					NumCaso = ListaCasos[0].CaseNumber;	
+				}
+					
 			}
 			else
 			{
@@ -52,10 +70,12 @@ public void ConsultarFactura()
 	}
 	catch(Exception ex)
 	{
+        isVisbleGuardar = false;
 		showPageMessage('ERROR',ex.getMessage());
 		return;
 	}
 } 
+
 public void GuardarCasoDevolucion()
 {
 	EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req request = GenerarRequestDevoluciones('H');
@@ -73,8 +93,13 @@ public void GuardarCasoDevolucion()
 			if(response.TipoMensaje == 'OK')
 			{
                 this.caso.Folio_DocumentoSAP__c = String.isBlank(this.caso.Folio_DocumentoSAP__c) ? response.Datos.NumeroMov:','+response.Datos.NumeroMov;
-				insert this.caso;
-				NumCaso =  this.caso.CaseNumber;
+                this.caso.id = string.isNotBlank(idCaso)?idCaso:null;
+                this.caso.No_Factura__c = decimal.valueOf(Numfactura);
+				upsert this.caso;
+				list<case> ListaCasos = [select id,CaseNumber,No_Factura__c,Folio_DocumentoSAP__c,ContactId,AccountId,SK_Categoria__c,Oficina_de_Ventas__c,SK_SubCategoria_Tipo__c,Nivel_Centro__c,SK_Escenario__c,Origen__c,SK_Descripcion_de_Caso_Causa__c,Repartidor__c,TIF__c,Description from case where id =: this.caso.id];
+				NumCaso = ListaCasos[0].CaseNumber;
+				isVisbleGuardar = false;
+                 factura.ListaProductos =  null;
 				showPageMessage('CONFIRM',response.Mensaje);
 			}
 			else
@@ -100,7 +125,7 @@ public EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req Gen
 {
 	EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req request = new EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req();
 	EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element elementoDetalle = new EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element();
-	request.NumeroFactura = string.ValueOf(this.caso.No_Factura__c);
+	request.NumeroFactura = string.ValueOf(Numfactura);
 	request.TipoMov = Tipo; //H para devolución / K para Nota de crédito
     request.MotivoPedido = 'Z01';//this.caso.SK_Escenario__c;
     request.Detalle = new list<EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element>();
@@ -111,6 +136,8 @@ public EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req Gen
     	{
     		if(dt.Cantidad_Dev <= Integer.Valueof(dt.Cantidad.trim()))
     		{
+    			
+    			
 	    		elementoDetalle = new EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element();
 	    		elementoDetalle.Producto = Integer.Valueof(dt.CodigoProducto.trim());
 	    		elementoDetalle.Cantidad = dt.Cantidad_Dev;
@@ -123,6 +150,11 @@ public EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req Gen
     			showPageMessage('WARNING','Favor de capturar una cantidad valida');
 				return null;
     		}
+    	}
+    	else{
+  				showPageMessage('WARNING','Favor de capturar una cantidad valida.');
+			    return null; 
+    			
     	}
     }
     return request;
@@ -144,7 +176,7 @@ public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[]
   		system.debug('REPARTIDOR__C ' + contacto);  		
   		if(contacto == null)
 		{
-	  		showPageMessage('WARNING','No se encuentro un contacto asiciado a la cuenta.');
+	  		showPageMessage('WARNING','No se encuentro un contacto asociado a la cuenta.');
 	  		return;
 	  	}
   		
@@ -247,7 +279,7 @@ public class Factura
 	 public String Abonos 				        {get;set;}
 	 public String Saldo 				        {get;set;}
 	 public String Moneda 				        {get;set;}
-	 public Decimal ImporteBonificar   {get;set;}
+	 public Decimal ImporteBonificar            {get;set;}
 	 public list<DetalleFactura> ListaProductos {get;set;}
 }
 public class DetalleFactura
@@ -263,7 +295,7 @@ public class DetalleFactura
 	 public string Volumen          {get;set;}
 	 public Decimal Precio          {get;set;}
 	 public Decimal PrecioReal      {get;set;}
-	 public Decimal VolumenReal          {get;set;}
+	 public Decimal VolumenReal     {get;set;}
 }     
 
 }
