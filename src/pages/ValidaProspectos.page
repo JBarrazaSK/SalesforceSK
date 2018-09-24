@@ -37,7 +37,16 @@
 						<apex:facet name="header">Nombre</apex:facet>
 						<apex:outputLink value="/{!item.lead.Id}">{!item.lead.Name}</apex:outputLink>
 					</apex:column>
+					
 					<apex:column styleClass="centrar" headerClass="centrar">
+						<apex:facet name="header">Pedidos</apex:facet>
+						<apex:outputText value="{!item.pedidos}"/>
+					</apex:column>
+					<apex:column styleClass="centrar" headerClass="centrar">
+						<apex:facet name="header">Visitas</apex:facet>
+						<apex:outputText value="{!item.Visitas}"/>
+					</apex:column>
+					  <apex:column styleClass="centrar" headerClass="centrar">
 						<apex:facet name="header">Pedido/Visita</apex:facet>
 						<apex:image rendered="{!NOT(item.HayVisitasPedidos)}" value="/img/permissions_deny16.gif" width="16" />
 						<apex:image rendered="{!item.HayVisitasPedidos}" value="/img/permissions_confirm16.gif" width="16" />

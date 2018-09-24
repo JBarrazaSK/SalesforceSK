@@ -25,11 +25,11 @@ public with sharing class ValidaProspectos{
         	list<Id> idTarjet = new list<Id>();
         	for(ProcessInstanceStep Proc : [SELECT OriginalActorId,ProcessInstance.TargetObjectId FROM ProcessInstanceStep WHERE OriginalActorId =: UserInfo.getUserId() and ProcessInstance.Status = 'Pending'])
         		idTarjet.add(Proc.ProcessInstance.TargetObjectId);
-
             system.debug('IDTARJET=> ' + idTarjet);*/
-            string cadena = '[SELECT Id,OwnerId,Canal_de_Distribucion_NSC__c,Estructura_de_venta__c,Name,Pais__r.Codigo_Pais__c,Telefono_Contacto__c, Telefono__c,Celular__c,Celular_Contacto__c,(SELECT ID FROM Visitas__r WHERE CreatedDate >= LAST_N_WEEKS:3),(SELECT ID FROM Pedidos__r WHERE CreatedDate >= LAST_N_WEEKS:3) FROM LEAD WHERE CreatedDate <=: '+fecAccount.Aniversario_del_Negocio__c+' AND Status IN (\'Aprobado JV\',\'Aprobado PV\',\'Aprobado NM\') AND IsConverted = false]';
+            DateTime dtFechaHasta = DateTime.newInstance(fecAccount.Aniversario_del_Negocio__c,Time.newInstance(23, 59, 59, 0));
+            string cadena = '[SELECT Id,OwnerId,Canal_de_Distribucion_NSC__c,Estructura_de_venta__c,Name,Pais__r.Codigo_Pais__c,Telefono_Contacto__c, Telefono__c,Celular__c,Celular_Contacto__c,(SELECT ID FROM Visitas__r WHERE CreatedDate >= LAST_N_WEEKS:3),(SELECT ID FROM Pedidos__r WHERE CreatedDate >= LAST_N_WEEKS:3) FROM LEAD WHERE CreatedDate <=: '+ dtFechaHasta +' AND Status IN (\'Aprobado JV\',\'Aprobado PV\',\'Aprobado NM\',\'Aprobado Responsable TSK\') AND Estructura_de_venta__c =: ' + gpoVendedor + ' AND IsConverted = false]';
             system.debug('cadena=> ' + cadena);
-            list<lead> prospSOQL = [SELECT Id,OwnerId,Canal_de_Distribucion_NSC__c,Estructura_de_venta__c,Name,Pais__r.Codigo_Pais__c,Telefono_Contacto__c, Telefono__c,Celular__c,Celular_Contacto__c,(SELECT ID FROM Visitas__r WHERE CreatedDate >= LAST_N_WEEKS:3),(SELECT ID FROM Pedidos__r WHERE CreatedDate >= LAST_N_WEEKS:3) FROM LEAD WHERE CreatedDate <=: fecAccount.Aniversario_del_Negocio__c AND Status IN ('Aprobado JV','Aprobado PV','Aprobado NM') AND IsConverted = false];
+            list<lead> prospSOQL = [SELECT Id,OwnerId,Apellido_Materno__c,Canal_de_Distribucion_NSC__c,ramo__c,Estructura_de_venta__c,Name,Pais__r.Codigo_Pais__c,Telefono_Contacto__c, Telefono__c,Celular__c,Celular_Contacto__c,(SELECT ID,CreatedDate FROM Visitas__r WHERE CreatedDate >= LAST_N_WEEKS:3),(SELECT ID,CreatedDate FROM Pedidos__r WHERE CreatedDate >= LAST_N_WEEKS:3) FROM LEAD WHERE CreatedDate <=: dtFechaHasta AND Status IN ('Aprobado JV','Aprobado PV','Aprobado NM','Aprobado Responsable TSK') AND Estructura_de_venta__c =: gpoVendedor AND IsConverted = false];
             prospectos = new list<ProspectoWRP>();
             system.debug('LEAD=> ' + prospSOQL);
             for(lead l: prospSOQL)
@@ -37,6 +37,12 @@ public with sharing class ValidaProspectos{
                 
             list<Estructura_de_venta__c> estuctura = [SELECT Id,Zona__c FROM Estructura_de_venta__c WHERE ID =: gpoVendedor];
             String ZonaVent = (estuctura.isEmpty())?null:estuctura[0].Zona__c;
+            
+            if(ZonaVent == null)
+            {
+            	ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR,'El grupo de vendedores no esta asignado a una estructura de ventas.'));
+            	return;
+            }
             //busca clientes
             map<String,Id> mpNOMBRES = new map<String,Id>();
             map<String,Id> mpTELEFON = new map<String,Id>();
@@ -141,15 +147,34 @@ public with sharing class ValidaProspectos{
         public boolean NoHayTelefono{get;set;}
         public boolean NoHayNombre{get;set;}
         public String Mensaje{get;set;}
-        
+        public integer pedidos {get;set;}
+        public integer Visitas {get;set;}
         public boolean applyConvert{get;set;}
         
         public boolean getNOHayDatosIncorrectos(){
-            return lead != null && lead.pais__c != null && lead.pais__r.Codigo_Pais__c == '1';
+            return lead != null && lead.Ramo__c != 'OTROS - 28' &&  lead.pais__c != null && lead.pais__r.Codigo_Pais__c == '1';
         }
         
         public boolean getHayVisitasPedidos(){
-            return (lead.Visitas__r != null && lead.Visitas__r.size() > 3) || (lead.Pedidos__r != null && lead.Pedidos__r.size() > 3);
+        	pedidos = (lead != null && lead.Pedidos__r != null)?lead.Pedidos__r.size():0;
+        	Visitas = (lead != null && lead.Visitas__r != null)?lead.Visitas__r.size():0;
+        	if(pedidos < 3 && Visitas < 3)
+        		return false;
+        	//si hay mas de 3 pedidos o visitas se barren y se comprueba que por lo menos 2 no sean de la misma semana
+        	Date FechaSemana = null;
+        	for(Pedido__c P: lead.Pedidos__r){
+        		if(FechaSemana != null && !FechaSemana.isSameDay(P.CreatedDate.date().toStartofWeek()))
+        			return true;
+        		FechaSemana = P.CreatedDate.date().toStartofWeek();
+        	}
+        	FechaSemana = null;
+        	for(Visita__c V: lead.Visitas__r){
+        		if(FechaSemana != null && !FechaSemana.isSameDay(V.CreatedDate.date().toStartofWeek()))
+        			return true;
+        		FechaSemana = V.CreatedDate.date().toStartofWeek();
+        	}
+        	return false;
+            //return (lead.Visitas__r != null && lead.Visitas__r.size() >= 3) || (lead.Pedidos__r != null && lead.Pedidos__r.size() >= 3);
         }
         
         public ProspectoWRP(lead lead){
@@ -159,9 +184,15 @@ public with sharing class ValidaProspectos{
         
         public void validaName(map<String,Id> mapaCuentas){
             NoHayNombre = true;
-            if(lead.Name != null && mapaCuentas.containsKey(lead.Name.toUpperCase().replaceAll('[^A-Za-z0-9]',''))){
+            string nombre;
+            if(lead.Name != null)
+            {
+            	nombre = lead.Name +' '+lead.Apellido_Materno__c;
+            	system.debug('Prospecto: '+ nombre);
+            }
+            if(nombre != null && mapaCuentas.containsKey(nombre.toUpperCase().replaceAll('[^A-Za-z0-9]',''))){
                 NoHayNombre = false;
-                addMensaje('posible nombre repetido <a href="\\' + mapaCuentas.get(lead.Name.toUpperCase().replaceAll('[^A-Za-z0-9]','')) + '" target="_blank">' + lead.Name + '</a>');
+                addMensaje('posible nombre repetido <a href="\\' + mapaCuentas.get(nombre.toUpperCase().replaceAll('[^A-Za-z0-9]','')) + '" target="_blank">' + nombre + '</a>');
             }
         }
         

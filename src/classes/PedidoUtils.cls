@@ -391,6 +391,7 @@ public static Account queryAccountSetProspecto(String leadID) {
         }
 
         public void setPedidoDefaults(Account account, Boolean isClosedPlaza) {
+            system.debug('SETPEDIDODEFAULT=> '+ account);
             pedido.Cuenta__c = account.Id;
             pedido.Factura__c = account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || account.Parent.Tipo_de_Credito__c == 'Crédito - 3' || (account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (account.Parent.RFC__c != null || account.Parent.RFC_Generico__c != null));
             pedido.FechaSurtidoProgramada__c = pedido.FechaSurtidoProgramada__c != null?pedido.FechaSurtidoProgramada__c:getNextWorkingDatetime(isClosedPlaza);
@@ -779,7 +780,7 @@ public static Account queryAccountSetProspecto(String leadID) {
 			 Oficina_de_Venta__c[] ofv =  [select id,Cerrado__c,Opera_en_SAP__c,Reaperturado__c,Nueva_Hora_Cierre_DT__c,Extension__c from Oficina_de_Venta__c where codigo__c =: String.ValueOf(OficinaVentas) and Opera_en_SAP__c = true limit 1];
 			 if (ofv != null && ofv.size() > 0)
 			 {
-			 	if(!ofv[0].Cerrado__c)
+			 	if(!ofv[0].Cerrado__c && !ofv[0].Reaperturado__c)
 			 	{
 			 		valor = ValidarCierreCanal(ofv[0].Nueva_Hora_Cierre_DT__c);
 		 			
@@ -912,7 +913,7 @@ public static Account queryAccountSetProspecto(String leadID) {
             }
             else
             {
-            	system.debug('CLIENTE=> '+ cliente +' SUCURSAL=>' +sucursal);
+            	system.debug('CLIENTE=> '+ cliente +' SUCURSAL=>' +sucursal+' TIPOSUT '+tipoSurtido+' CANAL '+canal +' ORDENCOMPRA '+ordenCompra);
 	            ProductoInventarioQueryNSCWS.RespuestaOfListOfInventario response = retrieveInventario(cliente, sucursal, tipoSurtido, canal, ordenCompra);
 	            if(response != null) {
 	                for(ProductoInventarioQueryNSCWS.Inventario inventario : response.Datos.Inventario) {
@@ -941,14 +942,17 @@ public static Account queryAccountSetProspecto(String leadID) {
             
             if(response != null) {
             	system.debug('RESPONSEPRODUCTCODE=>inventarioXProductCodeMap '+ inventarioXProductCodeMap );
+                system.debug('RESPONSE_DATOS=> ' + response.Datos.Precios);
                 for(ListaPreciosQueryNSCWS.Precios precio : response.Datos.Precios) {
                     if(String.isNotBlank(precio.pve_cveprod) && precio.pve_cveprod.isNumeric()) {
                         String productCode = String.valueOf(Integer.valueOf(precio.pve_cveprod));
                         system.debug('RESPONSEPRODUCTCODE=>1 '+ productCode +' pve_cveprod '+precio.pve_cveprod);
                         if(inventarioXProductCodeMap.containsKey(productCode)) 
                         {
+                            system.debug('LLENA_LISTAPRECIOS');
                             if(!precioListXProductCodeMap.containsKey(productCode)) {
                                 precioListXProductCodeMap.put(productCode, new List<ListaPreciosQueryNSCWS.Precios> { precio });
+                                system.debug('PRECIOLISTAPRODUCTOCODE=> ' + precioListXProductCodeMap);
                             } else if(cluster != '36') {
                                 precioListXProductCodeMap.get(productCode).add(precio);
                             }
@@ -984,12 +988,17 @@ public static Account queryAccountSetProspecto(String leadID) {
         	result.SALES_HEADER_IN.Estatus 					= (!String.isBlank(pedidoWrapper.pedido.Numero_Pedido_SAP__c))?'U':'I';
         	
         	result.SALES_HEADER_IN.TipoPago = ''; 
-        	if(pedidoWrapper.pedido.Forma_Pago_Original__c == '2 - Crédito')
+        	if(pedidoWrapper.pedido.Forma_Pago_Original__c != '2 - Crédito')
         	{
-        		if(pedidoWrapper.pedido.Forma_Pago_Original__c != pedidoWrapper.pedido.Forma_Pago__c)
-        		{
+        		//if(pedidoWrapper.pedido.Forma_Pago_Original__c != pedidoWrapper.pedido.Forma_Pago__c)
+        	    //	{
         			result.SALES_HEADER_IN.TipoPago = 'D000';
-        		}
+        		//}
+        	}
+        	
+        	if(pedidoWrapper.pedido.Forma_Pago__c != '2 - Crédito')
+        	{
+        		result.SALES_HEADER_IN.TipoPago = 'D000';
         	}
         	system.debug('FORMA DE PAGO=> '+ result.SALES_HEADER_IN.tipoPedido );
             
@@ -1052,13 +1061,23 @@ public static Account queryAccountSetProspecto(String leadID) {
         		elem2.TipoCliente 			= 'AG';
         		elem2.Cliente 				= accountWrapper.clienteSAP;
         		result.SALES_PARTNERS.PARTNERS_Linea.add(elem2);
-        		if(pedidoWrapper.pedido.Factura_No_Fiscal__c)
-        		{
-        			elem2 = new ABCPedidos_SF_to_ECC.PARTNERS_Linea_element();
-        			elem2.TipoCliente 			= 'RE';
-	        		elem2.Cliente 				= pedidoWrapper.pedido.Prospecto__c != null ? pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c :accountWrapper.account.Numero_Cliente_SAP__c.right(10);
-	        		result.SALES_PARTNERS.PARTNERS_Linea.add(elem2);
-        		}
+                
+                if(pedidoWrapper.pedido.Prospecto__c != null && !pedidoWrapper.pedido.Factura_No_Fiscal__c )
+                {                   	
+                    elem2 = new ABCPedidos_SF_to_ECC.PARTNERS_Linea_element();
+                    elem2.TipoCliente 			= 'RE';
+                    elem2.Cliente 				= pedidoWrapper.pedido.Prospecto__c != null ? pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c :accountWrapper.account.Numero_Cliente_SAP__c.right(10);
+                    result.SALES_PARTNERS.PARTNERS_Linea.add(elem2);                    
+                }
+               if(pedidoWrapper.pedido.Factura_No_Fiscal__c &&  pedidoWrapper.pedido.Prospecto__c == null)
+                {
+                    elem2 = new ABCPedidos_SF_to_ECC.PARTNERS_Linea_element();
+                    elem2.TipoCliente 			= 'RE';
+                    elem2.Cliente 				= pedidoWrapper.pedido.Prospecto__c != null ? pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c :accountWrapper.account.Numero_Cliente_SAP__c.right(10);
+                    result.SALES_PARTNERS.PARTNERS_Linea.add(elem2);
+                } 
+ 
+
         		system.debug('TIPOPRECIO: ' + pedidoWrapper.pedidoItemList[i].TipoPrecio__c);
         		elem3.TipoPrecio	=  String.valueOf(pedidoWrapper.pedidoItemList[i].TipoPrecio__c);
         		elem3.Precio		=  String.valueOf(pedidoWrapper.pedidoItemList[i].PrecioUnitarioOriginal__c);
@@ -1168,7 +1187,17 @@ public static Account queryAccountSetProspecto(String leadID) {
                     pedidoWS.nPedidoCliente = Integer.valueOf(pedidoWrapper.pedido.Numero_de_Pedido_NSC__c);
             }
             pedidoWS.Original_nPedidoCliente = pedidoWS.nPedidoCliente;
-            pedidoWS.nSucursalCliente = Integer.valueOf(accountWrapper.sucursal);
+            if(pedidoWrapper.pedido.Prospecto__r != null && String.isNotBlank(pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c)) 
+            {
+           	 	pedidoWS.nSucursalCliente  = Integer.valueOf(pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c);
+           	 	pedidoWS.cSucursalSAP = string.valueof(Integer.valueOf(pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c));
+            }
+           	else if (pedidoWrapper.pedido.Prospecto__r == null){
+              	pedidoWS.nSucursalCliente = Integer.valueOf(accountWrapper.sucursal);
+              	pedidoWS.cSucursalSAP = accountWrapper.sucursal;
+            }
+            
+            system.debug('pedidoWS.nSucursalCliente: '+ pedidoWS.nSucursalCliente);
             pedidoWS.nCliente = accountWrapper.cliente;
             pedidoWS.cOrganizacionVenta = accountWrapper.orgVentas;
             pedidoWS.nTipoSurtido = Integer.valueOf(pedidoWrapper.pedido.TipoSurtido__c.left(1));
@@ -1221,7 +1250,7 @@ public static Account queryAccountSetProspecto(String leadID) {
             pedidoWS.bEnviadoEBS = false;
             pedidoWS.bEnviadoCorporativo = false;
             pedidoWS.dFechaActualizacion = now;
-            if(pedidoWrapper.pedido.Prospecto__r != null && String.isNotBlank(pedidoWrapper.pedido.Prospecto__r.Id_Prospecto__c)) pedidoWS.nProspecto = Integer.valueOf(pedidoWrapper.pedido.Prospecto__r.Id_Prospecto__c);
+            if(pedidoWrapper.pedido.Prospecto__r != null && String.isNotBlank(pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c)) pedidoWS.nProspecto = Integer.valueOf(pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c);
             pedidoWS.nAutorizaEspecial = 0;
             pedidoWS.dFechaEntrega = pedidoWrapper.pedido.Fecha_de_Entrega__c;
             if(pedidoWrapper.pedido.Costo_de_Flete__c != null) pedidoWS.nCostoFlete = pedidoWrapper.pedido.Costo_de_Flete__c;
@@ -1229,7 +1258,7 @@ public static Account queryAccountSetProspecto(String leadID) {
             pedidoWS.cAutorizaActualizarPedido = null;
             pedidoWS.bFacturaNoFiscal = pedidoWrapper.pedido.Factura_No_Fiscal__c;
             pedidoWS.nClienteSap = accountWrapper.cliente;
-            pedidoWS.cSucursalSAP = accountWrapper.sucursal;
+           
             pedidoWS.EsTicket = false;
             pedidoWS.IdSalesforce = pedidoWrapper.preId;
             pedidoWS.Detalle = new PedidoInsertNSCWS.ArrayOfPedidoDetalle();
@@ -1519,6 +1548,7 @@ public static Account queryAccountSetProspecto(String leadID) {
         }
 
         public PedidoInsertNSCWS.PedidoRespuesta syncPedido(PedidoUtils.PedidoWrapper pedidoWrapper, PedidoUtils.AccountWrapper accountWrapper) {
+        	 
         	 if(pedidoWrapper.pedido.Prospecto__c != null && pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c == null)
               { 
                   ApexPages.Message myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,'El prospecto no cuenta con numero de destinatario sap');
@@ -1684,7 +1714,7 @@ public static Account queryAccountSetProspecto(String leadID) {
             system.debug('REQUEST=> '+  PedidoUtils.WEB_SERVICE_TIMEOUT);
             for(Integer i=1; i<=PedidoUtils.MAX_CALLOUT_RETRIES; i++) {
                 try {
-                	system.debug('CLIENTE=> '+cliente);
+                	system.debug('CLIENTE=> '+cliente + ' grupo=>  '+gpoVendedores +' ofic=>'+ofiVentas + ' org=>'+ canal);
                     return validateListaPreciosResponse(request.RegresaListaPrecios(cliente, gpoVendedores, ofiVentas, orgVentas, canal, destinatario, cluster, cadena, fecDoc));
                 } catch(Exception e) {
                 	system.debug('CLIENTE=>CATCH '+cliente);

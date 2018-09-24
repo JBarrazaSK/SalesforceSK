@@ -183,7 +183,16 @@ public class CrtlCierreCanalDetalleTest
         ofi.Cerrado__c =  true;
         ofi.OrganizacionesText__c = 'VIZ';
         ofi.Reaperturado__c =  false;
-        ofi.CEDIS__c = 'a0k2C000000Hpyu';
+	     Oficina_de_Venta__c cedis = new Oficina_de_Venta__c();
+	    cedis.Opera_en_SAP__c =  true;
+	    cedis.Descripcion__c = 'Vis';
+	    cedis.Codigo__c = '75';
+        cedis.Cerrado__c =  true;
+        cedis.OrganizacionesText__c = 'VIZ';
+        cedis.Reaperturado__c =  false;
+        insert cedis;
+        
+        ofi.CEDIS__c = cedis.Id;
         insert ofi;
         return ofi;
     }
@@ -196,6 +205,11 @@ public class CrtlCierreCanalDetalleTest
         
         insert motivos;
         return motivos;
+    }
+    
+    public static Oficina_de_Venta__c obteneroficina(){
+        return [select id from Oficina_de_Venta__c limit 1];
+        
     }
    	
 }

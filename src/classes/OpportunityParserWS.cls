@@ -203,9 +203,11 @@ public static Boolean ActualizaPSV {get;set;}
 		WsPedidosMayoreoLegados.DatosPedidoLegado DatosPedidos;
 		map<string, Opportunity> mapPedidos = new map<string, Opportunity>();
 		String obs = '';
+        system.debug('OPORTUNIDAD=> ' +OpportunityLineItems);
 		for(Opportunity pedido : pedidos)
 		{
             list<PedidosOtrosCanalesUtils.Producto> productos =  OpportunityParserUtils.GenerarListaProductos(OpportunityLineItems.get(pedido.Folio_Temporal__c)); 
+            system.debug('PRODUCTOS_TABLA=> '+ productos);
 	        String obsProducto = productos[0].item.Observaciones__c == null ? '' : productos[0].item.Observaciones__c;
             if(pedido.Canal__c=='A'){
 	            obs = 'CMA - ' + obsProducto;
@@ -869,7 +871,7 @@ public static Boolean ActualizaPSV {get;set;}
             listInventario.add( inventario );
         }
 
-        System.debug('INVENTARIO::'+listInventario);
+        //System.debug('INVENTARIO::=>'+listInventario);
 
         PedidosMayoreoWS.ArrayOfPedidoMayoreoInventario inventarioWS = new PedidosMayoreoWS.ArrayOfPedidoMayoreoInventario();
         inventarioWS.PedidoMayoreoInventario = listInventario;
@@ -888,7 +890,7 @@ public static Boolean ActualizaPSV {get;set;}
         p.importeTotXProducto = importeTxP.setScale(4);
         p.importeTotXProductoViz = importeTxPV.setScale(4);
         p.observacionesxProducto = primerItem.Observaciones__c;
-
+		system.debug('PRODUCTO=> ' + p);
         return p;
 
     }

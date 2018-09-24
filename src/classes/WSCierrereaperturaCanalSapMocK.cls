@@ -5,7 +5,7 @@
  * Email:
  * Created date: 22/08/2018
  **/
-@istest
+@isTest
 global class WSCierrereaperturaCanalSapMocK implements WebServiceMock {
 	 
 	 public void doInvoke(Object stub, Object request, Map<String, Object> responseMap, String endpoint, String soapAction, String requestName, String responseNS, String responseName, String responseType) {       
@@ -35,6 +35,16 @@ global class WSCierrereaperturaCanalSapMocK implements WebServiceMock {
 	    	 Cierre.mensaje = 'OK';
 	    	 response.CerrarReabrirCanalResult.DT_SE_CierreReaperturaOficinaVentas_RespCierre.add(cierre);
 			 system.debug('RESPESTAMOCK=> ' + response);
+            responseMap.put('response_x', response);
+        }
+    	}
+     }
+     global class WSCierrereaperturaCanalSapMocKFailNull implements WebServiceMock {
+     	 public void doInvoke(Object stub, Object request, Map<String, Object> responseMap, String endpoint, String soapAction, String requestName, String responseNS, String responseName, String responseType) {
+	        responseMap = responseMap == null? new Map<String, Object>():responseMap;
+	         if( request instanceOf WSCierrereaperturaCanalSap.CerrarReabrirCanal_element ) 
+        {
+        	 WSCierrereaperturaCanalSap.CerrarReabrirCanalResponse_element response = null;
             responseMap.put('response_x', response);
         }
     	}

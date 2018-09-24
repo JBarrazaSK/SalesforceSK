@@ -16,6 +16,7 @@ public with sharing class PedidoWizardController {
     public PedidoUtils.ExternalSources externalSources { get; set; }
     public integer Dias { get; set; }
     public Boolean OperaSap {get;set;}
+    public boolean isFoliosNSCSAP {get;set;}
 
     public PedidoWizardController() {
         Map<String, String> parameterMap = ApexPages.currentPage().getParameters();
@@ -40,6 +41,7 @@ public with sharing class PedidoWizardController {
             } else if(recordIdPrefix == SObjectType.Lead.getKeyPrefix()) {
                 pedidoWrapper.pedido.Prospecto__c = recordId;
                 account cuenta =  PedidoUtils.queryAccountSetProspecto(pedidoWrapper.pedido.Prospecto__c);
+                system.debug('CUENTAPRSPEC=> '+ cuenta + ' PROSPECTO=> '+ pedidoWrapper.pedido.Prospecto__c);
                 if(cuenta != null)
                 {
 	                pedidoWrapper.pedido.Cuenta__c = cuenta.Id;
@@ -115,6 +117,7 @@ public with sharing class PedidoWizardController {
         Date fechaSurtido = null;
         queryAccount();
         pedidoWrapper.pedido.TipoSurtido__c = tipoSurtido;
+        system.debug('IDPROSPESCTO=> '+ pedidoWrapper.pedido.Prospecto__c);
         if(PedidoUtils.validaProspecto(pedidoWrapper.pedido.Prospecto__c))
         {
             ApexPages.Message myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,'Favor de revisar, No se pueden realizar pedidos al prospecto con estado depurado.');
@@ -160,8 +163,8 @@ public with sharing class PedidoWizardController {
                 pedidoWrapper.pedido.OficinaVentas__r = null;
             }*/
         }
-        pedidoWrapper.tipoSurtido = Integer.valueOf(pedidoWrapper.pedido.TipoSurtido__c.left(1));
-        if(pedidoWrapper.pedido.FechaSurtidoProgramada__c != null)
+        pedidoWrapper.tipoSurtido = Integer.valueOf(pedidoWrapper.pedido.TipoSurtido__c.left(1)); 
+        /*if(pedidoWrapper.pedido.FechaSurtidoProgramada__c != null) // se quita validacion no se encuentra en productivo
         {
           if(pedidoWrapper.pedido.FechaSurtidoProgramada__c.format('EEEE') == 'Saturday') pedidoWrapper.pedido.FechaSurtidoProgramada__c = pedidoWrapper.pedido.FechaSurtidoProgramada__c.addDays(1);
           if(pedidoWrapper.pedido.FechaSurtidoProgramada__c.format('EEEE') == 'Sunday') pedidoWrapper.pedido.FechaSurtidoProgramada__c = pedidoWrapper.pedido.FechaSurtidoProgramada__c.addDays(1);
@@ -169,7 +172,9 @@ public with sharing class PedidoWizardController {
               Date dt = date.newinstance(pedidoWrapper.pedido.FechaSurtidoProgramada__c.year(), pedidoWrapper.pedido.FechaSurtidoProgramada__c.month(), pedidoWrapper.pedido.FechaSurtidoProgramada__c.day());
               pedidoWrapper.fecDoc =  String.valueOf(dt).left(10).replaceAll('-', '');
         }
-        else{pedidoWrapper.fecDoc = String.valueOf(pedidoWrapper.pedido.Fecha_Registro__c.addDays(Dias)).left(10).replaceAll('-', '');}
+        else{*/
+        	pedidoWrapper.fecDoc = String.valueOf(pedidoWrapper.pedido.Fecha_Registro__c.addDays(Dias)).left(10).replaceAll('-', '');
+        //}
 
         externalSources = new PedidoUtils.ExternalSources();
          system.debug('ACCOUNTWRAPER.ACCOUNT=> '+ accountWrapper.account.Parent.Tipo_de_Credito__c);
@@ -188,7 +193,15 @@ public with sharing class PedidoWizardController {
         } else {
             externalSources.precioListXProductCodeMap = null;
         }
-
+        system.debug('FOLIOS=> '+ pedidoWrapper.pedido.Numero_de_Pedido_NSC__c+'  '+pedidoWrapper.pedido.Numero_Pedido_SAP__c);
+        if(pedidoWrapper.pedido.Numero_de_Pedido_NSC__c == null && pedidoWrapper.pedido.Numero_Pedido_SAP__c ==  null){
+            isFoliosNSCSAP = false;
+            
+        }else if(pedidoWrapper.pedido.Numero_de_Pedido_NSC__c != null || pedidoWrapper.pedido.Numero_Pedido_SAP__c !=  null)
+        {
+            isFoliosNSCSAP = true;
+        }
+        	
     }
     public void submit() {
     	system.debug('SUBMIT():'); 
@@ -205,6 +218,8 @@ public with sharing class PedidoWizardController {
         else
         	response = externalSources.syncPedido(pedidoWrapper, accountWrapper);                
 
+        SYSTEM.debug('RESPONSESAP=> '+ responseSAP);
+        SYSTEM.debug('RESPONSENSC=> '+ response);
 		//NSC
         if(response != null)
         {
@@ -240,7 +255,11 @@ public with sharing class PedidoWizardController {
 		        	}		        	     
 	            } 	         
         	}
-        } 
+        }
+        if(pedidoWrapper.pedido.Numero_de_Pedido_NSC__c != null || pedidoWrapper.pedido.Numero_Pedido_SAP__c !=  null)
+        {
+            isFoliosNSCSAP = true;
+        }
     }
 
     public Map<String, Product2> product2XproductCodeMap {

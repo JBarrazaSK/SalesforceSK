@@ -1,5 +1,5 @@
 public class ExtCaseDEvNote {
-    private final Case Caso;
+    public Case Caso;
     public boolean Show {get;set;}
     public boolean isVisbleGuardar {get;set;}
     public string NumCaso {get;set;}   
@@ -27,53 +27,57 @@ public class ExtCaseDEvNote {
     public void limpiar()
     {
      
-        // this.caso =  new Case();        
+         //this.caso =  new Case();   
+        factura = new Factura(); 
+        NumCaso = '';
     } 
     
     public void ConsultarFactura()
     {
+        limpiar();
         isVisbleGuardar = true;
-	WsDevolucionesSAP.DevolucionesSapSoap services  = new WsDevolucionesSAP.DevolucionesSapSoap();
-	EntityConsultaFactura_SF_to_ECC.DT_SE_ConsultaFactura_Req requestFactura = new EntityConsultaFactura_SF_to_ECC.DT_SE_ConsultaFactura_Req();
-	requestFactura.NumeroFactura = String.ValueOf(Numfactura);
-	EntityConsultaFactura_SF_to_ECC.DT_SE_ConsultaFactura_Resp response = null;
-	try
-	{
-		response = services.DetalleFactura(requestFactura);
-		system.debug('Response: '+response);
-		if(response != null)
-		{
-			if(response.TipoMensaje == 'S')
-			{
-				LlenarEntidadFactura(response.Datos);
-				RecordType rt = [SELECT Id,Name FROM RecordType WHERE SobjectType='Case' and name = 'SK-Queja'];
-				system.debug('rt '+ rt);
-				list<case> ListaCasos = [select id,CaseNumber,No_Factura__c,Folio_DocumentoSAP__c,ContactId,AccountId,SK_Categoria__c,Oficina_de_Ventas__c,SK_SubCategoria_Tipo__c,Nivel_Centro__c,SK_Escenario__c,Origen__c,SK_Descripcion_de_Caso_Causa__c,Repartidor__c,TIF__c,Description from case where recordTypeId =: rt.Id and No_Factura__c =: this.caso.No_Factura__c];		
-				if(ListaCasos != null && ListaCasos.size() > 0)
-				{
-					idCaso =  ListaCasos[0].id;
-					NumCaso = ListaCasos[0].CaseNumber;	
-				}
-					
-			}
-			else
-			{
-				showPageMessage('WARNING',response.Mensaje);
-				return;
-			}
-		}
-		else
-		{
-			showPageMessage('ERROR','Ocurrio un error al consultar la información');
-			return;
-		}
-	}
-	catch(Exception ex)
-	{
-        isVisbleGuardar = false;
-		showPageMessage('ERROR',ex.getMessage());
-		return;
-	}
+        WsDevolucionesSAP.DevolucionesSapSoap services  = new WsDevolucionesSAP.DevolucionesSapSoap();
+        EntityConsultaFactura_SF_to_ECC.DT_SE_ConsultaFactura_Req requestFactura = new EntityConsultaFactura_SF_to_ECC.DT_SE_ConsultaFactura_Req();
+        requestFactura.NumeroFactura = String.ValueOf(Numfactura);
+        //this.caso.No_Factura__c = decimal.ValueOf(Numfactura);   
+        EntityConsultaFactura_SF_to_ECC.DT_SE_ConsultaFactura_Resp response = null;
+        try
+        {
+            response = services.DetalleFactura(requestFactura);
+            system.debug('Response: '+response);
+            if(response != null)
+            {
+                if(response.TipoMensaje == 'S')
+                {
+                    LlenarEntidadFactura(response.Datos);
+                    RecordType rt = [SELECT Id,Name FROM RecordType WHERE SobjectType='Case' and name = 'SK-Queja'];
+                    system.debug('rt '+ rt);
+                    list<case> ListaCasos = [select id,CaseNumber,No_Factura__c,Folio_DocumentoSAP__c,ContactId,AccountId,SK_Categoria__c,Oficina_de_Ventas__c,SK_SubCategoria_Tipo__c,Nivel_Centro__c,SK_Escenario__c,Origen__c,SK_Descripcion_de_Caso_Causa__c,Repartidor__c,TIF__c,Description from case where recordTypeId =: rt.Id and No_Factura__c =: this.caso.No_Factura__c];		
+                    if(ListaCasos != null && ListaCasos.size() > 0)
+                    {
+                        idCaso =  ListaCasos[0].id;
+                        NumCaso = ListaCasos[0].CaseNumber;	
+                    }
+                    
+                }
+                else
+                {
+                    showPageMessage('WARNING',response.Mensaje);
+                    return;
+                }
+            }
+            else
+            {
+                showPageMessage('ERROR','Ocurrio un error al consultar la información');
+                return;
+            }
+        }
+        catch(Exception ex)
+        {
+            isVisbleGuardar = false;
+            showPageMessage('ERROR',ex.getMessage());
+            return;
+        }
 } 
 
 public void GuardarCasoDevolucion()
@@ -85,14 +89,15 @@ public void GuardarCasoDevolucion()
 	{
 		if(request == null)
 			return;
-			
-		response = services.DevolucionSAP(request);
+		
+       	response = services.DevolucionSAP(request);
 		system.debug('RESPONSE_GUARDARDEVOLUCION=> '+ response);
 		if(response != null)
 		{
 			if(response.TipoMensaje == 'OK')
 			{
-                this.caso.Folio_DocumentoSAP__c = String.isBlank(this.caso.Folio_DocumentoSAP__c) ? response.Datos.NumeroMov:','+response.Datos.NumeroMov;
+                system.debug('CASO=> '+  THIS.CASO);
+                this.caso.Folio_DocumentoSAP__c = String.isBlank(this.caso.Folio_DocumentoSAP__c) ? response.Datos.NumeroMov:this.caso.Folio_DocumentoSAP__c+','+response.Datos.NumeroMov;
                 this.caso.id = string.isNotBlank(idCaso)?idCaso:null;
                 this.caso.No_Factura__c = decimal.valueOf(Numfactura);
 				upsert this.caso;
@@ -116,6 +121,7 @@ public void GuardarCasoDevolucion()
 	}
 	catch(Exception ex)
 	{
+        system.debug('ERROR=> '+ex.getMessage());
 		showPageMessage('ERROR',ex.getMessage());
 		return;
 	}
@@ -129,33 +135,39 @@ public EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Req Gen
 	request.TipoMov = Tipo; //H para devolución / K para Nota de crédito
     request.MotivoPedido = 'Z01';//this.caso.SK_Escenario__c;
     request.Detalle = new list<EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element>();
+    integer contador = 0;
     for(DetalleFactura dt : factura.ListaProductos )
+    {       
+        if(dt.Cantidad_Dev == 0) contador++; 
+    }
+    if(contador == factura.ListaProductos.size())
     {
-        system.debug('DETALLE=>>'+dt.Cantidad_Dev);
-    	if(dt.Cantidad_Dev  != null  && dt.Cantidad_Dev > 0)
-    	{
-    		if(dt.Cantidad_Dev <= Integer.Valueof(dt.Cantidad.trim()))
-    		{
-    			
-    			
-	    		elementoDetalle = new EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element();
-	    		elementoDetalle.Producto = Integer.Valueof(dt.CodigoProducto.trim());
-	    		elementoDetalle.Cantidad = dt.Cantidad_Dev;
-	    		elementoDetalle.Importe =  dt.Importe;
-	    		elementoDetalle.UnidadMedida = dt.MedidaUnidad;
-	    		request.Detalle.add(elementoDetalle);
-    		}
-    		else
-    		{
-    			showPageMessage('WARNING','Favor de capturar una cantidad valida');
-				return null;
-    		}
-    	}
-    	else{
-  				showPageMessage('WARNING','Favor de capturar una cantidad valida.');
-			    return null; 
-    			
-    	}
+        showPageMessage('WARNING','Favor de capturar una cantidad valida.');
+        return null;    
+    }
+    else
+    {
+        for(DetalleFactura dt : factura.ListaProductos )
+        {
+            system.debug('DETALLE=>>'+dt.Cantidad_Dev +' CANTIDAD=> '+dt.Cantidad.trim());
+            if(dt.Cantidad_Dev  != null  && dt.Cantidad_Dev > 0)
+            {
+                if(dt.Cantidad_Dev <= Integer.Valueof(dt.Cantidad.trim()))
+                {
+                    elementoDetalle = new EntityDevolucionNotaCredito_SF_to_ECC.Detalle_element();
+                    elementoDetalle.Producto = Integer.Valueof(dt.CodigoProducto.trim());
+                    elementoDetalle.Cantidad = dt.Cantidad_Dev;
+                    elementoDetalle.Importe =  dt.Importe;
+                    elementoDetalle.UnidadMedida = dt.MedidaUnidad;
+                    request.Detalle.add(elementoDetalle);
+                }
+                else
+                {
+                    showPageMessage('WARNING','Favor de capturar una cantidad valida');
+                    return null;
+                }
+            }
+        }
     }
     return request;
 }
@@ -173,7 +185,7 @@ public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[]
 	  		return;
 	  	}
   		String contacto = TraerContacto(cuentaId).Id;
-  		system.debug('REPARTIDOR__C ' + contacto);  		
+  		system.debug('REPARTIDOR__C ' + cuentaId);  		
   		if(contacto == null)
 		{
 	  		showPageMessage('WARNING','No se encuentro un contacto asociado a la cuenta.');
@@ -206,6 +218,7 @@ public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[]
 		  		df.Importe = dt.Importe;
 		  		factura.ListaProductos.add(df);
   		}
+    
     this.Caso.ContactId = contacto; 
     this.caso.AccountId = cuentaId; 
 }

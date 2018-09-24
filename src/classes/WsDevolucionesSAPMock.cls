@@ -1,3 +1,4 @@
+@isTest
 global class WsDevolucionesSAPMock implements WebServiceMock {    
     public void doInvoke(Object stub, Object request, Map<String, Object> responseMap, String endpoint, String soapAction, String requestName, String responseNS, String responseName, String responseType) {        
            if( request instanceOf WsDevolucionesSAP.DevolucionSAP_element) {
@@ -5,8 +6,11 @@ global class WsDevolucionesSAPMock implements WebServiceMock {
                WsDevolucionesSAP.DevolucionSAPResponse_element Response = new WsDevolucionesSAP.DevolucionSAPResponse_element();  
                Response.DevolucionSAPResult  =  new EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Resp();
                EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Resp respuesta = new EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Resp();    
+               EntityDevolucionNotaCredito_SF_to_ECC.Datos_element Datos = new EntityDevolucionNotaCredito_SF_to_ECC.Datos_element();
                respuesta.TipoMensaje= 'OK';
                respuesta.Mensaje = 'Success';
+               Datos.NumeroMov = '01010101';
+               respuesta.datos = Datos;
                Response.DevolucionSAPResult =  respuesta;
                system.debug('RESPONSEDEVOLUCION=> '+ Response);
        		responseMap.put('response_x', Response);
@@ -19,9 +23,24 @@ global class WsDevolucionesSAPMock implements WebServiceMock {
                WsDevolucionesSAP.DevolucionSAPResponse_element Response = new WsDevolucionesSAP.DevolucionSAPResponse_element();  
                Response.DevolucionSAPResult  =  new EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Resp();
                EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Resp respuesta = new EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Resp();    
-               respuesta.TipoMensaje= 'ERROR';
-               respuesta.Mensaje = 'Success';
+               EntityDevolucionNotaCredito_SF_to_ECC.Datos_element Datos = new EntityDevolucionNotaCredito_SF_to_ECC.Datos_element();
+               respuesta.TipoMensaje= 'E';
+               respuesta.Mensaje = 'ERROR';
+               Datos.NumeroMov = '0';
+               respuesta.datos = Datos;
                Response.DevolucionSAPResult =  respuesta;
+               system.debug('RESPONSEDEVOLUCION=> '+ Response);
+       		responseMap.put('response_x', Response);
+        }
+    } 
+    }
+       global class WsDevolucionesSAPFailNullMock implements WebServiceMock {    
+    public void doInvoke(Object stub, Object request, Map<String, Object> responseMap, String endpoint, String soapAction, String requestName, String responseNS, String responseName, String responseType) {        
+           if( request instanceOf WsDevolucionesSAP.DevolucionSAP_element) {
+               system.debug('ENTRODEVOLUCION=>');
+               WsDevolucionesSAP.DevolucionSAPResponse_element Response = new WsDevolucionesSAP.DevolucionSAPResponse_element();  
+               Response.DevolucionSAPResult  =  new EntityDevolucionNotaCredito_SF_to_ECC.DT_SE_DevolucionNotaCredito_Resp();
+               Response.DevolucionSAPResult =  null;
                system.debug('RESPONSEDEVOLUCION=> '+ Response);
        		responseMap.put('response_x', Response);
         }
@@ -97,4 +116,15 @@ global class WsDevolucionesSAPMock implements WebServiceMock {
             }
         } 
    }
+     global class WsConsultaFacturaSAPFailNullMock implements WebServiceMock {    
+        public void doInvoke(Object stub, Object request, Map<String, Object> responseMap, String endpoint, String soapAction, String requestName, String responseNS, String responseName, String responseType) {        
+               if( request instanceOf WsDevolucionesSAP.DetalleFactura_element) 
+               {                   
+                   WsDevolucionesSAP.DetalleFacturaResponse_element Response = new  WsDevolucionesSAP.DetalleFacturaResponse_element(); 
+                   Response.DetalleFacturaResult = new EntityConsultaFactura_SF_to_ECC.DT_SE_ConsultaFactura_Resp();
+                   Response.DetalleFacturaResult = null; 
+                responseMap.put('response_x', Response);
+            }
+        } 
+     }
 }

@@ -5,7 +5,7 @@ global class BatchLiberarPedidosCredito implements Database.Batchable<sObject>,D
 	list<Bitacora__c> listaLog;
 	global BatchLiberarPedidosCredito() {
 			listaLog = new list<Bitacora__c>();
-	}
+	}   
 
 	global Database.QueryLocator start(Database.BatchableContext BC) {
 		String bloqueado = 'N';
@@ -81,7 +81,7 @@ global class BatchLiberarPedidosCredito implements Database.Batchable<sObject>,D
 									try
 									{
 
-											Response = Services.LiberarPedidoCartera(opp.Folio_Pedido_SDL__c,canal,CtrlPedidosRetenidosCarteraDAO.ObtenerUsuario());
+											//Response = Services.LiberarPedidoCartera(opp.Folio_Pedido_SDL__c,canal,CtrlPedidosRetenidosCarteraDAO.ObtenerUsuario());
 									}
 									catch(Exception e)
 									{

@@ -749,11 +749,13 @@ public with sharing class OpportunityParserController {
 
                     }
                     else{
-                            System.debug('Piezas...');
+                            
                             piezas += Math.round(item.Quantity);
                             cajas = Math.round(item.Quantity / prod.Piezas_por_caja__c);
                             kg = cajas * item.Peso_Promedio__c;
-                            vol = kg;
+                            vol = piezas * item.Peso_Promedio__c; //kg; //peticion de pedro castro que viajen piezas 18/08/2018
+                        	item.Cantidad__c = piezas;
+                         System.debug('Piezas...' + piezas + ' cajas=> '+ cajas+' Kilos=> '+ kg+' volumen '+ vol);
                     }
                 }else if(item.Unidad__c=='L'){
                     if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'PI' )

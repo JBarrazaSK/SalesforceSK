@@ -31,4 +31,34 @@ private class ValidaProspectosTest {
 		wrap.validaName(new map<String,Id>{null=>'0012C00000GgE7r'});
 		wrap.validaTelefonos(new map<String,Id>{'6671000001'=>'0012C00000GgE7r'});
 	}
+    static void crearlead(){
+		lead le = new lead();
+       
+        insert le;
+        
+        
+    }
+    
+    static void pedidos(){
+        Pedido__c pedidos = new Pedido__c();
+        pedidos.Canal__c = '2';
+        insert pedidos;
+        
+    }
+      static void pedidos2(){
+        Pedido__c pedidos = new Pedido__c();
+        pedidos.Canal__c = '2';
+        insert pedidos;
+        
+    }
+      static void pedidos3(){
+        Pedido__c pedidos = new Pedido__c();
+        pedidos.Canal__c = '2';
+        insert pedidos;        
+    }
+    
+    static list<Pedido__c> obtenerPedidos(){
+        return [select id from Pedido__c];        
+    }
+    
 }

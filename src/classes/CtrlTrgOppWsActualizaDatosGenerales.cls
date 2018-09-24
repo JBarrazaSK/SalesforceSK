@@ -818,6 +818,7 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
             p.unidadPeso = utipoPeso;
             p.tipoPeso = String.valueOf(utipoPeso);//UM 0,1,2
 
+            Integer piezas = 0;
             Decimal pallets   = 0;
             Integer cantidad   = 0;
             Integer cajasTt     = 0;
@@ -880,6 +881,7 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
 
                 //CANTIDAD CAJAS
                 Integer cajas = 0;
+                piezas =	integer.valueOf(item.Piezas__c);
                 try{
                     cajas = Integer.valueOf(item.Cajas__c);
                 }catch(Exception e){
@@ -912,8 +914,8 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
                     obs += ( (String.isNotBlank(item.Rango_Surtido__c)?item.Rango_Surtido__c:'') + ' ' + item.Observaciones__c);
                 }
             }
-
-            System.debug('INVENTARIO::'+listInventario);
+			//system.debug('CANTIDADkgs=> '+ cantidadKGS);
+            //System.debug('INVENTARIO::A'+listInventario);
 
             PedidosMayoreoWS.ArrayOfPedidoMayoreoInventario inventarioWS = new PedidosMayoreoWS.ArrayOfPedidoMayoreoInventario();
             inventarioWS.PedidoMayoreoInventario = listInventario;
@@ -932,6 +934,7 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
             p.observacionesxProducto = obs;
             productosWS.add(p);
         }
+        system.debug('PRODUCTOWS=> '+ productosWS);
         return productosWS;
     }
     public static WsActualizaDatosGenerales_NSC_SDL.ActualizarDatosGenerales_element WsActualizarDatosGenerales(Opportunity pedido, string areaResp, list<PedidosOtrosCanalesUtils.producto> productos, integer TipoAutorizado)

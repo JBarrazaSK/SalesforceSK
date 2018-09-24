@@ -1972,6 +1972,7 @@ return bandera;
             
             Decimal pallets   = 0;
             Integer cantidad   = 0;
+            Integer piezas = 0;
             Integer cajasTt     = 0;
             Decimal cantidadKGS = 0;
             Decimal librasPeso   = 0;
@@ -2038,8 +2039,15 @@ return bandera;
                 }catch(Exception e){
                     System.debug('Error en conversion de cajas');
                 }
+                piezas +=	item.Piezas__c != null?integer.valueOf(item.Piezas__c):0;
                 if(cajas==null){cajas = 0;}
-                inventario.cantidadCajas = cajas;
+                if( pedido.Unidad__c == 'P' ) {
+                    inventario.cantidadCajas = piezas;                    
+                }else{
+                	inventario.cantidadCajas = cajas;    
+                }
+            
+                
                 listInventario.add( inventario );
                 
                 //ACUMULADO
@@ -2053,6 +2061,7 @@ return bandera;
                 cajasTt += cajas;
                 pallets += tmpPallets;
                 cantidad += Integer.valueOf(item.Cantidad__c);
+              SYSTEM.debug('CODIGO=> ' +pCodigo +' ITEMKILOS=> '+ item.Kilos__c);
                 cantidadKGS += item.Kilos__c;
                 librasPeso += tmpVolumen;
                 if(item.Importe__c!=null){
@@ -2066,7 +2075,7 @@ return bandera;
                 }
             }
             
-            System.debug('INVENTARIO::'+listInventario);
+            //System.debug('INVENTARIO::'+listInventario);
             
             WsPedidosMayoreoLegados.ArrayOfPedidoMayoreoInventario inventarioWS = new WsPedidosMayoreoLegados.ArrayOfPedidoMayoreoInventario();
             inventarioWS.PedidoMayoreoInventario = listInventario;
@@ -2075,7 +2084,8 @@ return bandera;
             Decimal rPallet = (pallets - Math.abs(pallets));
             p.pallets = Integer.valueOf(pallets+(1-rPallet));
             if( pedido.Unidad__c == 'P' ) {
-                p.piezas = cantidad;
+                //p.piezas = cantidad;
+                p.piezas = piezas;                
             }
             p.cajas = cajasTt;
             p.cantidadKGS = cantidadKGS.setScale(2);
@@ -2086,7 +2096,9 @@ return bandera;
             p.observacionesxProducto = obs;
             productosWS.add(p);
             
+            system.debug('PRODUCTO=> ' + p.producto+' CANTIDAD=> '+ p.cantidadKGS +' PIEZAS=> '+p.piezas + ' CAJAS=>' + p.cajas);
         }
+        	
         return productosWS;
     }
     public static WsPedidosMayoreoLegados.PIPedidoVenta CrearPedidoSap(Opportunity pedido,list<producto> productos,Boolean Cancelado)
@@ -2150,6 +2162,7 @@ return bandera;
         map<Integer,producto> mapProductosConConsecutivo = new map<Integer,producto>();
         productosSap = new  map<string,producto>();
          set<string> setDetalle = new  set<string>();
+           system.debug('CANTIDAD=> '+ productos );
         for(producto p : productos)
         {
             if(p.codigo == '')
@@ -2170,26 +2183,31 @@ return bandera;
 	        {
 	            if(pr.codigo == '')
 	                continue;            
-	            
-	            
-	              
+
 	            if(pr.codigo != p.codigo )
 	                continue;  
 
 	            cantidad +=  pr.item.Cantidad__c;
 	            Volumen +=  pr.item.Volumen__c;
+                
+                system.debug('CANTIDAD=> '+ cantidad +' VOLUMENT=> '+ Volumen);
 	            
-	        }
-
-	        
-	        if(p.item.Unidad__c =='C' || p.item.Unidad__c =='P')
-	            {
-	                item.TARGET_QTY=  String.ValueOf(cantidad);
-	            }
-	            else
-	            {
-	                item.TARGET_QTY=  String.ValueOf(Volumen);
-	            }
+	        }	
+            system.debug('UNIDADMEDIDAD=> '+ p.item.Unidad__c +' PIEZAS=> '+p.item);
+            if(p.item.Unidad__c =='C')// || p.item.Unidad__c =='P')
+            {
+                item.TARGET_QTY=  String.ValueOf(cantidad);
+            }
+            ELSE IF(p.item.Unidad__c =='P')
+            {
+                integer piezas_c =  p.item.piezas__c == null ? integer.valueOf(p.item.Cantidad__c): integer.valueOf(p.item.piezas__c);
+                item.TARGET_QTY=string.valueOf(piezas_c) ;
+                p.item.Cantidad__c =piezas_c;
+            }
+            else
+            {
+                item.TARGET_QTY=  String.ValueOf(Volumen);
+            }
             item.PLANT=       pedido.Canal_Factura__r.Centro__c;
 	        item.TARGET_QU=   mapUnidadMedida.get(p.item.Unidad__c);
 	        item.SALES_UNIT=  mapUnidadMedida.get(p.item.Unidad__c);

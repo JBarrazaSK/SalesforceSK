@@ -4,13 +4,18 @@ public class OpportunityParserUtils {
     {
     	list<PedidosOtrosCanalesUtils.Producto> productos = new list<PedidosOtrosCanalesUtils.Producto>();
     	for(Integer index=0;index<items.size();index++){
-            if( items.get(index).Cantidad__c == null || items.get(index).Cantidad__c == 0 ) {  items.get(index).Cantidad__c = items.get(index).Cajas__c; }
+            system.debug('ITEM=> '+ items.get(index));
+            if( items.get(index).Cantidad__c == null || items.get(index).Cantidad__c == 0 )
+            {  
+               items.get(index).Cantidad__c = items.get(index).Cajas__c;                
+            }
             productos.add(new PedidosOtrosCanalesUtils.Producto(index, items.get(index)));
         }
         return productos;
     }
     public static list<WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados> EnviarPedidoLegados(list<WsPedidosMayoreoLegados.DatosPedidoLegado> listaPedidos,map<string, Opportunity> mapPedidos)
     {
+        system.debug('ENVIANDOPEDIDOSLEGADOS=>>');
     	WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap services = new WsPedidosMayoreoLegados.PedidosMayoreoLegadosSoap();
     	list<WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados> lista = new list<WsPedidosMayoreoLegados.ResultadoPedidoMayoreoLegados>();
     	list<WsActualizaPSVPedidos.PedidosPSV> listaActualizaPedidos = new list<WsActualizaPSVPedidos.PedidosPSV>();
@@ -95,13 +100,9 @@ public class OpportunityParserUtils {
     i++;
      i++;
     i++;
-    i++;
-           i++;
-             i++;
-    i++;
-    i++;
-    i++;
-     i++;
+         i++;
+         i++;
+         i++;
     i++;
     i++;
     i++;
@@ -112,8 +113,12 @@ public class OpportunityParserUtils {
      i++;
     i++;
     i++;
-           i++;
-             i++;
+    i++;
+     i++;
+    i++;
+    i++;
+         i++;
+         i++;
     i++;
     i++;
     i++;

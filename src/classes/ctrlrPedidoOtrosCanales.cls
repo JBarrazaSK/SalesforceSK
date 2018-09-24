@@ -496,6 +496,7 @@ public class ctrlrPedidoOtrosCanales {
           }
           else if(prod.item.Tipo_de_Precio__c == 'PK'  && sfdcProd.Unidad_de_medida_base__c =='PI')
           {
+              system.debug('PIEZAS=> '+ ' CANTIDAD=> '+ prod.item.Cantidad__c + ' PESO_PROMEDIO=> ' +prod.item.Peso_Promedio__c);
               Integer cj = Math.round(prod.item.Cantidad__c/prod.pzasXCaja);
                 if( cj < 1 ) { cj = 1; }
                 prod.item.Cajas__c = cj;
@@ -1897,6 +1898,7 @@ public class ctrlrPedidoOtrosCanales {
 	        if(TieneEntregaSAP)
 	        {
 	        	pedido.reenviar__c = false;
+	        	ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, 'El pedido cuenta con Entrega SAP, no puede cancelarse!')); return;
 	        }
          pedido = PedidosOtrosCanalesUtils.guardarPedidoLegados( pedido, productos, true , new list<ProductosEliminado__c>());
          
@@ -2503,13 +2505,21 @@ public class ctrlrPedidoOtrosCanales {
             if( p.fisico == null ) { continue; }
             if( p.fisico ) { fisico = true; break; }
         }
+        list<CalendarioDiasInhabiles__c> LDiasInhabiles = [select id,DayOfWeek__c,Fecha__c,Oficina_de_Venta__c from CalendarioDiasInhabiles__c 
+        												  where   
+        												   fecha__c >=: Date.today() and fecha__c <=: Date.today().addDays(today.daysBetween( pedido.Fecha_de_Embarque__c ))
+        												 ];
+        
+        integer diasInhabiles = LDiasInhabiles != null? LDiasInhabiles.size() : 0;
+        
+        
         if( pedido.Fecha_de_Embarque__c == null ) {
             pedido.Fecha_de_Embarque__c.addError('¡La fecha de Embarque no puede estar vacía!'); isValid = false;
         }
-        else if( today.daysBetween( pedido.Fecha_de_Embarque__c ) > cs.Dias_Embarque__c && !fisico ) {
+        else if( (today.daysBetween( pedido.Fecha_de_Embarque__c ) - diasInhabiles)> cs.Dias_Embarque__c && !fisico ) {
             pedido.Fecha_de_Embarque__c.addError('¡La fecha de Embarque no puede ser mayor a los días configurados ('+cs.Dias_Embarque__c+')!'); isValid = false;
         }
-        else if( fisico && today.daysBetween( pedido.Fecha_de_Embarque__c ) > cs.Dias_Embarque_Inv_Fisico__c ) {
+        else if( fisico && (today.daysBetween( pedido.Fecha_de_Embarque__c) - diasInhabiles ) > cs.Dias_Embarque_Inv_Fisico__c ) {
             pedido.Fecha_de_Embarque__c.addError('¡El pedido cuenta con inventario físico, la Fecha de Embarque no puede ser mayor a los días configurados('+cs.Dias_Embarque_Inv_Fisico__c+')!'); isValid = false;
         }
         if( pedido.Fecha_de_Entrega__c == null ) {

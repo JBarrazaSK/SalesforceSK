@@ -43,7 +43,6 @@ public with sharing class CtrlArmarEmbarque {
         this.HoraPlanta2 = HoraPlanta2;
         this.Display = 'none';
         ListaOpportunidades = new list<Opportunity>();
-        //Opportunidades = new set<string>();
     }
     public List<SelectOption> getItems() {
         List<SelectOption> options = new List<SelectOption>();
@@ -86,6 +85,7 @@ public with sharing class CtrlArmarEmbarque {
         public String Observaciones {get;set;}
         public Id IdPedido {get;set;}
 		public string pedidoSap {get;set;}
+		public opportunity pedido {get;set;}
         public PedidosWrapper(){
 
         }
@@ -167,6 +167,7 @@ public with sharing class CtrlArmarEmbarque {
 		string pedidoSAP;
        if(Listapedidos != null && !Listapedidos.isEmpty())
        {
+       			
                 emb = new Embarque__c();
                 emb.Almacen__c = AlmacenId;
                 emb.Fecha_Embarque__c = fecha_embarque;
@@ -175,7 +176,7 @@ public with sharing class CtrlArmarEmbarque {
                 system.debug('HoraPlanta --------->' +HoraPlanta );
                 emb.Observaciones__c = Observaciones;
                 emb.Hora_Carga_Planta__c = HoraPlanta;
-
+				string mensaje = '';
 				for(CtrlArmarEmbarque.PedidosWrapper pedido :Listapedidos)
 				{
 					if(Approval.isLocked(pedido.IdPedido) && pedido.Seleccionado)
@@ -184,6 +185,25 @@ public with sharing class CtrlArmarEmbarque {
 						return null;
 					}
 					pedidoSap = pedido.pedidosap;
+					if(pedido.Seleccionado)
+					{
+						PedidosOtrosCanalesUtils.ObtenerActalizaLegados(pedido.pedido);
+						if(PedidosOtrosCanalesUtils.ActualizaSAP && string.isBlank(pedido.pedido.Numero_Pedido_SAP__c))
+						{
+						   mensaje = 'SAP ';
+						}
+						if(PedidosOtrosCanalesUtils.ActualizaNSC && string.isBlank(pedido.pedido.Numero_de_Pedido_NSC__c))
+						{
+							 mensaje = string.isNotBlank(mensaje)? mensaje+'/NSC':'NSC';
+						}
+					
+					}
+					
+				}
+				if(string.isNotBlank(mensaje))
+				{
+					showPageMessage('WARNING','El pedido no cuenta con folio '+mensaje);
+				    return null;
 				}
                 ListaDetalleEmb = CtrlArmarEmbarqueDAO.GenerarDetalle(Listapedidos,canal,emb.Id);
                 set<Decimal> ValidarOrden = new set<Decimal>();

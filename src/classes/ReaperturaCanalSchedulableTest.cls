@@ -1,28 +1,100 @@
-@isTest(SeeAllData = true)
+@isTest
 public class ReaperturaCanalSchedulableTest {
     
         static testmethod void test() {
 
-		PedidoParameters__c parametros = PedidoParameters__c.getInstance();
-        parametros.Limite_Registros__c = 1000;
-        parametros.TipoCambioDolarPeso__c = 17.50;
-		parametros.DiasPreventaMaximos__c = 2;
-        parametros.EndpointPedidos__c='http://salesforce1.apps.sukarne.com:2562/SKServiciosExternos/SalesForce/PedidosMayoreo.asmx';
-        parametros.PrecioUnitarioDecrementoMaximo__c = 10;
-        parametros.PrecioUnitarioIncrementoMaximo__c =20;
-        upsert parametros;
-       Test.startTest();
-       String CRON_EXP = '0 0 0 1 1 ? 2025';  
-       String jobId = System.schedule('testScheduledApex', CRON_EXP, new ReaperturaCanalSchedulable() );
-       
-       CronTrigger ct = [select id, CronExpression, TimesTriggered, NextFireTime from CronTrigger where id = :jobId];
-       
-       System.assertEquals(CRON_EXP, ct.CronExpression); 
-       System.assertEquals(0, ct.TimesTriggered);
-       System.assertEquals('2025-01-01 00:00:00', String.valueOf(ct.NextFireTime));
-       
+		endpoints__c ep = endpoints__c.getInstance();
+        ep.WSCierrereaperturaCanalSap__c = 'http://salesforce1.apps.sukarne.com:2562/SKServiciosExternos/SalesForce/PedidosMayoreo.asmx';
+        insert ep;
+        crearOficina();   
+		Test.startTest();
+		Test.setMock(WebServiceMock.Class,new WSCierrereaperturaCanalSapMocK());
+		 BatchAperturaCanalSap b = new BatchAperturaCanalSap(); 
+        database.executebatch(b);
        Test.stopTest();
 
+    }
+    static testmethod void ExecuteWs() {
+		
+		endpoints__c ep = endpoints__c.getInstance();
+        ep.WSCierrereaperturaCanalSap__c = 'http://salesforce1.apps.sukarne.com:2562/SKServiciosExternos/SalesForce/PedidosMayoreo.asmx';
+        insert ep;
+        crearOficina();   
+		Test.startTest();
+		Test.setMock(WebServiceMock.Class,new WSCierrereaperturaCanalSapMock());
+		 BatchAperturaCanalSap b = new BatchAperturaCanalSap(); 
+        database.executebatch(b);
+       Test.stopTest();
+
+    }
+    static testmethod void ExecuteWsFail() {
+		
+		endpoints__c ep = endpoints__c.getInstance();
+        ep.WSCierrereaperturaCanalSap__c = 'http://salesforce1.apps.sukarne.com:2562/SKServiciosExternos/SalesForce/PedidosMayoreo.asmx';
+        insert ep;
+        crearOficina();   
+		Test.startTest();
+		Test.setMock(WebServiceMock.Class,new WSCierrereaperturaCanalSapMock.WSCierrereaperturaCanalSapMocKFail());
+		 BatchAperturaCanalSap b = new BatchAperturaCanalSap(); 
+        database.executebatch(b);
+       Test.stopTest();
+
+    }
+    static testmethod void ExecuteWsNull(){
+		endpoints__c ep = endpoints__c.getInstance();
+        ep.WSCierrereaperturaCanalSap__c = 'http://salesforce1.apps.sukarne.com:2562/SKServiciosExternos/SalesForce/PedidosMayoreo.asmx';
+        insert ep;
+        crearOficina2(); 
+		Test.startTest();
+		Test.setMock(WebServiceMock.Class,new WSCierrereaperturaCanalSapMock());
+		 BatchAperturaCanalSap b = new BatchAperturaCanalSap(); 
+        database.executebatch(b);
+       Test.stopTest();
+
+    }
+     static testmethod void ExecuteWsNullResponse() {
+		
+		endpoints__c ep = endpoints__c.getInstance();
+        ep.WSCierrereaperturaCanalSap__c = 'http://salesforce1.apps.sukarne.com:2562/SKServiciosExternos/SalesForce/PedidosMayoreo.asmx';
+        insert ep;
+        crearOficina();   
+        
+		Test.startTest();
+		Test.setMock(WebServiceMock.Class,new WSCierrereaperturaCanalSapMocK.WSCierrereaperturaCanalSapMocKFailNull());
+		 BatchAperturaCanalSap b = new BatchAperturaCanalSap(); 
+        database.executebatch(b);
+       Test.stopTest();
+
+    }
+       public static Oficina_de_Venta__c crearOficina(){
+        Oficina_de_Venta__c ofi =  new Oficina_de_Venta__c();
+        ofi.Name = 'Bodega Calexico';
+        ofi.Codigo__c = '740';
+        ofi.Descripcion__c = 'VIZ';
+        ofi.Reaperturado__c = false;
+        ofi.Hora_Cierre_dt__c ='07:00';
+        ofi.Nueva_Hora_Cierre_DT__c='07:00';
+        ofi.OrganizacionesText__c= 'SK01';
+        ofi.Cerrado__c= true;
+        ofi.Opera_en_SAP__c = true;      
+        insert ofi;
+        return ofi;
+        
+    }
+    public static Oficina_de_Venta__c crearOficina2(){
+        Oficina_de_Venta__c ofi =  new Oficina_de_Venta__c();
+        ofi.Name = 'Bodega Calexico';
+        ofi.Codigo__c = '64';
+        ofi.Descripcion__c = 'VIZ';
+        ofi.Reaperturado__c = false;
+        ofi.Hora_Cierre_dt__c ='21:00';
+        ofi.Nueva_Hora_Cierre_DT__c='21:00';
+        ofi.OrganizacionesText__c= null ;
+        ofi.Cerrado__c= true;
+        ofi.Opera_en_SAP__c = true;      
+        insert ofi;
+        return ofi;
+        
     }
 
 }

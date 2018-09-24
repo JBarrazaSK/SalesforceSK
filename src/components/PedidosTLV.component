@@ -11,9 +11,13 @@
 	<!--<apex:includeScript value="{!URLFOR($Resource.PedidoWizard, 'js/PedidoWizard.js')}"/>-->
 	<script type="text/javascript">ieStylesheetUrl = "{!URLFOR($Resource.PedidoWizard, 'css/PedidoWizardIE.css')}"</script>
 	<script type="text/javascript">
-	function validateFechaSurtidoD() {
+        function validateFechaSurtidoD() 
+        {
+        	var IsClosedPlaza =$("#inputHiddenClosePlazas").val();
             var createdDate = "{!pedidoWrapper.pedido.CreatedDate}"
-            
+            var fechaCreacion = "{!pedidoWrapper.pedido.Fecha_Registro__c}";
+       		var fechaPedido = "{!pedidoWrapper.pedido.Fecha_Registro__c}";
+            var UnidadMedidaAnterior;
             var hasError;
             var fechaSurtido = $("#tableGenerales2 .dateInput input");
             var fechaSurtidoDefault = $("#tableGenerales2 .dateFormat a").html();
@@ -23,27 +27,65 @@
                 fecha = fecha.substring(fecha.indexOf("/")+1, fecha.lastIndexOf("/"))+"/"+fecha.substring(0, fecha.indexOf("/"))+"/"+fecha.substring(fecha.lastIndexOf("/")+1, fecha.length);
                 var fechaDefault = fechaSurtidoDefault.substring(fechaSurtidoDefault.indexOf("/")+1, fechaSurtidoDefault.lastIndexOf("/"))+"/"+fechaSurtidoDefault.substring(0, fechaSurtidoDefault.indexOf("/"))+"/"+fechaSurtidoDefault.substring(fechaSurtidoDefault.lastIndexOf("/")+1, fechaSurtidoDefault.length);
                 var date = new Date(fecha);
+                
                 if( createdDate ) {
-                    defaultDate = new Date(createdDate);
-                    //defaultDate.setDate( defaultDate.getDate() - 1 );
+                   // defaultDate = new Date(createdDate);
+                   defaultDate = new Date(fechaDefault);
                     today = new Date(createdDate);
                         today.setDate( today.getDate() + 1 );
                 }
                 else {
                     var nowD = "{!NOW()}";
-                    //alert("{!NOW()}");
                     defaultDate = new Date(fechaDefault);
                     today = new Date(nowD);
                 }
-                today.setDate(today.getDate()-(today.getDay() == 1 ? 2 : 1));
+		/*	    var fechaSurt =  new Date(fechaDefault);
+				var fechacalculado = new Date(defaultDate.setDate(defaultDate.getDate()+ maxPresaleDays));
+				today.setDate(today.getDate()-(today.getDay() == 1 ? 2 : 1));
+				var dias =  cuentaDomingo(date,fechacalculado) == 0 ? maxPresaleDays+2: maxPresaleDays;
+				var fechaDef = new Date(defaultDate.setDate((defaultDate.getDate() - maxPresaleDays) + dias));
+	              
+                
                 if(!(Object.prototype.toString.call(date) === "[object Date]") || isNaN(date.getTime())) {
                     hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
-                } else if(date.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0)) {
-                    hasError = !alert("La fecha de surtido programada no puede ser menor a la fecha de mañana.\nSe reasigna el valor por defecto.");
-                } else if(date > defaultDate.setDate(defaultDate.getDate()+maxPresaleDays)) {
+                } else if(date < fechaSurt) {
+                    hasError = !alert("La fecha de surtido seleccionada no puede ser menor a la fecha de surtido programada.\nSe reasigna el valor por defecto.");
+                }else if(date > fechaDef) {
                     hasError = !alert("El máximo de días de preventa permitidos es de "+maxPresaleDays+".\nSe reasigna el valor por defecto.");
                 } else if(date.getDay() == 0) {
                     hasError = !alert("Los domingos no se surten pedidos.\nSe reasigna el valor por defecto.");
+                }
+                */
+                fechaPedido = new Date(fechaPedido);
+                fechaPedido = new Date(fechaPedido.setDate(fechaPedido.getDate()+ 2));
+                
+              	var fechaPedidoSurtido =  new Date(fechaCreacion);
+               	createdDate =  new Date(createdDate);
+                var fechaCalculado = new Date(fechaPedidoSurtido.setDate(fechaPedidoSurtido.getDate()+ maxPresaleDays));
+                today.setDate(today.getDate()-(today.getDay() == 1 ? 2 : 1));
+               	var dias = cuentaDomingo(date,fechaCalculado) == 0 ? maxPresaleDays + 2: maxPresaleDays;               	
+               	fechaCalculado = new Date(fechaPedidoSurtido.setDate((fechaPedidoSurtido.getDate() - maxPresaleDays) + dias));              	
+                console.log(" \nFECHA SELECCIONADA "+ date 
+                			+" \nFECHACALCULADA "+fechaCalculado 
+                			+"\nDEFAULDATE "+defaultDate 
+                			+"\nFECHACREACION "+ fechaCreacion
+                            +"\nCREACIONFECHA "+ createdDate
+                           +"\nFECHAPEDIDO "+ fechaPedido +" getDate "+fechaPedido.getDate());
+                console.log("ParseFecha " + parseFecha(date) +" fechaPedido "+ parseFecha(fechaPedido));
+                if(!(Object.prototype.toString.call(date) === "[object Date]") || isNaN(date.getTime())) {
+                    hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
+                } //else if(date < defaultDate) {
+                 else if(date < defaultDate) {
+                    //hasError = !alert("La fecha de surtido seleccionada no puede ser menor a la fecha de surtido programada.\nSe reasigna el valor por defecto.");
+                    hasError = !alert("La fecha de surtido seleccionada no puede ser menor a la fecha del pedido.\nSe reasigna el valor por defecto.");
+                }else if(date.getDay() == 0) {
+                    hasError = !alert("Los domingos no se surten pedidos.\nSe reasigna el valor por defecto.");
+                }
+                else if(date > fechaCalculado) {
+                    hasError = !alert("El máximo de días de preventa permitidos es de "+maxPresaleDays+".\nSe reasigna el valor por defecto.");
+                }else if(IsClosedPlaza == 'true' && parseFecha(date) == parseFecha(fechaPedido))
+                {
+                	hasError = !alert("La plaza se encuentra cerrada. Fecha no válida.\nSe reasigna el valor por defecto.");
                 }
             } catch(exception) {
                 hasError = !alert("Fecha no válida.\nSe reasigna el valor por defecto.");
@@ -53,8 +95,8 @@
             }
         	setIsPreventa();
             validateOnPreventa();
+   
         }
-       
         
    function parseFecha(today)
     {
@@ -455,7 +497,7 @@ function setProducto(productCode, index) {
          if (opera == "true") {
             if(productMap[productCode].Unidad_de_medida_base__c.substring(0,1) == ""){
             	row.find("td:nth-child(3) span").html("El producto no contiene Unidad de Medida Base configurado.");
-                return;            	
+            	return;            	
             }
         }
         
@@ -1177,17 +1219,14 @@ function guardar() {
 }
 
 function isValidData() {
+    alert();
     var hasError;
     if(!$(".pageBlockTableProductos tr.dataRow [id$=inputProducto][value!='']").val()) {
-        hasError = !alert("Debe agregar por lo menos un producto.");       
+        hasError = !alert("Debe agregar por lo menos un producto.");
+    }else if($(".pageBlockTableProductos tr.dataRow [id$=inputPrecioUnitarioOtorgado__c][value!='']").val() ==0){
+         hasError = !alert("Debe agregar por lo menos un producto.");
     } else {
         $(".pageBlockTableProductos tr.dataRow").each(function(index) {
-            
-            console.log(" PRECIO UNITARIO => "+ $(this).find("[id$=inputPrecioUnitarioOtorgado__c]").val());
-            if($(this).find("[id$=inputProducto]").val() && $(this).find("[id$=inputPrecioUnitarioOtorgado__c]").val() == 0){
-                  hasError = !alert("El producto capturado no contiene precio configurado. Favor de validar.");   
-                 return !hasError;
-            }            
             if($(this).find("[id$=inputProducto]").val()) {
                 var pedidoItem = getPedidoItem(index+1);
                 if(!validaInventario(pedidoItem.values)) {
@@ -1429,19 +1468,16 @@ function rowOff(element) {
 						</div></td>
 					<td class="labelCol">Pago de:</td>                  
 					<td colspan="2" id="tdFormaPago">	
-                        <apex:variable value="{!IF(isEditablePedido && (accountWrapper.account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3'), true, IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (accountWrapper.account.Parent.RFC__c != null || accountWrapper.account.Parent.RFC_Generico__c != null), false, false))}"
-							var="isEditableFormaPago" />
-					
-                      <apex:outputField value="{!pedidoWrapper.pedido.Forma_Pago__c}" 
-							rendered="{!IF(pedidoWrapper.pedido.Forma_Pago__c == '1 - Contado' && pedidoWrapper.pedido.Factura_No_Fiscal__c == true ,true,
-										IF(pedidoWrapper.pedido.Forma_Pago__c == '1 - Contado' && isFoliosNSCSAP == false,true,
-										IF(pedidoWrapper.pedido.Forma_Pago__c == '1 - Contado' && isFoliosNSCSAP && accountWrapper.account.Parent.Tipo_de_Credito__c != 'Crédito - 3',true,false)))}"/>
                         
-							
+                      <apex:outputField value="{!pedidoWrapper.pedido.Forma_Pago__c}"
+							rendered="{!pedidoWrapper.pedido.Forma_Pago__c != '2 - Crédito'}" />
+                        
+							<apex:variable value="{!IF(isEditablePedido && (accountWrapper.account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3'), true, IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (accountWrapper.account.Parent.RFC__c != null || accountWrapper.account.Parent.RFC_Generico__c != null), false, false))}"
+							var="isEditableFormaPago" /> 
 							<input type="hidden" value="{!pedidoWrapper.pedido.Forma_Pago__c}" id="inputPedidoFormaPago" />
                         <apex:inputField value="{!pedidoWrapper.pedido.Forma_Pago__c}"
                                          required="true"
-                                         rendered="{!IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3' && pedidoWrapper.pedido.Factura_No_Fiscal__c == false,IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (pedidoWrapper.pedido.Numero_de_Pedido_NSC__c == '' || pedidoWrapper.pedido.Numero_Pedido_SAP__c == ''),false,true),false)}"
+                                         rendered="{!IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3' && pedidoWrapper.pedido.Factura_No_Fiscal__c == false,true,false)}"
                                          onchange="setFacturaNoFiscal()" />
 					</td>
 					<td class="labelCol">Imprime factura:</td>
@@ -1799,9 +1835,9 @@ function rowOff(element) {
 								</apex:outputText></td>
 						</tr>
 					</apex:repeat>
-				</table>
+				</table> 
 			</div>
-			<script type="text/javascript">setInventarioMap()</script>
+			<script type="text/javascript">setInventarioMap()</script	>
 			<div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
 				<h3>Observaciones</h3>
 			</div>

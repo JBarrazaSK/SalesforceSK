@@ -18,14 +18,14 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             new ListaPreciosQueryNSCWSTest().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
         } else if(stub instanceOf PedidoInsertNSCWS.PedidosSoap) {
             new PedidoInsertNSCWSTest().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
+        }  else if(stub instanceOf WsABCPeidosSFSAP.EnviarInformacionASap_element) {
+        	new WsABCPeidosSFSAPTest().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
         }
     }
 
     static testMethod void myUnitTest() {
-       
-     
-        /*
-        PedidoParameters__c pedidoParameters = new PedidoParameters__c(
+   
+     PedidoParameters__c pedidoParameters = new PedidoParameters__c(
             DiasPreventaMaximos__c = 4,
             PrecioUnitarioDecrementoMaximo__c = 30,
             PrecioUnitarioIncrementoMaximo__c = 0,
@@ -33,17 +33,14 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             EndpointPedidos__c = 'http://187.216.127.15:2562'
         );
         upsert pedidoParameters;
-        */
-
-			
+	
         Canal_de_Distribucion_NSC__c canalDistribucion =  crearCanalDistrubucion();   
              
         Account cliente =  crearCliente();
         Account sucursal = crearSucursal();
         Lead lead = crearLEAD(); 
-     
-   
-
+        
+       Oficina_de_Venta__c ofiventa = obtenerOfiv();
 
         Product2 product2 = new Product2(
             Codigo_Id_Externo__c = '0',
@@ -52,8 +49,7 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             IsActive = true
         );
         insert product2;
-        Test.setMock(WebServiceMock.class, new PedidoWizardControllerTest());
-
+        Test.setMock(WebServiceMock.class, new PedidoWizardControllerTest()); 
         Test.startTest();
 
         Test.setCurrentPage(new PageReference('/apex/PedidoWizard?CF00N500000030Mvx_lkid='+lead.Id));
@@ -62,21 +58,131 @@ private class PedidoWizardControllerTest implements WebServiceMock {
         controller = new PedidoWizardController();
         Test.setCurrentPage(new PageReference('/apex/PedidoWizard?id='+sucursal.Id));
         controller = new PedidoWizardController();
+        //controller.pedidoWrapper.pedido.Prospecto__c =  lead.Id;
+        controller.stepForth();
+        controller.queryAccount(cliente.Numero_Cliente_SAP__c);
+        controller.pedidoWrapper.pedido.FechaSurtidoProgramada__c  = Datetime.now();
+        controller.stepForth();            
+        controller.pedidoWrapper.pedido.FechaSurtidoProgramada__c  = null;
+        controller.stepForth();
+        controller.product2XproductCodeMap.get('0');
+       	controller.pedidoWrapper.indexToRemove = 0;        
+        controller.pedidoWrapper.removePedidoItem();
+        controller.pedidoWrapper.clearPedidoItemList();
+        controller.pedidoWrapper.addPedidoItem();
+        controller.pedidoWrapper.pedidoItemList[0].Producto__c = product2.Id;
+        
+        controller.submit();        
+        Test.setCurrentPage(new PageReference('/apex/PedidoWizard?id='+controller.pedidoWrapper.pedido.Id));
+        controller = new PedidoWizardController();
+        
+        Test.stopTest();
+
+    }
+       static testMethod void myUnitTestSAP() {
+		
+       Canal_de_Distribucion_NSC__c canalDistribucion =  crearCanalDistrubucion();   
+             
+        Account cliente =  crearClienteSAP();
+        Account sucursal = crearSucursalSAP();
+        Lead lead = crearLEAD(); 
+        
+        Oficina_de_Venta__c ofiventa = obtenerOfiv();
+
+        Product2 product2 = new Product2(
+            Codigo_Id_Externo__c = '0',
+            Name = 'TEST',
+            ProductCode = '0',
+            IsActive = true
+        );
+        insert product2;
+       //Test.setMock(WebServiceMock.class, new WsABCPeidosSFSAPMock());
+        Test.setMock(WebServiceMock.class, new PedidoWizardControllerTest()); 
+        Test.startTest();
+
+        Test.setCurrentPage(new PageReference('/apex/PedidoWizard?CF00N500000030Mvx_lkid='+lead.Id));
+        PedidoWizardController controller = new PedidoWizardController();
+        Test.setCurrentPage(new PageReference('/apex/PedidoWizard?id='+lead.Id));
+        controller = new PedidoWizardController();
+        Test.setCurrentPage(new PageReference('/apex/PedidoWizard?id='+sucursal.Id));
+        controller = new PedidoWizardController();
+        controller.queryAccount(cliente.Numero_Cliente_SAP__c);
+        lead.Status = 'Descartado';
+        system.debug('LEAD=> ' + lead);
+        controller.pedidoWrapper.pedido.Prospecto__c =  lead.Id;
+        controller.stepForth();
         controller.pedidoWrapper.pedido.FechaSurtidoProgramada__c  = Datetime.now();
         controller.stepForth();
         controller.pedidoWrapper.pedido.FechaSurtidoProgramada__c  = null;
         controller.stepForth();
         controller.product2XproductCodeMap.get('0');
-        controller.pedidoWrapper.indexToRemove = 0;
-        controller.pedidoWrapper.removePedidoItem();
+       	controller.pedidoWrapper.indexToRemove = 0;
+        PedidoItem__c pedidoItem =  crearItem();
+        List<PedidoItem__c> listaPedidoItem =  new List<PedidoItem__c>();
+        listaPedidoItem.add(pedidoItem);
+        controller.pedidoWrapper.pedidoItemList = listaPedidoItem; 
+       	controller.pedidoWrapper.removePedidoItem();
         controller.pedidoWrapper.clearPedidoItemList();
-        controller.pedidoWrapper.addPedidoItem();
-        controller.pedidoWrapper.pedidoItemList[0].Producto__c = product2.Id;
-        controller.submit();
+       	controller.pedidoWrapper.addPedidoItem();
+        controller.pedidoWrapper.pedidoItemList[0].Producto__c = product2.Id;     
+         
+       controller.pedidoWrapper.pedido.Fecha_de_Entrega__c =  date.today();
+       controller.pedidoWrapper.pedido.FechaSurtidoProgramada__c  = Datetime.now();
+       system.debug('PEDIDO==> '+  controller.pedidoWrapper.pedido.Fecha_de_Entrega__c);
+        controller.submit();        
+        
         Test.setCurrentPage(new PageReference('/apex/PedidoWizard?id='+controller.pedidoWrapper.pedido.Id));
-        controller = new PedidoWizardController();
-
+        controller = new PedidoWizardController();        
         Test.stopTest();
+  
+    }
+        public static PedidoItem__c  crearItem(){
+        PedidoItem__c item  = new PedidoItem__c();        
+        item.Cajas__c = 10;
+        item.Cajas_Balanceadas__c = 10;
+        item.Cajas_Conf__c = 10;
+        item.Importe__c = 100.00;
+        item.Piezas__c= 1;
+        item.Piezas_Conf__c=10;
+        item.PiezasPedidas__c= 100;
+        item.Pedido__c = crearPedido().Id;
+        item.Precio_Requiere_Aprobacion__c =  true;
+       // Product2 producto = crearProducto();
+       // item.Producto__c = producto.Id;
+       // item.Producto__r = producto;        
+        item.Moneda__c ='D';
+        item.Unidad__c = 'C';
+       
+        upsert item;
+        return item;
+        
+    }
+     public static Pedido__c crearPedido(){
+        Pedido__c pedido = new Pedido__c();
+        pedido.Canal__c = '3';
+        pedido.Correo_electronico_del_cliente__c = 'correo@correo.com';
+        pedido.TipoSurtido__c = '1';
+        pedido.Cuenta__c = '0012C00000FCWsuQAH';
+       	pedido.Fecha_Registro__c = date.today();
+        Lead lead =  obtenerLead();
+        pedido.Prospecto__c =    lead.Id;
+        pedido.Prospecto__r =  lead;
+        pedido.FechaSurtidoProgramada__c =  date.today();
+        pedido.Forma_Pago__c = '1 - Contado';
+        Oficina_de_Venta__c ofi =   obtenerOfiv();
+        pedido.OficinaVentas__c = ofi.Id;
+        pedido.Forma_Pago_Original__c = '2 - Crédito';
+        pedido.Factura_No_Fiscal__c = true;
+        pedido.Orden_de_Compra__c = '1092';
+       	pedido.Fecha_de_Entrega__c = date.today();
+       
+        
+        //pedido.OficinaVentas__r = ofi;       
+        pedido.Numero_de_Pedido_NSC__c = '';
+        
+        upsert pedido;
+        return pedido;
+        
     }
     public static Canal_de_Distribucion_NSC__c crearCanalDistrubucion(){
          Canal_de_Distribucion_NSC__c canalDistribucionNSC = new Canal_de_Distribucion_NSC__c(
@@ -106,6 +212,7 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             Telefono__c = '0000000000',
             Estructura_de_venta__c = crearEstructura().Id,
             Colonia__c = colonia.id );
+        lead.Cliente_de_contado__c = '101010';
         insert lead;
         return lead;
     }
@@ -118,7 +225,31 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             //Canal_Padre__c = 'TEST - 0',
             Estatus_Cliente__c = 'Activo',
             Name = 'TEST',
-            Numero_Cliente_SAP__c = '1',
+            Numero_Cliente_SAP__c = '101010',
+            //Organizacion_de_Ventas__c = 'TEST - 0',
+            ParentId = obtenerCliente().Id,
+            Ramo__c = 'TEST - 0',
+            RecordTypeId = Constants.recordTypeMap.get('Account').get('Sucursal'),
+            RFC__c = 'XXXXXXXXXXX2',
+            Telefono__c = '0000000000',
+            Oficina_de_Ventas__c = obtenerOfiv().Id,
+            Grupo_de_Vendedores__c = obtenerGpoVendedores().Id
+            //,
+            //Territorio__c = 'TEST - 0'
+        );
+        insert sucursal;
+        return sucursal;
+    }
+       public static Account crearSucursalSAP()
+    {
+            Account sucursal = new Account(
+            Cadena__c = 'TEST - 0',
+            Canal_de_Distribucion_NSC__c = obtenerCanalDistribucion().Id,
+            Canal_Distribucion__c = 'Detalle - DT',
+            //Canal_Padre__c = 'TEST - 0',
+            Estatus_Cliente__c = 'Activo',
+            Name = 'TEST',
+            Numero_Cliente_SAP__c = 'SUC - 101010',
             //Organizacion_de_Ventas__c = 'TEST - 0',
             ParentId = obtenerCliente().Id,
             Ramo__c = 'TEST - 0',
@@ -156,9 +287,9 @@ private class PedidoWizardControllerTest implements WebServiceMock {
     Public static Oficina_de_Venta__c crearOficinaVenta2()
     {        
         Oficina_de_Venta__c ofiVta = new Oficina_de_Venta__c();        
-        ofiVta.Codigo__c = '105'; 
+        ofiVta.Codigo__c = '39'; 
         ofiVta.Descripcion__c = 'BNM MANAGUAN' ;
-        //ofiVta.Opera_en_SAP__c = true;
+        ofiVta.Opera_en_SAP__c = true;
         upsert ofiVta;     
         return ofiVta;
     }
@@ -170,6 +301,20 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             RFC__c = 'XXXXXXXXXXX1',
             Telefono__c = '0000000000',
             Oficina_de_Ventas__c = crearOficinaVenta().Id,
+            Grupo_de_Vendedores__c = crearGrupoVendedores().Id
+        );
+        
+        insert cliente;
+        return cliente;
+    }
+    public static Account crearClienteSAP()
+    {
+         Account cliente = new Account(
+            Name = 'TEST',
+            Numero_Cliente_SAP__c = '0',
+            RFC__c = 'XXXXXXXXXXX1',
+            Telefono__c = '0000000000',
+            Oficina_de_Ventas__c = crearOficinaVenta2().Id,
             Grupo_de_Vendedores__c = crearGrupoVendedores().Id
         );
         
@@ -213,5 +358,13 @@ private class PedidoWizardControllerTest implements WebServiceMock {
     Public static Account obtenerCliente()
     {        
         return [SELECT  id FROM Account Limit 1];        
+    }
+      public static Pedido__c obtenerPedido()
+    {
+        return [SELECT id FROM Pedido__c Limit 1];        
+    }
+    public static Lead obtenerLead()
+    {
+        return [SELECT id FROM lead Limit 1];        
     }
 }

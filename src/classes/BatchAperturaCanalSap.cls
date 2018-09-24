@@ -11,7 +11,7 @@ global class BatchAperturaCanalSap implements Database.Batchable<sObject>,Databa
 		query += ' Cerrado__c = true';
 		query += ' and Opera_en_SAP__c = true'; 
 		System.debug('Select :: '+query);
-		
+		 
 	return Database.getQueryLocator(query);	
  }
  global void execute(Database.BatchableContext BC, List<Oficina_de_Venta__c> scope) {
@@ -29,15 +29,7 @@ global class BatchAperturaCanalSap implements Database.Batchable<sObject>,Databa
 			}
 		EnviarAServicio(listaAGuardar,'A');
 	}
-	else
-	{
-		Bitacora__c registro = new Bitacora__c();
-		registro.Clase__c = 'BatchCierreCanalSap';
-		registro.Estado__c = 'Procesado';
-		registro.mensaje__c = '(Cierre de canal) No hay Oficinas de ventas a Abrir';
-		listaLog.add(registro);
-	}
-	
+		
 	if(listaAGuardar.size() > 0)
 	{
 		update listaAGuardar;
@@ -84,16 +76,6 @@ global  Boolean EnviarAServicio(list<Oficina_de_Venta__c> oficinasVentas,string 
         try
  		{
 	        Response = servicio.CerrarReabrirCanal(Listarequest);
-	        if(Response == null)
-	 	    {
-		 		Bitacora__c registro = new Bitacora__c();
-				registro.Clase__c = 'BatchCierreCanalSap';
-				registro.Estado__c = 'Error';
-				registro.mensaje__c = '(Cierre de canal) '+'Error al ejecutar servicios externos';
-				listaLog.add(registro);
-		        return false;
-	 		}
-	 		system.debug('RESPUESTA: -----> '+Response);
 	 		for( CierreReaperturaOficinaVentas.DT_SE_CierreReaperturaOficinaVentas_RespCierre rc : Response.DT_SE_CierreReaperturaOficinaVentas_RespCierre)
 	 		{
 	 			if(rc != null && rc.Tipo !='S')

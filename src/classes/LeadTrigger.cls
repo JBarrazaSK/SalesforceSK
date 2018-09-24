@@ -28,8 +28,11 @@ public without sharing class LeadTrigger {
     	 }
 		system.debug('LEADNEWLISTA=> ' + leadNewList);
         for(Lead lead : leadNewList) {
-           // lead.Nombre_DNM1__c = lead.OwnerId;
-            lead.Estructura_de_venta__c = mapEstructuras.get(lead.Canal_de_Distribucion_NSC__c);
+            lead.Nombre_DNM1__c = lead.OwnerId;
+            if(lead.Pais_Filtro__c == 'MEXICO')
+            {
+           		 lead.Estructura_de_venta__c = mapEstructuras.get(lead.Canal_de_Distribucion_NSC__c);
+            }
             if(lead.Dias_de_Entrega__c == null){
                 lead.Dias_de_Entrega__c='Lunes; Martes; Miércoles; Jueves; Viernes; Sábado';
             }
@@ -256,16 +259,27 @@ Codigo__c = codigoTransporte
         ];
         WSCreacionprospectos.ProspectosSapSoap services = new WSCreacionprospectos.ProspectosSapSoap();
         list<WSCreacionprospectos.DT_SF_CreacionProspectos> ListaProspectosSap = new  list<WSCreacionprospectos.DT_SF_CreacionProspectos>();
+        list<lead> listaProspectosOtrosPaises = new  list<lead>();
         System.debug('LEADS: ' + leadList);
         for (Lead lead: leadList){
-            mapProspectos.put(lead.Id_Prospecto__c,lead);
-            ListaProspectosSap.add(CrearProspectoSap(lead,OldMapLead));
+        	if(lead.Pais__r.Name =='MEXICO')
+        	{	
+        		  mapProspectos.put(lead.Id_Prospecto__c,lead);
+            	 ListaProspectosSap.add(CrearProspectoSap(lead,OldMapLead));
+        	}
+        	else
+        	{
+        		listaProspectosOtrosPaises.add(lead);
+        	}
+          
         }
         
         String error;
         string[] arregloRespuesta;
         string nombre;
         try {
+        	if(listaProspectosOtrosPaises.size() > 0)
+            	CrearProspectoOtrosPaises(listaProspectosOtrosPaises);
             
             for (WSCreacionprospectos.DT_SF_CreacionProspectos lead: ListaProspectosSap){
                 System.debug('envio prospecto: ' + lead);
@@ -336,183 +350,183 @@ Codigo__c = codigoTransporte
             System.debug('error prospecto: '+ e.getLineNumber());
             error = e.getMessage();
         }
-        /*
-SKServiciosExternos__c conf = SKServiciosExternos__c.getOrgDefaults();
 
-ProspectoNSCWS prospectoNSCWS = new ProspectoNSCWS();
-ProspectoNSCWS.ProspectosSoap request = new ProspectoNSCWS.ProspectosSoap();
-request.timeout_x = 120000;
-request.endpoint_x = conf.Prospectos__c;
-
-ProspectoNSCWS.ArrayOfClientesProspectos prospectos = new ProspectoNSCWS.ArrayOfClientesProspectos();
-prospectos.ClientesProspectos = new ProspectoNSCWS.ClientesProspectos[]{};
-
-
-for (Lead lead: leadList){
-ProspectoNSCWS.ClientesProspectos prospecto = new ProspectoNSCWS.ClientesProspectos();
-
-if(String.isNotBlank(lead.Id_Prospecto__c))
-prospecto.IdProspecto = Integer.valueOf(lead.Id_Prospecto__c);
-
-//CAMBIO LYNX9
-if(String.isNotBlank(lead.Estructura_de_venta__r.Grupo_de_clientes_Codigo__c)) prospecto.Plaza = lead.Estructura_de_venta__r.Grupo_de_clientes_Codigo__c;
-if(String.isNotBlank(lead.Estructura_de_venta__r.Grupo_de_vendedores_Codigo__c)) prospecto.Territorio = Integer.valueOf(lead.Estructura_de_venta__r.Grupo_de_vendedores_Codigo__c);
-if(String.isNotBlank(lead.Estructura_de_venta__c)){
-prospecto.Plaza = lead.Estructura_de_venta__r.Grupo_de_clientes_Codigo__c;
-prospecto.Territorio = Integer.valueOf(lead.Estructura_de_venta__r.Grupo_de_vendedores_Codigo__c);
-}
-
-if(String.isNotBlank(lead.Canal_de_Distribucion_NSC__r.Codigo__c))
-prospecto.CanalDistribucion = Integer.valueOf(lead.Canal_de_Distribucion_NSC__r.Codigo__c);
-
-prospecto.TipoPersona = (lead.Tipo_Persona__c == 'Moral') ? true : false;
-prospecto.ApellidoPaterno = lead.Apellido_Paterno_Cuenta__c;
-prospecto.ApellidoMaterno = lead.Apellido_Materno__c;
-prospecto.Nombre = lead.FirstName;
-prospecto.RazonSocial = lead.Company;
-prospecto.ApellidoPatContacto = String.isNotBlank(lead.Apellido_Paterno_Contacto__c) ? lead.Apellido_Paterno_Contacto__c : lead.Apellido_Materno_Cuenta__c;
-prospecto.ApellidoMatContacto = String.isNotBlank(lead.Apellido_Materno_Contacto__c) ? lead.Apellido_Materno_Contacto__c : lead.Apellido_Materno_Cuenta__c;
-prospecto.NombreContacto = String.isNotBlank(lead.Nombres_Contacto__c) ? lead.Nombres_Contacto__c : lead.NombresCuenta__c;
-if(String.isNotBlank(lead.Ramo__c))
-prospecto.Cluster = Integer.valueOf(getCode(lead.Ramo__c));
-prospecto.ProteinaPrincipal = 1;
-prospecto.EstatusClienteProspecto = 1;
-prospecto.Activo = activo;
-prospecto.CorreoElectronico = lead.Correo_Electronico__c;
-prospecto.Telefono = lead.Telefono__c;
-prospecto.TelAdicional = lead.Telefono_Adicional__c;
-prospecto.Celular = lead.Celular__c;
-if(String.isNotBlank(lead.Pais__r.Codigo_Pais__c)) prospecto.IdPais = Integer.valueOf(lead.Pais__r.Codigo_Pais__c);
-if(String.isNotBlank(lead.Estado__r.Codigo_Estado__c)) prospecto.IdEstado = Integer.valueOf(lead.Estado__r.Codigo_Estado__c);
-if(String.isNotBlank(lead.Municipio_Delegacion__r.Codigo_Municipio_Delegacion__c)) prospecto.IdMunicipio = Integer.valueOf(lead.Municipio_Delegacion__r.Codigo_Municipio_Delegacion__c);
-if(String.isNotBlank(lead.Localidad_Ciudad__r.Codigo_Localidad_Ciudad__c)) prospecto.IdCiudad = Integer.valueOf(lead.Localidad_Ciudad__r.Codigo_Localidad_Ciudad__c);
-if(String.isNotBlank(lead.Colonia__r.Codigo_Colonia__c)) prospecto.IdColonia = Integer.valueOf(lead.Colonia__r.Codigo_Colonia__c);
-prospecto.CodigoPostal = lead.Codigo_Postal__c;
-prospecto.VialidadCalle = 1;
-prospecto.Calle = lead.Calle__c;
-prospecto.VialidadEntreCalle1 = 1;
-prospecto.EntreCalle1 = lead.Entre_Calle__c;
-prospecto.VialidadEntreCalle2 = 1;
-prospecto.EntreCalle2 = lead.Referencias_Cercanas__c;
-prospecto.NumExterior = lead.No_Exterior__c;
-prospecto.NumInterior = lead.No_Interior__c;
-prospecto.UsuarioRegistro = lead.CreatedBy.Alias;
-prospecto.FechaRegistro = DateTime.newInstanceGMT(lead.CreatedDate.date(),lead.CreatedDate.time());
-prospecto.MaquinaRegistro = 'host_salesforce';
-
-Datetime horaLlamada = getDateWithHours(lead.Hora_Preferida_Llamada_Contacto__c);
-String diasEntrega = '';
-if(String.isNotBlank(lead.Dias_de_Entrega__c)) {
-List<String> diasEntregaList = lead.Dias_de_Entrega__c.split(';',-2);
-
-for (String dia : diasEntregaList){
-if(dia.equals('Lunes'))
-diasEntrega = diasEntrega + 1;
-if(dia.equals('Martes'))
-diasEntrega = diasEntrega + 2;
-if(dia.equals('Miércoles'))
-diasEntrega = diasEntrega + 3;
-if(dia.equals('Jueves'))
-diasEntrega = diasEntrega + 4;
-if(dia.equals('Viernes'))
-diasEntrega = diasEntrega + 5;
-if(dia.equals('Sábado'))
-diasEntrega = diasEntrega + 6;
-}
-}
-
-Datetime horaInicio;
-Datetime horaFin;
-if(String.isNotBlank(lead.Hora_Ideal_Entrega__c)) {
-List<String> horaIdeal = lead.Hora_Ideal_Entrega__c.split(' A ', -2);
-horaInicio = getDateWithHours(horaIdeal[0]);
-horaFin = getDateWithHours(horaIdeal[1]);
-} else {
-horaInicio = getDateWithHours(null);
-horaFin = getDateWithHours(null);
-}
-
-prospecto.Adicional = new ProspectoNSCWS.AdicionalesProspectos();
-if(String.isNotBlank(lead.Id_Prospecto__c)) prospecto.Adicional.IdProspectos = Integer.ValueOf(lead.Id_Prospecto__c);
-prospecto.Adicional.PotencialRes = lead.Potencial_Res_Kg__c;
-prospecto.Adicional.PotencialCerdo = lead.Potencial_Cerdo_Kg__c;
-prospecto.Adicional.PotencialPollo = lead.Potencial_Pollo_Kg__c;
-prospecto.Adicional.PotencialPescado = lead.Potencial_Pescado_Kg__c;
-prospecto.Adicional.AreaResponsabilidad = 2;
-//prospecto.Adicional.Sociedad = '300';
-//Cambio LYNX9
-prospecto.Adicional.Sociedad = lead.Estructura_de_venta__r.Sociedad_Codigo__c;
-prospecto.Adicional.Vendedor = String.isNotBlank(lead.CreatedBy.Id_Externo_Usuario__c) ? Integer.ValueOf(lead.CreatedBy.Id_Externo_Usuario__c) : 0;
-prospecto.Adicional.TipoCliente = 2;
-prospecto.Adicional.OrdenEntrega = 0;
-prospecto.Adicional.HoraLLamada = horaLlamada;
-prospecto.Adicional.HoraInicio = horaInicio;
-prospecto.Adicional.HoraFin = horaFin;
-prospecto.Adicional.Latitud = ((lead.Geolocalizacion__Latitude__s == NULL)? 0 : lead.Geolocalizacion__Latitude__s);
-prospecto.Adicional.Longitud = ((lead.Geolocalizacion__Longitude__s== NULL)? 0 : lead.Geolocalizacion__Longitude__s);
-prospecto.Adicional.ProgramaVisita = diasEntrega;
-System.debug('PROSPECTO: ' + prospecto);
-prospectos.ClientesProspectos.add(prospecto);
-
-}
-
-String error;
-try {
-//System.debug('envio prospecto: ' + prospecto);
-ProspectoNSCWS.RespuestaOfClientesProspectos response = request.RegistrarProspectosMasivos(prospectos);
-System.debug('respuesta prospecto: ' + response);
-if  (response.Tipo != 'TerminadoConExito')
-error = response.Mensaje;
-} catch(Exception e) {
-System.debug('error prospecto: ' + e);
-error = e.getMessage();
-}
-
-if(!String.isBlank(error)) {
-error = 'Ha ocurrido un error el proceso de envío a NSC de los prospectos "'+leadIds+'" con id: \n\n'+error+'\n\nComuníquese con el administrador del sistema para solucionar el problema.';
-if (!Test.isRunningTest())
-{
-Messaging.reserveSingleEmailCapacity(2);
-Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
-
-String[] bccAddresses = conf.Notificacion_errores__c.split(',');
-for(User user : [
-SELECT Email
-FROM User
-WHERE Profile.Name = 'Administrador del sistema'
-AND Username LIKE '%admin%'
-]) {
-bccAddresses.add(user.Email);
-}
-System.debug('UserEmail: ' + UserInfo.getUserEmail());
-mail.setToAddresses(new String[] { UserInfo.getUserEmail() });
-mail.setBccAddresses(bccAddresses);
-mail.setUseSignature(false);
-mail.setSenderDisplayName('SuKarne - Salesforce CRM - Envío automático de correos');
-mail.setSubject('Error al envíar los datos de un prospecto a NSC');
-mail.setPlainTextBody(error);
-mail.setHtmlBody('<p>'+error.replaceAll('\n', '<br/>')+'</p>');
-Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
-}
-}
-*/
     }
     
-    /* public static String getCode(String picklistValue) {
+ public static String getCode(String picklistValue) {
 String val = String.isNotBlank(picklistValue) ? (picklistValue.contains(' - ') ? picklistValue.substring(picklistValue.indexOf(' - ')+3, picklistValue.length()) : picklistValue) : null;
 return val;
-}*/
+}
     
     private static String formatDate(Date dateValue) {
         return dateValue != null ? (String.valueOf(dateValue.year()).leftPad(4)+String.valueOf(dateValue.month()).leftPad(2)+String.valueOf(dateValue.day()).leftPad(2)).replaceAll(' ', '0') : null;
     }
     
-    /*  public static DateTime getDateWithHours(String hours){
+  public static DateTime getDateWithHours(String hours){
 Integer hora = String.isNotBlank(hours) ? (hours.contains(':') ? Integer.valueOf(hours.substring(0, hours.indexOf(':'))) : 0) : 0;
 Integer minutos = String.isNotBlank(hours) ? (hours.contains(':') ? Integer.valueOf(hours.substring(hours.indexOf(':')+1, hours.length())) : 0) : 0;
 Datetime now = System.now();
 return Datetime.newInstanceGmt(now.year(), now.month(), now.day(), hora, minutos, 0);
-}*/
+}
+
+public static void CrearProspectoOtrosPaises(list<lead> leadList)
+{
+	 SKServiciosExternos__c conf = SKServiciosExternos__c.getOrgDefaults();
+        
+        ProspectoNSCWS prospectoNSCWS = new ProspectoNSCWS();
+        ProspectoNSCWS.ProspectosSoap request = new ProspectoNSCWS.ProspectosSoap();
+        request.timeout_x = 120000;
+        request.endpoint_x = conf.Prospectos__c;
+            
+        ProspectoNSCWS.ArrayOfClientesProspectos prospectos = new ProspectoNSCWS.ArrayOfClientesProspectos();
+        prospectos.ClientesProspectos = new ProspectoNSCWS.ClientesProspectos[]{};
+        
+        System.debug('LEADS: ' + leadList);
+        for (Lead lead: leadList){
+            ProspectoNSCWS.ClientesProspectos prospecto = new ProspectoNSCWS.ClientesProspectos();
+            
+            if(String.isNotBlank(lead.Id_Prospecto__c))
+                prospecto.IdProspecto = Integer.valueOf(lead.Id_Prospecto__c);
+            
+            //CAMBIO LYNX9
+            if(String.isNotBlank(lead.Estructura_de_venta__r.Grupo_de_clientes_Codigo__c)) prospecto.Plaza = lead.Estructura_de_venta__r.Grupo_de_clientes_Codigo__c;
+            if(String.isNotBlank(lead.Estructura_de_venta__r.Grupo_de_vendedores_Codigo__c)) prospecto.Territorio = Integer.valueOf(lead.Estructura_de_venta__r.Grupo_de_vendedores_Codigo__c);
+            if(String.isNotBlank(lead.Estructura_de_venta__c)){
+                prospecto.Plaza = lead.Estructura_de_venta__r.Grupo_de_clientes_Codigo__c;
+                prospecto.Territorio = Integer.valueOf(lead.Estructura_de_venta__r.Grupo_de_vendedores_Codigo__c);
+            }
+
+            if(String.isNotBlank(lead.Canal_de_Distribucion_NSC__r.Codigo__c)) 
+                prospecto.CanalDistribucion = Integer.valueOf(lead.Canal_de_Distribucion_NSC__r.Codigo__c);
+            
+            prospecto.TipoPersona = (lead.Tipo_Persona__c == 'Moral') ? true : false;
+            prospecto.ApellidoPaterno = lead.Apellido_Paterno_Cuenta__c;
+            prospecto.ApellidoMaterno = lead.Apellido_Materno__c;
+            prospecto.Nombre = lead.FirstName;
+            prospecto.RazonSocial = lead.Company;
+            prospecto.ApellidoPatContacto = String.isNotBlank(lead.Apellido_Paterno_Contacto__c) ? lead.Apellido_Paterno_Contacto__c : lead.Apellido_Materno_Cuenta__c;
+            prospecto.ApellidoMatContacto = String.isNotBlank(lead.Apellido_Materno_Contacto__c) ? lead.Apellido_Materno_Contacto__c : lead.Apellido_Materno_Cuenta__c;
+            prospecto.NombreContacto = String.isNotBlank(lead.Nombres_Contacto__c) ? lead.Nombres_Contacto__c : lead.NombresCuenta__c;
+            if(String.isNotBlank(lead.Ramo__c)) 
+                prospecto.Cluster = Integer.valueOf(getCode(lead.Ramo__c));
+            prospecto.ProteinaPrincipal = 1;
+            prospecto.EstatusClienteProspecto = 1;
+               prospecto.Activo = true;
+            prospecto.CorreoElectronico = lead.Correo_Electronico__c;
+            prospecto.Telefono = lead.Telefono__c;
+            prospecto.TelAdicional = lead.Telefono_Adicional__c;
+            prospecto.Celular = lead.Celular__c;
+            if(String.isNotBlank(lead.Pais__r.Codigo_Pais__c)) prospecto.IdPais = Integer.valueOf(lead.Pais__r.Codigo_Pais__c);
+            if(String.isNotBlank(lead.Estado__r.Codigo_Estado__c)) prospecto.IdEstado = Integer.valueOf(lead.Estado__r.Codigo_Estado__c);
+            if(String.isNotBlank(lead.Municipio_Delegacion__r.Codigo_Municipio_Delegacion__c)) prospecto.IdMunicipio = Integer.valueOf(lead.Municipio_Delegacion__r.Codigo_Municipio_Delegacion__c);
+            if(String.isNotBlank(lead.Localidad_Ciudad__r.Codigo_Localidad_Ciudad__c)) prospecto.IdCiudad = Integer.valueOf(lead.Localidad_Ciudad__r.Codigo_Localidad_Ciudad__c);
+            if(String.isNotBlank(lead.Colonia__r.Codigo_Colonia__c)) prospecto.IdColonia = Integer.valueOf(lead.Colonia__r.Codigo_Colonia__c);
+            prospecto.CodigoPostal = lead.Codigo_Postal__c;
+            prospecto.VialidadCalle = 1;
+            prospecto.Calle = lead.Calle__c;
+            prospecto.VialidadEntreCalle1 = 1;
+            prospecto.EntreCalle1 = lead.Entre_Calle__c;
+            prospecto.VialidadEntreCalle2 = 1;
+            prospecto.EntreCalle2 = lead.Referencias_Cercanas__c;
+            prospecto.NumExterior = lead.No_Exterior__c;
+            prospecto.NumInterior = lead.No_Interior__c;
+            prospecto.UsuarioRegistro = lead.CreatedBy.Alias;
+            prospecto.FechaRegistro = DateTime.newInstanceGMT(lead.CreatedDate.date(),lead.CreatedDate.time());
+            prospecto.MaquinaRegistro = 'host_salesforce';
+                        
+            Datetime horaLlamada = getDateWithHours(lead.Hora_Preferida_Llamada_Contacto__c);
+            String diasEntrega = '';
+            if(String.isNotBlank(lead.Dias_de_Entrega__c)) {
+                List<String> diasEntregaList = lead.Dias_de_Entrega__c.split(';',-2);
+                
+                for (String dia : diasEntregaList){
+                    if(dia.equals('Lunes'))
+                        diasEntrega = diasEntrega + 1;
+                    if(dia.equals('Martes'))
+                        diasEntrega = diasEntrega + 2;
+                    if(dia.equals('Miércoles'))
+                        diasEntrega = diasEntrega + 3;
+                    if(dia.equals('Jueves'))
+                        diasEntrega = diasEntrega + 4;
+                    if(dia.equals('Viernes'))
+                        diasEntrega = diasEntrega + 5;
+                    if(dia.equals('Sábado'))
+                        diasEntrega = diasEntrega + 6;
+                }
+            }
+            
+            Datetime horaInicio;
+            Datetime horaFin;
+            if(String.isNotBlank(lead.Hora_Ideal_Entrega__c)) {
+                List<String> horaIdeal = lead.Hora_Ideal_Entrega__c.split(' A ', -2);
+                horaInicio = getDateWithHours(horaIdeal[0]);
+                horaFin = getDateWithHours(horaIdeal[1]);
+            } else {
+                horaInicio = getDateWithHours(null);
+                horaFin = getDateWithHours(null);
+            }
+            
+            prospecto.Adicional = new ProspectoNSCWS.AdicionalesProspectos();
+            if(String.isNotBlank(lead.Id_Prospecto__c)) prospecto.Adicional.IdProspectos = Integer.ValueOf(lead.Id_Prospecto__c);
+            prospecto.Adicional.PotencialRes = lead.Potencial_Res_Kg__c;
+            prospecto.Adicional.PotencialCerdo = lead.Potencial_Cerdo_Kg__c;
+            prospecto.Adicional.PotencialPollo = lead.Potencial_Pollo_Kg__c;
+            prospecto.Adicional.PotencialPescado = lead.Potencial_Pescado_Kg__c;
+            prospecto.Adicional.AreaResponsabilidad = 2;
+            //prospecto.Adicional.Sociedad = '300';
+            //Cambio LYNX9
+            prospecto.Adicional.Sociedad = lead.Estructura_de_venta__r.Sociedad_Codigo__c;
+            prospecto.Adicional.Vendedor = String.isNotBlank(lead.CreatedBy.Id_Externo_Usuario__c) ? Integer.ValueOf(lead.CreatedBy.Id_Externo_Usuario__c) : 0;
+            prospecto.Adicional.TipoCliente = 2;
+            prospecto.Adicional.OrdenEntrega = 0;
+            prospecto.Adicional.HoraLLamada = horaLlamada;
+            prospecto.Adicional.HoraInicio = horaInicio;
+            prospecto.Adicional.HoraFin = horaFin;
+            prospecto.Adicional.Latitud = ((lead.Geolocalizacion__Latitude__s == NULL)? 0 : lead.Geolocalizacion__Latitude__s);
+            prospecto.Adicional.Longitud = ((lead.Geolocalizacion__Longitude__s== NULL)? 0 : lead.Geolocalizacion__Longitude__s);
+            prospecto.Adicional.ProgramaVisita = diasEntrega;
+            System.debug('PROSPECTO: ' + prospecto);
+            prospectos.ClientesProspectos.add(prospecto);
+            
+        }
+        
+        String error;
+        try {
+            //System.debug('envio prospecto: ' + prospecto);
+            ProspectoNSCWS.RespuestaOfClientesProspectos response = request.RegistrarProspectosMasivos(prospectos);
+            System.debug('respuesta prospecto: ' + response);
+            if  (response.Tipo != 'TerminadoConExito')
+                error = response.Mensaje;
+        } catch(Exception e) {
+            System.debug('error prospecto: ' + e);
+            error = e.getMessage();
+        }
+        
+      /* if(!String.isBlank(error)) {
+            error = 'Ha ocurrido un error el proceso de envío a NSC de los prospectos "'+leadIds+'" con id: \n\n'+error+'\n\nComuníquese con el administrador del sistema para solucionar el problema.';
+            Messaging.reserveSingleEmailCapacity(2);
+            Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+
+            String[] bccAddresses = conf.Notificacion_errores__c.split(',');
+            for(User user : [
+                SELECT Email
+                FROM User
+                WHERE Profile.Name = 'Administrador del sistema'
+                    AND Username LIKE '%admin%'
+            ]) {
+                    bccAddresses.add(user.Email);
+            }
+            System.debug('UserEmail: ' + UserInfo.getUserEmail());
+            mail.setToAddresses(new String[] { UserInfo.getUserEmail() });
+            mail.setBccAddresses(bccAddresses);
+            mail.setUseSignature(false);
+            mail.setSenderDisplayName('SuKarne - Salesforce CRM - Envío automático de correos');
+            mail.setSubject('Error al envíar los datos de un prospecto a NSC');
+            mail.setPlainTextBody(error);
+            mail.setHtmlBody('<p>'+error.replaceAll('\n', '<br/>')+'</p>');
+            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+        }*/
+}
     public static WSCreacionprospectos.DT_SF_CreacionProspectos CrearProspectoSap(lead p, string oldMap)
     {
         WSCreacionprospectos.DT_SF_CreacionProspectos c = new WSCreacionprospectos.DT_SF_CreacionProspectos();
@@ -555,7 +569,7 @@ return Datetime.newInstanceGmt(now.year(), now.month(), now.day(), hora, minutos
         c.Cliente.KNBK = new List<WSCreacionprospectos.KNBK_element> { new WSCreacionprospectos.KNBK_element() };
         c.Cliente.KNVA = new WSCreacionprospectos.ArrayOfString();
         c.Cliente.KNVI = new List<WSCreacionprospectos.KNVI_element> { new WSCreacionprospectos.KNVI_element() };
-        c.Cliente.KNVK = new List<WSCreacionprospectos.KNVK_element> { new WSCreacionprospectos.KNVK_element(), new WSCreacionprospectos.KNVK_element() };
+        c.Cliente.KNVK = new List<WSCreacionprospectos.KNVK_element> { new WSCreacionprospectos.KNVK_element(), new WSCreacionprospectos.KNVK_element(), new WSCreacionprospectos.KNVK_element()  };
         c.Cliente.KNVK[1].Apellido = 'Itinerario';
         c.Cliente.KNVK[1].Departamentodepersonacontacto = 'A002';
         c.Cliente.KNVK[1].Funciondelapersonadecontacto = 'A2';
@@ -593,7 +607,22 @@ return Datetime.newInstanceGmt(now.year(), now.month(), now.day(), hora, minutos
             c.Cliente.KNVK[0].Telmovi = '';
             c.Cliente.KNVK[0].CorreoElectronico = '';
         }
-        
+         if( p.Tipo_Persona__c != 'Física')
+        {
+        	c.Cliente.KNVK[2].FechadecreacionenNSCFechadecumpleanos = formatDate(p.Fecha_de_cumpleanos__c);
+            string paterno = (string.isBlank(p.Apellido_Paterno_Cuenta__c))?'':p.Apellido_Paterno_Cuenta__c; 
+            string materno = (string.isBlank(p.Apellido_Materno__c))?'':p.Apellido_Materno__c; 
+            String apellidos = paterno+' '+ materno;
+            system.debug('p.apellidos '+ apellidos);
+            c.Cliente.KNVK[2].Apellido = apellidos;
+            c.Cliente.KNVK[2].Nombre = p.Name;
+            c.Cliente.KNVK[2].Telefono = p.Telefono__c;
+            c.Cliente.KNVK[2].Departamentodepersonacontacto = 'A003';
+            c.Cliente.KNVK[2].Funciondelapersonadecontacto = 'A3';
+            c.Cliente.KNVK[2].Personacontacto = p.Name;
+            c.Cliente.KNVK[2].Telmovi = p.Celular__c;
+            c.Cliente.KNVK[2].CorreoElectronico = p.Correo_Electronico_Contacto__c;
+        }
         c.Cliente.KNVP = new List<WSCreacionprospectos.KNVP_element> { new WSCreacionprospectos.KNVP_element() };
             c.Cliente.KNVV = new WSCreacionprospectos.KNVV_element();
         c.Cliente.KNVV.Organizaciondeventas =  p.Organizacion_de_Ventas__c == null ? '0000' :p.Organizacion_de_Ventas__c.right(4);
@@ -656,7 +685,7 @@ return Datetime.newInstanceGmt(now.year(), now.month(), now.day(), hora, minutos
         } 
         return false;
     }
-    private static String getItinerario(String picklistValue, String subValue, String hora) {
+    public static String getItinerario(String picklistValue, String subValue, String hora) {
         return String.isNotBlank(picklistValue) && picklistValue.contains(subValue) ? hora : null;
     }
     

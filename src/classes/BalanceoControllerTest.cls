@@ -110,8 +110,9 @@ private class BalanceoControllerTest  implements WebServiceMock {
 
         Oficina_de_Venta__c oficinaVentas = new Oficina_de_Venta__c(
         	Name = 'BODEGA 29 MEXICALI - 918',
-        	Descripcion__c = 'BODEGA 29 MEXICALI - 918',
+        	Descripcion__c = 'BODEGA 29 MEXICALI - 918',            
         	Codigo__c = '918'
+         
         );
         upsert oficinaVentas;
 

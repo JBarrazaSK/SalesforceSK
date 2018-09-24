@@ -72,11 +72,12 @@ public with sharing class  CtrlArmarEmbarqueDAO {
 		        pw.Fecha_Entrega= opp.Fecha_de_Entrega__c;
 		        pw.Tipo_surtido= MapaUnidad.get(opp.unidad__c);
 		       	pw.Observaciones = opp.Description;
-				pw.pedidoSap = opp.Numero_Pedido_SAP__c;
+				pw.pedidoSap = opp.Numero_Pedido_SAP__c =='0'?'':opp.Numero_Pedido_SAP__c;
+				opp.Numero_de_Pedido_NSC__c = opp.Numero_de_Pedido_NSC__c =='0'?'':opp.Numero_de_Pedido_NSC__c;
 				system.debug('pw.pedidoSap '+pw.pedidoSap);
 		        pw.IdExterno = opp.Id_Externo__c;
 		        pw.IdPedido = opp.Id;
-
+				pw.pedido = opp;
 		        if(opp.Folio_Embarque__c != null)
 		        {
 		        	listaPedidosConEmb.add(opp);
@@ -143,7 +144,7 @@ public with sharing class  CtrlArmarEmbarqueDAO {
 
 		list<opportunity> lista = new list<opportunity>();
 		String fieldName = 'id,name,Canal__c,Frontera__c,Folio_Pedido_SDL__c,Fecha_de_Embarque__c,Cliente__r.Name,Cliente__r.Localidad_Ciudad__r.Name,AccountId,';
-      			fieldName +='OC__c,unidad__c,Fecha_de_Entrega__c,Id_Externo__c,Folio_Transporte__c,Folio_Embarque__c,Description,SucursalAux__r.Name,Numero_Pedido_SAP__c ';
+      			fieldName +='OC__c,unidad__c,Fecha_de_Entrega__c,Id_Externo__c,Folio_Transporte__c,Folio_Embarque__c,Description,SucursalAux__r.Name,Numero_Pedido_SAP__c,Numero_de_Pedido_NSC__c,Cliente__r.Canal_Distribucion__c,Canal_Factura__r.Opera_en_SAP__c ';
       	String dynQuery = 'select ' + fieldName + ' From Opportunity ';
       		   dynQuery +='WHERE '	;
 			   dynQuery += ' canal__c =\'' + canal+ '\' ';

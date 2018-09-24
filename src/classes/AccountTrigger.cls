@@ -459,11 +459,11 @@ public without sharing class AccountTrigger {
         return String.isNotBlank(picklistValue) ? (picklistValue.contains(' - ') ? picklistValue.substring(picklistValue.indexOf(' - ')+3, picklistValue.length()) : picklistValue) : null;
     }
     
-    private static String formatDate(Date dateValue) {
+    public static String formatDate(Date dateValue) {
         return dateValue != null ? (String.valueOf(dateValue.year()).leftPad(4)+String.valueOf(dateValue.month()).leftPad(2)+String.valueOf(dateValue.day()).leftPad(2)).replaceAll(' ', '0') : null;
     }
     
-    private static String getItinerario(String picklistValue, String subValue, String hora) {
+    public static String getItinerario(String picklistValue, String subValue, String hora) {
         return String.isNotBlank(picklistValue) && picklistValue.contains(subValue) ? hora : null;
     }
 }

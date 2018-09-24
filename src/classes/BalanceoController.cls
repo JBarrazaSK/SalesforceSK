@@ -219,10 +219,11 @@ public with sharing class BalanceoController {
             posteriorXProducto.put(item3.Producto__c, ps);
         }
 
-        System.debug(productosIdExts);
+        System.debug('PRODUCTO=>'+ productosIdExts);
         System.debug(Integer.valueOf(pedidoForm.OficinaVentas__r.Codigo__c));
         Map<Integer,BalanceoNSCWS.BalanceoProductos> inventario = new Map<Integer,BalanceoNSCWS.BalanceoProductos>();
         Map<Integer,InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element> inventarioSAP = new Map<Integer,InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element>();
+        system.debug('CODIGO_OFI=> '+ pedidoForm.OficinaVentas__r.Codigo__c);
         if(pedidoForm.OficinaVentas__r.Opera_en_SAP__c == true)
         	inventarioSAP = BalanceoController.getInventarioSAP(productosIdExts, Integer.valueOf(pedidoForm.OficinaVentas__r.Codigo__c));
         else
@@ -243,20 +244,20 @@ public with sharing class BalanceoController {
             pw.balanceado = balanceadoXProducto.get(prodId);
             pw.anterior   = anteriorXProducto.get(prodId);
             pw.posterior  = posteriorXProducto.get(prodId);
-			
+			 
             //pw.balanceado = pw.balanceado==0?pw.confirmado:pw.balanceado;
 
             BalanceoNSCWS.BalanceoProductos invItem = inventario.get(Integer.valueOf(pw.producto.Codigo_Id_Externo__c));
             InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element invItemSAP = inventarioSAP.get(Integer.valueOf(pw.producto.Codigo_Id_Externo__c));
-            if(invItem!=null || invItemSAP != null){
-                pw.disponible = ((invItem != null) ? invItem.Disponible : invItemSAP.Disponible.intValue());
-                pw.disponible += pw.confirmado.intValue();
+            if(invItem !=null || invItemSAP != null){
+                pw.disponible = ((invItem != null) ? invItem.Disponible : invItemSAP.Disponible.intValue()) +  pw.confirmado;
                 pw.tipoManejoInventario = (invItem != null)?invItem.TipoManejoInventario:invItemSAP.TipoManejoInventario;
             }else{
                 System.debug('No se encontro el producto '+Integer.valueOf(pw.producto.Codigo_Id_Externo__c));
             }
-            pw.diferencia = pw.disponible - pw.confirmado;// Valore volteados para comprencion del usuario 
-
+             // pw.disponible = 0;
+            pw.diferencia = pw.disponible - pw.confirmado; // Valores volteados para comprencion del usuario 
+			system.debug('DISPONIBLE=>> '+  pw.disponible +' DIF=> '+ pw.diferencia);
             productoWrapperList.add(pw);               
         }
         return productoWrapperList;
@@ -266,7 +267,7 @@ public with sharing class BalanceoController {
     public static Map<Integer,BalanceoNSCWS.BalanceoProductos> getInventario(Set<Integer> productosIdExts , Integer codigoOficinaVentas){
     	PedidoUtils.ExternalSources externalSources = new PedidoUtils.ExternalSources();
     	Map<Integer,BalanceoNSCWS.BalanceoProductos> inventario = externalSources.retrieveTipoManejoInventario(productosIdExts, codigoOficinaVentas);
-        System.debug(inventario);
+         System.debug('INVENTARIO --->' +inventario);
         if(inventario == null){
             throw new BalanceoException(PedidoUtils.BALANCEO_WEB_SERVICE_ERROR_INVENTARIO);
         }
@@ -276,7 +277,7 @@ public with sharing class BalanceoController {
     public static Map<Integer,InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element> getInventarioSAP(Set<Integer> productosIdExts , Integer codigoOficinaVentas){
     	PedidoUtils.ExternalSources externalSources = new PedidoUtils.ExternalSources();
     	Map<Integer,InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element> inventario = externalSources.retrieveTipoManejoInventarioSAP(productosIdExts, codigoOficinaVentas);
-        System.debug('INVENTARIO --->' +inventario);
+        System.debug('INVENTARIOSAP --->' +inventario);
         if(inventario == null){
             throw new BalanceoException(PedidoUtils.BALANCEO_WEB_SERVICE_ERROR_INVENTARIO);
         }
@@ -403,8 +404,10 @@ public with sharing class BalanceoController {
 	               
 	                Decimal valBalOld = mapPedidoItems.get(item.Id);
 	                estatuspedido = item.Pedido__r.EstatusPedido__c;
+                    SYSTEM.debug('VALORBALANDEADOA=> '+ valBalOld  +'  CANTIDADBALANCEADA=> '+cantidadbalanceada +' CAJAS__c '+item.Cajas__c);
 	                totalBalanceado += cantidadbalanceada;
-	                if (cantidadbalanceada > valBalOld){//item.Cajas_Balanceadas__c)// {//item.Cajas__c) {//
+                    if (cantidadbalanceada > valBalOld){
+	                //if (cantidadbalanceada > item.Cajas__c){//item.Cajas_Balanceadas__c)// {//item.Cajas__c) {// Cajas Solicitadas
 	                    item.Cajas_Conf__c = valBalOld;
 	                    item.Cajas_Conf__c.addError(PedidoUtils.BALANCEO_ERROR_BALANCEO_MAYOR_PEDIDO);
 	                    throw new BalanceoException(PedidoUtils.BALANCEO_ERROR_BALANCEO_MAYOR_PEDIDO);
@@ -418,6 +421,7 @@ public with sharing class BalanceoController {
 	                    throw new BalanceoException(PedidoUtils.BALANCEO_ERROR_PEDIDO_FACTURADO);
 	                }else{
 	                    if (cantidadbalanceada <= valBalOld ) {
+	                    //if (cantidadbalanceada <= item.Cajas__c ) { //Cajas Solicitadas
 	                        pedidos2Send.add(item.Pedido__c);
 	                        accountsIds.add(item.Pedido__r.Cuenta__c);
 	                        mapItemBalanceo.put(item.Id, cantidadbalanceada);

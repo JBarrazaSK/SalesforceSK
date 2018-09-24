@@ -22,7 +22,9 @@ public with sharing class CarteraClienteController {
         if(isValidAccount()) {
             String orgVenta = account.Organizacion_de_Ventas__c.trim();
             orgVenta = orgVenta.right(4);
+            system.debug('PARAMETROS=> ' +Integer.valueOf(account.Parent.Numero_Cliente_SAP__c)+' - '+Integer.valueOf(account.Parent.Canal_de_Distribucion_NSC__r.Codigo__c)+' - '+orgVenta );
             cartera = account.ParentId == null ? retrieveCarteraCliente(Integer.valueOf(account.Numero_Cliente_SAP__c), Integer.valueOf(account.Canal_de_Distribucion_NSC__r.Codigo__c), orgVenta) : retrieveCarteraCliente(Integer.valueOf(account.Parent.Numero_Cliente_SAP__c), Integer.valueOf(account.Parent.Canal_de_Distribucion_NSC__r.Codigo__c), orgVenta);
+            system.debug('Cartera: '+ cartera);
             account.Pagare__c = cartera.PagoCheque;
         }
     }

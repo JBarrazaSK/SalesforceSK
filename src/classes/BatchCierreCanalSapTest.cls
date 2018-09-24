@@ -39,8 +39,8 @@ public class BatchCierreCanalSapTest
     
     public static Oficina_de_Venta__c crearOficina(){
         Oficina_de_Venta__c ofi =  new Oficina_de_Venta__c();
-        ofi.Name = '';
-        ofi.Codigo__c = '105';
+        ofi.Name = 'NOMBRE 1';
+        ofi.Codigo__c = '740';
         ofi.Descripcion__c = 'VIZ';
         ofi.Nueva_Hora_Cierre_DT__c ='09:00';
         ofi.OrganizacionesText__c= 'SK01';

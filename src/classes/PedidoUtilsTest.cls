@@ -6,8 +6,7 @@
  * Created date: 01/04/2015
  **/
 @isTest
-public with sharing class PedidoUtilsTest {
-/*implements WebServiceMock {
+public with sharing class PedidoUtilsTest implements WebServiceMock {
 	
 	public void doInvoke(Object stub, Object request, Map<String, Object> responseMap, String endpoint, String soapAction, String requestName, String responseNS, String responseName, String responseType) {
         if(stub instanceOf CierrePlazaPedidoQueryNSCWS.CierrePedidosSoap) {
@@ -20,18 +19,14 @@ public with sharing class PedidoUtilsTest {
             new PedidoInsertNSCWSTest().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
         } else if(request instanceOf BalanceoNSCWS.GuardarPedidos_element) {
             new BalanceoNSCWSTest().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
-        } else if(request instanceOf WSDisponibilidadInventarioSAP.ConsultarDisponibilidadSAPResponse_element) {
+        } else if(request instanceOf WSDisponibilidadInventarioSAP.DisponibilidadInventarioSAPSoap) {
             new WSDisponibilidadInventarioSAPMock().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
         }
-    }*/
+    }
     static testMethod void Test() {
 
-  		//Test.setMock(WebServiceMock.class, new PedidoUtilsTest());
-        Test.setMock(WebServiceMock.class, new PedidoInsertNSCWSTest());
-        Test.setMock(WebServiceMock.class, new BalanceoNSCWSTest());
-        Test.setMock(WebServiceMock.class, new ListaPreciosQueryNSCWSTest());
-        Test.setMock(WebServiceMock.class, new WSDisponibilidadInventarioSAPMock());
-        
+  		Test.setMock(WebServiceMock.class, new PedidoUtilsTest());
+      
 
         Test.startTest();
         //Se prueba mediante ProductosBalanceoControllerTest y PedidoWizardTest
@@ -52,23 +47,29 @@ public with sharing class PedidoUtilsTest {
         PedidoUtils.PedidoWrapper pedidoWrapper =  new PedidoUtils.PedidoWrapper();
         
     	PedidoUtils controller = new PedidoUtils('');
+        
+        
         pedidoWrapper.pedido = pedido;
         controller.stepForth(true, false, null, null);
-        
-     
+        controller.queryAccount(account);
+        PedidoUtils.validaProspecto(obtenerLead().Id);
+        BalanceoNSCWS.BalanceoProductos bprod = new BalanceoNSCWS.BalanceoProductos();
+        bprod.Producto = 0101;
+        bprod.Disponible = 100;
+        bprod.TipoManejoInventario = 909;
+        bprod.Contenido = 100;
+        bprod.EsPesoEstandar = true;
+        controller.parseInventario(bprod);
+        InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element bpSAP = new InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element();
+        bpSAP.Producto = '10';
+        bpSAP.Disponible = 100;
+        controller.parseInventario(bpSAP);
+        PedidoUtils.queryAccountSetProspecto(String.valueOf(obtenerLead().Id));
         
        
         PedidoUtils.AccountWrapper accountWrapper  =new	PedidoUtils.AccountWrapper();
         PedidoUtils.ExternalSources externalSources = new PedidoUtils.ExternalSources();  
         
-       
-        /* 
-        //controller.parseInventario(bp);
-        //controller.parseInventario(inven);
-        //PedidoUtils.queryAccountSetProspecto(obtenerLead().Id);
-        //controller.queryAccount();
-        //controller.queryAccount(account);
-      
         pedidoWrapper.setPedidoDefaults(account, true);
         pedidoWrapper.pedido =  pedido;
         pedidoWrapper.tipoSurtido = 1;
@@ -88,7 +89,7 @@ public with sharing class PedidoUtilsTest {
         accountWrapper.isValidAccountWrapper();
         accountWrapper.oficinaVentasSelectOptionList = new List<SelectOption>();
         accountWrapper.queryOficinaVentas();
-       // accountWrapper.queryAccount(string.valueOf(accountWrapper.account.Id));
+        accountWrapper.queryAccount(string.valueOf(accountWrapper.account.Id));
         
 		
         List<PedidoItem__c> listaPedidoItem =  new List<PedidoItem__c>();
@@ -102,11 +103,12 @@ public with sharing class PedidoUtilsTest {
         Map<String,List<Gpo_Vendedores_Oficina_de_Ventas__c>>   gruposVendedores = new Map<String,List<Gpo_Vendedores_Oficina_de_Ventas__c>>();
         Map<Id, Product2> product2General = new Map<Id, Product2>(); 
         
-        
-
 		controller.stepForth(true, false, inventario, productos);
 
-	            
+	    
+        pedidoWrapper.pedido.Forma_Pago__c = '1 - Contado';
+        accountWrapper.sucursal  = '0000000001';
+        system.debug('PEDIDOWRAPER=> '+ pedidoWrapper); 
        	externalSources.setPedidoWS(pedidoWrapper,accountWrapper);
         externalSources.setPedidoSAPWS(pedidoWrapper, accountWrapper, false);
         externalSources.setPedidoWSSAP(pedidoWrapper, accountWrapper, false);
@@ -129,14 +131,28 @@ public with sharing class PedidoUtilsTest {
         Set<Integer> canales =  new Set<Integer>(); 
         canales.add(105);
         canales.add(740);
-        externalSources.OficinaVentaOperaSapMasivo(canales);      
+        externalSources.OficinaVentaOperaSapMasivo(canales); 
+        externalSources.OficinaVentaOperaSapMasivo(canales); 
         externalSources.setIsClosedPlazas(canales,103);
-       
+        DisponibilidadInventarioSAP.Informacion_element inventarioSAPP = new DisponibilidadInventarioSAP.Informacion_element();
+        inventarioSAPP.NumeroProducto = '01';
+        inventarioSAPP.InventarioActual = '101';
+        inventarioSAPP.ComprometidoAlmacenHoy ='100';
+        inventarioSAPP.ComprometidoAlmacenManana = '50';
+        inventarioSAPP.DisponibilidadAlmacen ='10';
+        inventarioSAPP.InventarioConfigurado ='10';
+        inventarioSAPP.ComprasConfigManana  ='10';
+        inventarioSAPP.ResAlm  ='10';
+        inventarioSAPP.ResConf  ='10';
+        inventarioSAPP.PermiteApartarSinExistencias  ='10';
+        inventarioSAPP.TipoInventario  ='10';
+        inventarioSAPP.TipoManejoInventario ='10'; 
+        inventarioSAPP.EsPesoEstandar  ='10';
+        inventarioSAPP.Contenido  ='10';
+        externalSources.CrearElementoInventario(inventarioSAPP);
         externalSources.setIsClosedPlaza(accountWrapper.cliente, accountWrapper.sucursal, accountWrapper.canal, pedidoWrapper.pedido.OficinaVentas__r!=null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c):null);
         externalSources.setInventarioXProductCodeMap(accountWrapper.cliente, accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c);
-        externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc);       
-              
-
+        externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc);               
         pedidoWrapper.instanceNewPedidoItemList();
         pedidoWrapper.queryPedidoParameters();
         pedidoWrapper.setPedidoData();
@@ -163,9 +179,41 @@ public with sharing class PedidoUtilsTest {
         pedidoWrapper.queryPedido(string.valueOf(pedido.Id));
         pedidoWrapper.asignaPedido(pedido);
         pedidoWrapper.queryPedidoItem(String.valueOf(pedidoItem.Id));
+        pedidoWrapper.getNextWorkingDatetime(true);
         pedidoWrapper.pedidoItemList = listaPedidoItem; 
         pedidoWrapper.save();
-*/
+        pedidoWrapper.pedido.Pedido_Cancelado__c =  true;
+        pedidoWrapper.save();
+        pedidoWrapper.pedido.Numero_Pedido_SAP__c = '10101';
+        pedidoWrapper.save();
+        
+        pedidoWrapper.indexToRemove = 0;        
+        pedidoWrapper.removePedidoItem();
+        pedidoWrapper.clearPedidoItemList();
+        pedidoWrapper.addPedidoItem();
+      
+        accountWrapper.account.Canal_de_Distribucion_NSC__r =  obtenerCanalDistribucion();
+        accountWrapper.getSAPCode('SUC- 11010');
+        ProductoInventarioQueryNSCWS.Inventario inv =  new ProductoInventarioQueryNSCWS.Inventario();
+        inv.Producto = 100;
+        inv.InvActual = 100;
+        inv.CompAlmHoy =100;
+        inv.CompAlmMan =100;
+        inv.DispAlm =100;
+        inv.InvConf =100;
+        inv.CompConfMan =100;
+        inv.DispConf =100;
+        inv.ResAlm =100;
+        inv.ResConf =100;
+        inv.PermiteApartarSinexistencias =true;
+        inv.TipoInventario =100;
+        inv.TipoManejoInventario =100;
+        inv.EsPesoEstandar =true;
+        inv.Contenido =100;
+        Map<String, ProductoInventarioQueryNSCWS.Inventario> inventarioXProductCodeMap =  new Map<String, ProductoInventarioQueryNSCWS.Inventario>();
+        inventarioXProductCodeMap.put(String.valueOf('1010'),inv);
+        pedidoWrapper.addCurrentAmountsToInventory(inventarioXProductCodeMap);
+        PedidoUtils.fakeMethod();
        Test.stopTest();
 
     
@@ -236,7 +284,7 @@ public with sharing class PedidoUtilsTest {
         Oficina_de_Venta__c ofi =   obtenerOfiv();
         pedido.OficinaVentas__c = ofi.Id;
         pedido.Forma_Pago_Original__c = '2 - Crédito';
-        pedido.Factura_No_Fiscal__c = true;
+        pedido.Factura_No_Fiscal__c = false;
         pedido.Orden_de_Compra__c = '1092';
        
         
@@ -249,7 +297,7 @@ public with sharing class PedidoUtilsTest {
     }
     public static Canal_de_Distribucion_NSC__c crearCanalDistrubucion(){
          Canal_de_Distribucion_NSC__c canalDistribucionNSC = new Canal_de_Distribucion_NSC__c(
-	            Codigo__c = 'SK'//'1000'
+	            Codigo__c = '1000'
 	        );
 	       upsert canalDistribucionNSC;
         return canalDistribucionNSC;
@@ -302,7 +350,7 @@ public with sharing class PedidoUtilsTest {
     {
          Account cliente = new Account(
             Name = 'TEST',
-            Numero_Cliente_SAP__c = '112120',
+            Numero_Cliente_SAP__c = 'SUC - 112120',
             RFC__c = 'XXXXXXXXXXX1',
             Telefono__c = '0000000000',
             Oficina_de_Ventas__c = crearOficinaVenta().Id,
@@ -312,9 +360,18 @@ public with sharing class PedidoUtilsTest {
           
          );
         cliente.Numero_Cliente_SAP__c = '1000';
-        cliente.Canal_Distribucion__c = '';
-
-        
+        cliente.Canal_Distribucion__c = ''; 
+        insert cliente;
+        return cliente;
+    }
+      public static Account crearClienteSAP()
+    {
+         Account cliente = new Account(
+            Name = 'TEST2',
+            Numero_Cliente_SAP__c = '112',
+            RFC__c = 'XXXXXXXXXXX11',
+            Telefono__c = '0000000000'          
+         );  
         insert cliente;
         return cliente;
     }
@@ -362,6 +419,6 @@ public with sharing class PedidoUtilsTest {
         public static Lead obtenerLead()
     {
         return [SELECT id FROM Lead Limit 1];        
-    }
     
+    }    
 }

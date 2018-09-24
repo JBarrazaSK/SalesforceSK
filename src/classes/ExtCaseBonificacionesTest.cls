@@ -3,7 +3,7 @@ public class ExtCaseBonificacionesTest {
     
     static testmethod void testBonificacion(){
         ExtCaseBonificaciones ext =  new ExtCaseBonificaciones();
-        ext.Caso =  crearCaso();
+        //ext.Caso =  crearCaso();
         ext.Show =  true;
         ext.NumCaso = '';
         ext.Motivo = 'false-1';
@@ -24,25 +24,90 @@ public class ExtCaseBonificacionesTest {
         ext.FillAplicacionOptions();
         crearMotivosBonificacion();    
         
-        Test.setMock(WebServiceMock.Class, new WsDevolucionesSAPMock.WsConsultaFacturaSAPMock());
-        Test.startTest();	
+        Test.startTest();
+        Test.setMock(WebServiceMock.Class, new WsDevolucionesSAPMock.WsConsultaFacturaSAPFailNullMock());     
         ext.ConsultarFactura();
+        Test.setMock(WebServiceMock.Class, new WsDevolucionesSAPMock.WsConsultaFacturaSAPFailMock());
+        ext.ConsultarFactura();
+        Test.setMock(WebServiceMock.Class, new WsDevolucionesSAPMock.WsConsultaFacturaSAPMock());
+        ext.ConsultarFactura();
+
+        ext.factura = new ExtCaseBonificaciones.Factura();
+        ExtCaseBonificaciones.DetalleFactura detalle =  new ExtCaseBonificaciones.DetalleFactura();
+        ext.factura.Abonos='123.20';
+        ext.factura.CodigoCliente='114';
+        ext.factura.FechaFactura='2018-09-24';
+        ext.factura.ImporteBonificar=1;
+        ext.factura.ImporteFactura='100.00';        
+        ext.factura.Moneda='MXN';
+        ext.factura.NombreCliente='114 - Cliente';
+        ext.factura.Saldo='32.023';
+        detalle.Cantidad='100';
+        detalle.CodigoProducto='12';
+        detalle.Descripcion='Producto1';
+        detalle.Importe=100;
+        detalle.Precio=100;
+        detalle.Seleccionado=true;
+        detalle.Volumen='106';
+        ext.Factura.ListaProductos =  new list<ExtCaseBonificaciones.DetalleFactura>();
+        ext.Factura.ListaProductos.add(detalle);
+        EntityConsultaFactura_SF_to_ECC.Datos_element[] Datos = new list<EntityConsultaFactura_SF_to_ECC.Datos_element>();
+        EntityConsultaFactura_SF_to_ECC.Datos_element d = new EntityConsultaFactura_SF_to_ECC.Datos_element();
+        EntityConsultaFactura_SF_to_ECC.Cabecero_element Cabecero = new EntityConsultaFactura_SF_to_ECC.Cabecero_element();
+        EntityConsultaFactura_SF_to_ECC.Detalle_element det = new EntityConsultaFactura_SF_to_ECC.Detalle_element();
+        Cabecero.CodigoCliente = 114;
+        Cabecero.DescripcionCliente = 'Producto1';
+        Cabecero.Sucursal  = '';
+        Cabecero.CanalDistribucion= '';
+        Cabecero.GrupoVendedores = '';
+        Cabecero.ImporteFactura = 1000;
+        Cabecero.Abonos = 123.20;
+        Cabecero.Saldo = 32.023;
+        Cabecero.Moneda = 'MXN';
+        Cabecero.FechaFactura = '2018-01-01';
+        d.cabecero =  Cabecero;
+        det.CodigoProducto 	= '101';
+        det.Descripcion 	= 'desc';
+        det.MedidaUnidad 	= 'PI';
+        det.Cantidad 		= '10';
+        det.SubFamilia 		= '1';
+        det.Volumen 		= '10';
+        det.Precio 			= 11;
+        det.Importe 		= 111;  
+         d.Detalle =  new List<EntityConsultaFactura_SF_to_ECC.Detalle_element>();
+        d.Detalle.add(det);
+        Datos.add(d);
+        ext.LlenarEntidadFactura(Datos);
+        
+        Test.setMock(WebServiceMock.Class, new WsDevolucionesSAPMock.WsDevolucionesSAPFailNullMock());
+        ext.factura.ImporteBonificar = 1; 
+        ext.GuardarCasoDevolucion(); 
+        Test.setMock(WebServiceMock.Class, new WsDevolucionesSAPMock.WsDevolucionesSAPFailMock());
+        ext.factura.ImporteBonificar = 1; 
+        ext.GuardarCasoDevolucion(); 
+        
+  	  Test.setMock(WebServiceMock.Class, new WsDevolucionesSAPMock());
+
+        ext.factura.ImporteBonificar = 0; 
+        ext.GuardarCasoDevolucion(); 
+        ext.factura.ImporteBonificar = 35; 
+        ext.GuardarCasoDevolucion();              
+        ext.factura.ImporteBonificar = 1; 
+        ext.TipoAplicacion = 'PESO'; 
+        ext.GuardarCasoDevolucion(); 
         ext.Factura.ListaProductos[0].PrecioReal = 10;
         ext.Factura.ListaProductos[0].VolumenReal = 10;
-        	
-        Test.setMock(WebServiceMock.Class, new WsDevolucionesSAPMock());
-         	ext.factura.ImporteBonificar = 0; 
-            ext.GuardarCasoDevolucion(); 
-        	ext.factura.ImporteBonificar = 35; 
-            ext.GuardarCasoDevolucion();  
-            
-        	ext.factura.ImporteBonificar = 1; 
-        	ext.TipoAplicacion = 'PESO'; 
-            ext.GuardarCasoDevolucion(); 
-        	ext.TipoAplicacion = 'PRECIO';
-            ext.GuardarCasoDevolucion();  
-        	 ext.TipoAplicacion = ''; 
-        	ext.GuardarCasoDevolucion(); 
+        ext.TipoAplicacion = 'PRECIO';
+		ext.GuardarCasoDevolucion();  
+        ext.Factura.ListaProductos[0].PrecioReal = 0;
+        ext.Factura.ListaProductos[0].VolumenReal = 0; 
+        ext.factura.ImporteBonificar = 1; 
+        ext.GuardarCasoDevolucion();
+        ext.Factura.ListaProductos[0].PrecioReal = 0;
+        ext.Factura.ListaProductos[0].VolumenReal = 0; 
+        ext.factura.ImporteBonificar = 1; 
+        ext.TipoAplicacion = 'PESO';
+        ext.GuardarCasoDevolucion();
         Test.stopTest();
     }
     public static case crearCaso()
@@ -52,7 +117,8 @@ public class ExtCaseBonificacionesTest {
         caso.RecordTypeId =  [SELECT Id,Name FROM RecordType WHERE SobjectType='Case' and name = 'SK-Queja'].Id;
         system.debug('RECORD=> ' +caso );
         caso.Grupo_de_Clientes_Manual__c = 'CELAYA - 05';
-        insert caso;
+        caso.Status = 'EN PROCESO';
+        upsert caso;
         return caso;
     }
     public static void crearGrupo(string name){

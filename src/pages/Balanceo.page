@@ -164,7 +164,7 @@
 			    	<!-- <input class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-input ovCerrada" type="text" data-id="{Id}" data-pedido="{Pedido__c}" data-producto="{Producto__r.Codigo_Id_Externo__c}" data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas_Conf__c}" onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas_Conf__c}" /> -->
 			    	<input class="prod-{Producto__r.Codigo_Id_Externo__c} ov-{Pedido__r.OficinaVentas__r.Codigo__c}-input ovCerrada" 
 			    		type="text" data-id="{Id}" data-pedido="{Pedido__c}" data-producto="{Producto__r.Codigo_Id_Externo__c}" 
-			    		data-min="0" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas_Conf__c}" 
+			    		data-min="0" data-sol="{Cajas__c}" data-max="{Cajas_Balanceadas__c}" data-previo="{Cajas_Conf__c}" 
 			    		onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas_Conf__c}" />
 			    </td>
 			    <td title="Canal de Distribución"><span>{Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name}</span></td>
@@ -184,17 +184,17 @@
 	function validaCantidad(item){
 		var max = parseInt(j$(item).data('max'));
 		var min = parseInt(j$(item).data('min'));
+        var Solicitado = parseInt(j$(item).data('sol'));
 		var previo = parseInt(j$(item).data('previo'));
 		//console.log(max,min,previo,j$(item).val());
 		if(isNaN(j$(item).val())){
 			j$(item).val(previo);
 		}
-		if(j$(item).val() > max){
-		console.log("PREVIO=>" + previo);
-			j$(item).val(previo);
-			
-			alert('La cantidad balanceada no puede ser mayor a la confimada');
-		}else if (j$(item).val() < min){
+        //if(j$(item).val() > Solicitado){  //con las solicitadas
+        if(j$(item).val() > max){
+			j$(item).val(previo);			
+            alert('La cantidad balanceada no puede ser mayor a la confirmada');
+            }else if (j$(item).val() < min){
 			j$(item).val(previo);
 			alert('La cantidad balanceada no puede ser negativa');
 		}
@@ -218,13 +218,13 @@
 		{
 	 		BalanceoController.OperaEnSapOfiCerrada(filtroOV,
 	 			function(result, event){
-	                if (event.status) {	                	
+	                if (event.status) {	 
 	                    if(result)
 	                    {
 							alert("El canal seleccionado se encuentra cerrado.");
 	                	}
 	                	//else{
-	                    	getPedidos();
+                        getPedidos();
 	                 	//   }
 					} 
 	       		},
@@ -525,7 +525,9 @@
 	    	itemTR = itemTR.replace('{Cajas_Conf_Balanceadas}',rmUndefinen(item.Cajas_Balanceadas__c==0?item.Cajas_Conf__c:item.Cajas_Balanceadas__c));
 
 	    	itemTR = itemTR.replace(/{Cajas_Conf__c}/g,rmUndefinen(item.Cajas_Conf__c));
-	    	//itemTR = itemTR.replace(/{Cajas__c}/g,rmUndefinen(item.Cajas__c));
+            
+	    	itemTR = itemTR.replace(/{Cajas__c}/g,rmUndefinen(item.Cajas__c));
+            
 	    	itemTR = itemTR.replace('{Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name}',rmUndefinen(item.Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name));
 	    	itemTR = itemTR.replace('{Pedido__r.EstatusPedido__c}',rmUndefinen(item.Pedido__r.EstatusPedido__c));
 	    	itemTR = itemTR.replace('{CreatedBy.Name}',rmUndefinen(item.CreatedBy.Name));

@@ -1,0 +1,11 @@
+<!--
+ - Description: pantalla para levantar pedidos televentas C & A
+ - Author: Jose Ruben Barraza Tizoc
+ - Company: SK
+ - Email: jose.barraza@sukarne.com
+ - Created date: 13/09/2018
+ - vfpPedidosTLV.page
+ -->
+<apex:page standardController="Account" cache="false" deferLastCommandUntilReady="true" showHeader="false" sidebar="false" tabStyle="Pedido__c" title="Salesforce - Edición de pedidos">
+<c:PedidoWizard />
+</apex:page>

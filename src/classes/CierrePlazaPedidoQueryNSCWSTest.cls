@@ -46,15 +46,25 @@ public class CierrePlazaPedidoQueryNSCWSTest implements WebServiceMock {
     }
     
     static testMethod void myUnitTest() {
+        
+       	new CierrePlazaPedidoQueryNSCWS.CierreMasivo();
+        new CierrePlazaPedidoQueryNSCWS.Cierre();
+        new CierrePlazaPedidoQueryNSCWS.ArrayOfCierre();
+        new CierrePlazaPedidoQueryNSCWS.ArrayOfCierreMasivo();
+        new CierrePlazaPedidoQueryNSCWS.ValidaCierrePedidosMasivo_element();
+        NEW CierrePlazaPedidoQueryNSCWS.ValidaCierrePedidosMasivoResponse_element();
+        new CierrePlazaPedidoQueryNSCWS.RespuestaOfListOfCierreMasivo();
+        CierrePlazaPedidoQueryNSCWS.ArrayOfInt canales = new  CierrePlazaPedidoQueryNSCWS.ArrayOfInt();
+        canales.int_x = new List<Integer>{0,0};
+        Integer canalPadre = 0;
         Test.setMock(WebServiceMock.class, new CierrePlazaPedidoQueryNSCWSTest());
         
         Test.startTest();
         
         CierrePlazaPedidoQueryNSCWS.CierrePedidosSoap request = new CierrePlazaPedidoQueryNSCWS.CierrePedidosSoap();
         request.ValidaCierrePedidos(0, '0', 0, 0);
-        CierrePlazaPedidoQueryNSCWS.ArrayOfInt canales = new  CierrePlazaPedidoQueryNSCWS.ArrayOfInt();
-        canales.int_x = new List<Integer>{0,0};
         request.ValidaCierrePedidosMasivo(canales, 0);
+        request.ValidaCierrePedidosMasivoPorCliente(canales,0);
         Test.stopTest();
     }
 }

@@ -2,14 +2,15 @@ global class BatchCierreCanalSap implements Database.Batchable<sObject>,Database
 	String fieldName ='id,name,Codigo__c,CEDIS__c,Hora_Cierre_dt__c,Nueva_Hora_Cierre_DT__c,OrganizacionesText__c,Reaperturado__c';
 	String query = 'select '+fieldName+' From Oficina_de_Venta__c ';
  	list<Bitacora__c> listaLog;
+
  global BatchCierreCanalSap() { 
 			listaLog = new list<Bitacora__c>();
 	}
  global Database.QueryLocator start(Database.BatchableContext BC) {
 		query +=' WHERE '	;
 		query += ' Cerrado__c = false';
-		query += ' and Opera_en_SAP__c = true';  
-		System.debug('Select :: '+query);
+		query += ' and Opera_en_SAP__c = true';     
+	
 		
 	return Database.getQueryLocator(query);	
  }
@@ -17,7 +18,7 @@ global class BatchCierreCanalSap implements Database.Batchable<sObject>,Database
  	
  	Time[] HorasCierre = new List<Time>();
  	List<Oficina_de_Venta__c> listaAGuardar = new List<Oficina_de_Venta__c>();
- 	
+ 		System.debug('scope :: '+scope.size());
  	if (scope.size() > 0)
 	{
 		
@@ -47,14 +48,7 @@ global class BatchCierreCanalSap implements Database.Batchable<sObject>,Database
 					}
 			}
 	}
-	else
-	{
-		Bitacora__c registro = new Bitacora__c();
-		registro.Clase__c = 'BatchCierreCanalSap';
-		registro.Estado__c = 'Procesado';
-		registro.mensaje__c = '(Cierre de canal) No hay Oficinas de ventas a cerrar';
-		listaLog.add(registro);
-	}
+	
 	Time tiempoReprogramacion;
 	if(HorasCierre.size() > 0)
 	{
@@ -64,24 +58,27 @@ global class BatchCierreCanalSap implements Database.Batchable<sObject>,Database
 		    System.abortjob(CT.Id);        
 		}
 
-		system.debug('Entro programacion');
-		HorasCierre.sort();
-		system.debug(HorasCierre[0]);
-		String day = string.valueOf(system.now().day());
-        String month = string.valueOf(system.now().month());
-        String hour = string.valueOf(HorasCierre[0].hour());
-        String minute = string.valueOf(HorasCierre[0].minute());
-        String second = string.valueOf(system.now().second());
-        String year = string.valueOf(system.now().year());
-        
-        String strJobName = 'BatchCierreCanalSap';
-        String strSchedule = '0 ' + minute + ' ' + hour + ' ' + day + ' ' + month + ' ?' + ' ' + year;
-        string valor = System.schedule(strJobName, strSchedule, new CierreCanalSchedulable()); 
-        Bitacora__c registro = new Bitacora__c();
-		registro.Clase__c = 'BatchCierreCanalSap';
-		registro.Estado__c = 'Procesado'; 
-		registro.mensaje__c = valor;
-		listaLog.add(registro);
+		if(cronstodelete.size() > 0)
+		{
+			system.debug('Entro programacion');
+			HorasCierre.sort();
+			system.debug(HorasCierre[0]);
+			String day = string.valueOf(system.now().day());
+	        String month = string.valueOf(system.now().month());
+	        String hour = string.valueOf(HorasCierre[0].hour());
+	        String minute = string.valueOf(HorasCierre[0].minute());
+	        String second = string.valueOf(system.now().second());
+	        String year = string.valueOf(system.now().year());
+	        
+	        String strJobName = 'BatchCierreCanalSap';
+	        String strSchedule = '0 ' + minute + ' ' + hour + ' ' + day + ' ' + month + ' ?' + ' ' + year;
+	        string valor = System.schedule(strJobName, strSchedule, new CierreCanalSchedulable()); 
+	        Bitacora__c registro = new Bitacora__c();
+			registro.Clase__c = 'BatchCierreCanalSap';
+			registro.Estado__c = 'Procesado'; 
+			registro.mensaje__c = valor;
+			listaLog.add(registro);
+		}
 
 	}
 	if(listaAGuardar.size() > 0)
@@ -154,16 +151,7 @@ global  Boolean EnviarAServicio(Oficina_de_Venta__c oficina,string Estatus)
         try
  		{
 	        Response = servicio.CerrarReabrirCanal(Listarequest);
-	        if(Response == null)
-	 	    {
-		 		Bitacora__c registro = new Bitacora__c();
-				registro.Clase__c = 'BatchCierreCanalSap';
-				registro.Estado__c = 'Error';
-				registro.mensaje__c = '(Cierre de canal) '+'Error al ejecutar servicios externos';
-				listaLog.add(registro);
-		        return false;
-	 		}
-
+	        
 	 		for( CierreReaperturaOficinaVentas.DT_SE_CierreReaperturaOficinaVentas_RespCierre rc : Response.DT_SE_CierreReaperturaOficinaVentas_RespCierre)
 	 		{
 	 			if(rc != null && rc.Tipo !='S')
