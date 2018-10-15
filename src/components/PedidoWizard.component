@@ -96,7 +96,8 @@
  * Email: obecerra@grupoassa.com
  * Created date: 03/12/2014
  **/
-var isEditablePedido, productMap, inventarioMap, preciosMap, currentIndex, currentProductCode, fechaSurtido, isPreventa, ieStylesheetUrl, conversionKiloPound = 2.2046, maxPresaleDays, exchangeRateDolarPeso, unitPriceMaxIncrementalPercentage, unitPriceMaxDecrementalPercentage;
+var isEditablePedido, productMap, inventarioMap, preciosMap, currentIndex, currentProductCode, fechaSurtido, isPreventa, ieStylesheetUrl, conversionKiloPound = 2.2046, maxPresaleDays, exchangeRateDolarPeso, unitPriceMaxIncrementalPercentage, unitPriceMaxDecrementalPercentage;  
+var productosOld =[];
 $(document).ready(function() {
     setIEStylesheet();
     setViewIfPedidoIsNotEditable();
@@ -190,7 +191,11 @@ function setFacturaNoFiscal() {
     	var pedido = $("[id$=inputCheckFiscal]").val();  
     	if(pedido != null && pedido.length != 0)
     	{
-    		$("[id$=inputFacturaNoFiscal]").attr("disabled", "disabled");
+             var opera = $('[id$=inputOperaSap]').val();      
+            if(opera=='true')
+    			$("[id$=inputFacturaNoFiscal]").attr("disabled", "disabled");
+            else
+                $("[id$=inputFacturaNoFiscal]").removeAttr("disabled");
     	}
     	else
     	{
@@ -338,10 +343,9 @@ function setSummaryRow() {
     var summary = { 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 16:0 };
     for(var index in summary) {
         $(".pageBlockTableProductos td:nth-child("+index+") input:last-child").each(function() {
-        	var value =  $.trim($(this).val().replace("$","").replace(",",""));
-            //var value = stringCurrencyToFloat($(this).val());
+            var value =  $.trim($(this).val().replace("$","").replace(/,/g, ""));
             if(value) {
-           		var importe  =  parseFloat(value);
+                var importe  = parseFloat(value);
                 summary[index] += importe;
             }
         });
@@ -488,7 +492,7 @@ function setProducto(productCode, index) {
        	}
         var selectedOption = inputMoneda.val()+inputUnidad.val();
         var currencyArray = ["P", "D"];
-        console.log("UNIDADMEDIDA = "+inputUnidad.val());
+        //console.log("UNIDADMEDIDA = "+inputUnidad.val());
         var unitArray = inputUnidad.val() == "K" || inputUnidad.val() == "L" ? ["K", "L"] : [inputUnidad.val()];
         var noOptions = { PL:1 };
         var tipoPrecioSelect = '<select onchange="processTipoPrecio('+index+')" id="selectTipoPrecio'+index+'">';
@@ -501,7 +505,8 @@ function setProducto(productCode, index) {
             }
         }
         tipoPrecioSelect += "</select>";
-        row.find("td:nth-child(15)").html(tipoPrecioSelect);       
+        row.find("td:nth-child(15)").html(tipoPrecioSelect);  
+        $("#selectTipoPrecio"+index).attr('disabled', 'disabled'); 
         //Se agrega ComboBox para la unidad de medida.
         if (opera == "true") 
         {
@@ -521,7 +526,7 @@ function setProducto(productCode, index) {
          row.find("[id$=inputUnidadBase]").val(inputUnidad.val());
         }
       
-        
+        console.log("KILOSCON"+ row.find("td:nth-child(13) input").val());
         row.find("td:nth-child(16) input").css("display", "inline-block");
         row.find("#inputPesoPromedioKg").val(floatToString(productMap[productCode].Peso_Promedio__c, 2));
         row.find("td:nth-child(6)").html(floatToString(inputUnidad.val() == "L" ? productMap[productCode].Peso_Promedio__c*conversionKiloPound : productMap[productCode].Peso_Promedio__c, 2));
@@ -545,9 +550,11 @@ function setProducto(productCode, index) {
             precioUnitarioOtorgadoPesos.val(precioUnitarioOtorgadoPesos.val()*conversionKiloPound);
         }
         //row.find("td:nth-child(16) input").val(floatToCurrency(stringCurrencyToFloat(row.find("td:nth-child(16) input").val())));
-        var importe = parseFloat(row.find("td:nth-child(16) input").val().replace("$","").replace(",",""));
+        var importe = row.find("td:nth-child(16) input").val().replace("$","").replace(",","");
+        console.log("importe=> "+ parseFloat(importe));
         row.find("td:nth-child(16) input").val(importe);
         productMap[productCode].isSet = true;
+        productosOld[index] = getPedidoItem(index);
         setPedidoItemValues(getPedidoItem(index));
     } else {
         resetRow(row);
@@ -698,7 +705,8 @@ function numberToString(value) {
     		value = "$0.00" ;
     	}else
     	{
-    		value =  floatToCurrency(parseFloat(value).toFixed(2));
+            value =  floatToCurrency(parseFloat(value).toFixed(2));
+            //value =  value;
     	}
     
     	return value;
@@ -717,6 +725,7 @@ function numberToString(value) {
             kilos:row.find("td:nth-child(10) input:first-child"),
             Kilos__c:row.find("td:nth-child(10) input:last-child"),
             CajasConf__c:row.find("td:nth-child(11) input"),
+          
             PiezasConf__c:row.find("td:nth-child(12) input"),
             kilosConf:row.find("td:nth-child(13) input:first-child"),
             KilosConf__c:row.find("td:nth-child(13) input:last-child"),
@@ -747,9 +756,11 @@ function numberToString(value) {
             precioUnitarioOtorgadoPesos:stringNumberToFloat(objects.precioUnitarioOtorgadoPesos.val()),
             tipoPrecio:objects.tipoPrecio.val(),
             //Importe__c:stringCurrencyToFloat(objects.Importe__c.val())
-            Importe__c:objects.Importe__c.val()
-            ,Unidad__c: objects.Unidad__c.val()
+            Importe__c:objects.Importe__c.val(),
+            Unidad__c: objects.Unidad__c.val()
+            
         };
+        console.log("KILOSCONFIRMADOS=> "+values.KilosConf__c);
         values["currency"] = values.tipoPrecio.substring(0, 1);
         values["unit"] = values.tipoPrecio.substring(1);
         return { objects:objects, values:values };
@@ -775,6 +786,8 @@ function numberToString(value) {
         pedidoItem.objects.PrecioUnitarioOtorgado__c.data("old", pedidoItem.values.PrecioUnitarioOtorgado__c);
         pedidoItem.objects.precioUnitarioOtorgadoPesos.data("old", pedidoItem.values.precioUnitarioOtorgadoPesos);
         pedidoItem.objects.Importe__c.data("old", pedidoItem.values.Importe__c);
+     
+     
         pedidoItem.objects.PrecioListaPrecios__c.val(pedidoItem.values.PrecioListaPrecios__c);
         pedidoItem.objects.PrecioUnitarioOriginal__c.val(pedidoItem.values.PrecioUnitarioOriginal__c);
         pedidoItem.objects.precioUnitarioOriginalPesos.val(pedidoItem.values.precioUnitarioOriginalPesos);
@@ -789,9 +802,7 @@ function numberToString(value) {
         pedidoItem.objects.KilosConf__c.val(pedidoItem.values.KilosConf__c);
         pedidoItem.objects.PrecioUnitarioOtorgado__c.val(floatToString(pedidoItem.values.PrecioUnitarioOtorgado__c, 4));
         pedidoItem.objects.precioUnitarioOtorgadoPesos.val(pedidoItem.values.precioUnitarioOtorgadoPesos);
-        //pedidoItem.objects.Importe__c.val(floatToCurrency(parseFloat(pedidoItem.values.Importe__c)));
-        pedidoItem.objects.Importe__c.val(formatoMoneda(pedidoItem.values.Importe__c));  
-              
+       	pedidoItem.objects.Importe__c.val(formatoMoneda(pedidoItem.values.Importe__c));                
     
         setSummaryRow();
     }
@@ -814,8 +825,7 @@ function numberToString(value) {
         pedidoItem.values.PrecioUnitarioOtorgado__c = pedidoItem.objects.PrecioUnitarioOtorgado__c.data("old");
         pedidoItem.values.precioUnitarioOtorgadoPesos = pedidoItem.objects.precioUnitarioOtorgadoPesos.data("old");
         pedidoItem.values.Importe__c = pedidoItem.objects.Importe__c.data("old");
-        pedidoItem.values.Unidad__c =  pedidoItem.objects.Unidad__c.data("old");
-        
+        pedidoItem.values.Unidad__c =  pedidoItem.objects.Unidad__c.data("old");        
     }
     
   function copySolicitadoToConfirmado(pedidoItemValues) {
@@ -841,7 +851,6 @@ function numberToString(value) {
 function calculaEnBaseACajas(pedidoItemValues, type) 
 {
 	var resultado = true;
-console.log("CONTENIDO=> "+ inventarioMap[pedidoItemValues.productCode].Contenido +" PESOESTANDAR "+ inventarioMap[pedidoItemValues.productCode].EsPesoEstandar);
     if(inventarioMap[pedidoItemValues.productCode].Contenido > 0 && inventarioMap[pedidoItemValues.productCode].EsPesoEstandar) {
         pedidoItemValues["Piezas"+type+"__c"] = pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
         pedidoItemValues["Piezas"+type] =pedidoItemValues["Cajas"+type+"__c"]*inventarioMap[pedidoItemValues.productCode].Contenido;
@@ -904,24 +913,85 @@ function asignaPrecioEnBaseARango(pedidoItemValues, property) {
         }
     }
 }
-function validaInventario(pedidoItemValues) {
+function validaInventario(pedidoItemValues) {    
+    console.log(pedidoItemValues);
     if(!isPreventa && !inventarioMap[pedidoItemValues.productCode].PermiteApartarSinexistencias) {
         var amount, type;
-        if(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 2) {
+        if(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 2) 
+        {
             amount = pedidoItemValues.KilosConf__c;
             type = "float";
         } else {
             amount = pedidoItemValues.CajasConf__c;
             type = "number";
-        }
-         var opera = $('[id$=inputOperaSap]').val();
-        /// Si no opera en SAP  Toma de  DispAlm y si Opera en SAP toma InvActual
-//        if (opera == "false") {
-            if(amount != 0 && amount > inventarioMap[pedidoItemValues.productCode].DispAlm) {
-                alert("No existe suficiente inventario disponible para surtir la cantidad confirmada.\nCantidad asignada: "+(type == "float" ? floatToString(amount, 2) : numberToString(amount))+". Cantidad disponible: "+(type == "float" ? floatToString(inventarioMap[pedidoItemValues.productCode].DispAlm, 2) : numberToString(inventarioMap[pedidoItemValues.productCode].DispAlm))+".\nSe limpian las cantidades confirmadas.\n");
-                resetHalf(pedidoItemValues, "Conf");
-                return false;
+        } 
+        if(pedidoItemValues.Unidad__c =="P")
+            amount = pedidoItemValues.PiezasConf__c;
+        
+        var pedidoId = "{!pedidoWrapper.pedido.Id}";
+        if(pedidoId !=null && pedidoId.length > 0)
+        {
+            var reciduo =0;            
+            var fechaSurtido = $("#tableGenerales2 .dateInput input");
+            var fechaprogramada = "{!pedidoWrapper.pedido.FechaSurtidoProgramada__c}";
+            var fechapedido =  "{!pedidoWrapper.pedido.Fecha_Registro__c}";
+            var fecha = fechaSurtido.val();
+            fecha = fecha.substring(fecha.indexOf("/")+1, fecha.lastIndexOf("/"))+"/"+fecha.substring(0, fecha.indexOf("/"))+"/"+fecha.substring(fecha.lastIndexOf("/")+1, fecha.length);
+            var date = new Date();
+            fecha =  new Date(fecha);
+            fechapedido =  new Date(fechapedido);
+            fechaprogramada = new Date(fechaprogramada);
+            var date =  (date.getDate()+1)+"/"+(date.getMonth()+1)+"/"+date.getFullYear();
+            var fecha =  fecha.getDate()+"/"+(fecha.getMonth()+1)+"/"+fecha.getFullYear();
+            fechapedido = (fechapedido.getDate()+1)+"/"+(fechapedido.getMonth()+1)+"/"+fechapedido.getFullYear();
+            fechaprogramada = fechaprogramada.getDate()+"/"+(fechaprogramada.getMonth()+1)+"/"+fechaprogramada.getFullYear();
+           
+            if(fechaprogramada != fecha)
+            {
+                if(fecha == date || fecha == fechapedido)
+                {
+                    if(amount != 0 && amount > inventarioMap[pedidoItemValues.productCode].DispAlm) 
+                    {
+                        alert("No existe suficiente inventario disponible para surtir la cantidad confirmada.\nCantidad asignada: "+(type == "float" ? floatToString(amount, 2) : numberToString(amount))+". Cantidad disponible: "+(type == "float" ? floatToString(inventarioMap[pedidoItemValues.productCode].DispAlm, 2) : numberToString(inventarioMap[pedidoItemValues.productCode].DispAlm))+".\nSe limpian las cantidades confirmadas.\n");
+                        resetHalf(pedidoItemValues, "Conf");
+                        return false;
+                    }  
+                }
             }
+        
+            
+            if(inventarioMap[pedidoItemValues.productCode].TipoManejoInventario == 2) {               
+                if(productosOld[pedidoItemValues.index].values.KilosConfOld__c < pedidoItemValues.KilosConf__c){
+                    reciduo = pedidoItemValues.KilosConf__c - productosOld[pedidoItemValues.index].values.KilosConfOld__c;
+                }
+            }
+            else
+            { 	
+                if(productosOld[pedidoItemValues.index].values.CajasConf__c < pedidoItemValues.CajasConf__c)
+                {
+                    reciduo = pedidoItemValues.CajasConf__c - productosOld[pedidoItemValues.index].values.CajasConf__c; 
+                }              
+            }
+            
+             if(reciduo != 0 && reciduo > inventarioMap[pedidoItemValues.productCode].DispAlm) 
+             {
+                 alert("No existe suficiente inventario disponible para surtir la cantidad confirmada.\nCantidad asignada: "+(type == "float" ? floatToString(amount, 2) : numberToString(amount))+". Cantidad disponible: "+(type == "float" ? floatToString(inventarioMap[pedidoItemValues.productCode].DispAlm, 2) : numberToString(inventarioMap[pedidoItemValues.productCode].DispAlm))+".\nSe limpian las cantidades confirmadas.\n");
+                 resetHalf(pedidoItemValues, "Conf");
+                 return false;
+             }            
+        }
+        else
+        {
+             var opera = $('[id$=inputOperaSap]').val();
+            /// Si no opera en SAP  Toma de  DispAlm y si Opera en SAP toma InvActual
+    //        if (opera == "false") {
+            console.log("AMOUNT=> "+ amount +" INVENTARIO= "+ inventarioMap[pedidoItemValues.productCode].DispAlm)
+                if(amount != 0 && amount > inventarioMap[pedidoItemValues.productCode].DispAlm) {
+                    alert("No existe suficiente inventario disponible para surtir la cantidad confirmada.\nCantidad asignada: "+(type == "float" ? floatToString(amount, 2) : numberToString(amount))+". Cantidad disponible: "+(type == "float" ? floatToString(inventarioMap[pedidoItemValues.productCode].DispAlm, 2) : numberToString(inventarioMap[pedidoItemValues.productCode].DispAlm))+".\nSe limpian las cantidades confirmadas.\n");
+                    resetHalf(pedidoItemValues, "Conf");
+                    return false;
+                }
+        }
 //         }
 //         else {           
 //             if(amount != 0 && amount > inventarioMap[pedidoItemValues.productCode].InvActual) {
@@ -1182,8 +1252,6 @@ function isValidData() {
         hasError = !alert("Debe agregar por lo menos un producto.");       
     } else {
         $(".pageBlockTableProductos tr.dataRow").each(function(index) {
-            
-            console.log(" PRECIO UNITARIO => "+ $(this).find("[id$=inputPrecioUnitarioOtorgado__c]").val());
             if($(this).find("[id$=inputProducto]").val() && $(this).find("[id$=inputPrecioUnitarioOtorgado__c]").val() == 0){
                   hasError = !alert("El producto capturado no contiene precio configurado. Favor de validar.");   
                  return !hasError;
@@ -1429,19 +1497,21 @@ function rowOff(element) {
 						</div></td>
 					<td class="labelCol">Pago de:</td>                  
 					<td colspan="2" id="tdFormaPago">	
-                        <apex:variable value="{!IF(isEditablePedido && (accountWrapper.account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3'), true, IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (accountWrapper.account.Parent.RFC__c != null || accountWrapper.account.Parent.RFC_Generico__c != null), false, false))}"
+                              <apex:variable value="{!IF(isEditablePedido && (accountWrapper.account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3'), true, IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (accountWrapper.account.Parent.RFC__c != null || accountWrapper.account.Parent.RFC_Generico__c != null), false, false))}"
 							var="isEditableFormaPago" />
 					
-                      <apex:outputField value="{!pedidoWrapper.pedido.Forma_Pago__c}" 
+                      <!--<apex:outputField value="{!pedidoWrapper.pedido.Forma_Pago__c}" 
 							rendered="{!IF(pedidoWrapper.pedido.Forma_Pago__c == '1 - Contado' && pedidoWrapper.pedido.Factura_No_Fiscal__c == true ,true,
 										IF(pedidoWrapper.pedido.Forma_Pago__c == '1 - Contado' && isFoliosNSCSAP == false,true,
 										IF(pedidoWrapper.pedido.Forma_Pago__c == '1 - Contado' && isFoliosNSCSAP && accountWrapper.account.Parent.Tipo_de_Credito__c != 'Crédito - 3',true,false)))}"/>
-                        
-							
+							-->
 							<input type="hidden" value="{!pedidoWrapper.pedido.Forma_Pago__c}" id="inputPedidoFormaPago" />
+                        <!--<apex:inputField value="{!pedidoWrapper.pedido.Forma_Pago__c}"
+                                         required="true"
+                                         rendered="{!IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' ||  (accountWrapper.account.Parent.Tipo_de_Credito__c == 'Revolvente - 2' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3') && pedidoWrapper.pedido.Factura_No_Fiscal__c == false,IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (pedidoWrapper.pedido.Numero_de_Pedido_NSC__c == '' || pedidoWrapper.pedido.Numero_Pedido_SAP__c == ''),false,true),false)}"
+                                         onchange="setFacturaNoFiscal()" />-->
                         <apex:inputField value="{!pedidoWrapper.pedido.Forma_Pago__c}"
                                          required="true"
-                                         rendered="{!IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' || accountWrapper.account.Parent.Tipo_de_Credito__c == 'Crédito - 3' && pedidoWrapper.pedido.Factura_No_Fiscal__c == false,IF(accountWrapper.account.Parent.Tipo_de_Credito__c == 'Contado - 1' && (pedidoWrapper.pedido.Numero_de_Pedido_NSC__c == '' || pedidoWrapper.pedido.Numero_Pedido_SAP__c == ''),false,true),false)}"
                                          onchange="setFacturaNoFiscal()" />
 					</td>
 					<td class="labelCol">Imprime factura:</td>
@@ -1463,7 +1533,8 @@ function rowOff(element) {
 					<td>
 						<!-- {!IF(pedidoWrapper.pedido.Id == null, 'true', 'false')}--> <input
 						type="hidden" value="{!pedidoWrapper.pedido.Id}"
-						id="inputCheckFiscal" /> <apex:inputField value="{!pedidoWrapper.pedido.Factura_No_Fiscal__c}"
+						id="inputCheckFiscal" /> 
+                        <apex:inputField value="{!pedidoWrapper.pedido.Factura_No_Fiscal__c}"
 							id="inputFacturaNoFiscal" onkeydown="onInputEnterKeydown(event)" />
 					</td>
 				</tr>
@@ -1650,7 +1721,8 @@ function rowOff(element) {
 									onchange="processPiezasSolicitadas({!index})" /></td>
 							<td class="inputColumn"><apex:inputField value="{!pedidoItem.CantidadPedidaUnidadMovimiento__c}"
 									onkeypress="floatInputOnly(event, this)"
-									onchange="processKilosSolicitados({!index})" /> <apex:inputHidden value="{!pedidoItem.Kilos__c}" /></td>
+									onchange="processKilosSolicitados({!index})" /> 
+                                        <apex:inputHidden value="{!pedidoItem.Kilos__c}" /></td>
 							<td class="inputColumn"><apex:inputField value="{!pedidoItem.Cajas_Conf__c}"
 									onkeypress="integerInputOnly(event)"
 									onchange="processCajasConfirmadas({!index})" /></td>

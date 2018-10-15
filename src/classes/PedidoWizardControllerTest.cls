@@ -18,13 +18,14 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             new ListaPreciosQueryNSCWSTest().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
         } else if(stub instanceOf PedidoInsertNSCWS.PedidosSoap) {
             new PedidoInsertNSCWSTest().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
-        }  else if(stub instanceOf WsABCPeidosSFSAP.EnviarInformacionASap_element) {
-        	new WsABCPeidosSFSAPTest().doInvoke(stub, request, responseMap, endpoint, soapAction, requestName, responseNS, responseName, responseType);
-        }
+        } 
     }
 
     static testMethod void myUnitTest() {
-   
+                 SKServiciosExternos__c  conf = new SKServiciosExternos__c();
+        conf.Notificacion_errores__c = 'ramon.atondo@sukarne.com';
+        conf.Prospectos__c = 'https://test.com';
+        insert conf;
      PedidoParameters__c pedidoParameters = new PedidoParameters__c(
             DiasPreventaMaximos__c = 4,
             PrecioUnitarioDecrementoMaximo__c = 30,
@@ -96,6 +97,10 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             IsActive = true
         );
         insert product2;
+              SKServiciosExternos__c  conf = new SKServiciosExternos__c();
+        conf.Notificacion_errores__c = 'ramon.atondo@sukarne.com';
+        conf.Prospectos__c = 'https://test.com';
+        insert conf;
        //Test.setMock(WebServiceMock.class, new WsABCPeidosSFSAPMock());
         Test.setMock(WebServiceMock.class, new PedidoWizardControllerTest()); 
         Test.startTest();
@@ -162,7 +167,7 @@ private class PedidoWizardControllerTest implements WebServiceMock {
         pedido.Canal__c = '3';
         pedido.Correo_electronico_del_cliente__c = 'correo@correo.com';
         pedido.TipoSurtido__c = '1';
-        pedido.Cuenta__c = '0012C00000FCWsuQAH';
+        pedido.Cuenta__c = obtenerCliente().id;//'0012C00000FCWsuQAH';
        	pedido.Fecha_Registro__c = date.today();
         Lead lead =  obtenerLead();
         pedido.Prospecto__c =    lead.Id;
@@ -174,11 +179,8 @@ private class PedidoWizardControllerTest implements WebServiceMock {
         pedido.Forma_Pago_Original__c = '2 - Crédito';
         pedido.Factura_No_Fiscal__c = true;
         pedido.Orden_de_Compra__c = '1092';
-       	pedido.Fecha_de_Entrega__c = date.today();
-       
-        
-        //pedido.OficinaVentas__r = ofi;       
-        pedido.Numero_de_Pedido_NSC__c = '';
+       	pedido.Fecha_de_Entrega__c = date.today();     
+        pedido.Numero_de_Pedido_NSC__c = 'P2019';
         
         upsert pedido;
         return pedido;
@@ -188,6 +190,7 @@ private class PedidoWizardControllerTest implements WebServiceMock {
          Canal_de_Distribucion_NSC__c canalDistribucionNSC = new Canal_de_Distribucion_NSC__c(
 	            Codigo__c = '1000'
 	        );
+        canalDistribucionNSC.Estructura_de_venta__c =  crearEstructura().Id;
 	        upsert canalDistribucionNSC;
         return canalDistribucionNSC;
     }
@@ -210,9 +213,23 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             LastName = 'TEST',
             RFC__c = 'XXXXXXXXXXX3',
             Telefono__c = '0000000000',
-            Estructura_de_venta__c = crearEstructura().Id,
+            Estructura_de_venta__c = obtenerEstructura().Id,
             Colonia__c = colonia.id );
         lead.Cliente_de_contado__c = '101010';
+          lead.Estado_Prospecto__c ='Solicitud Alta SK';
+        lead.Potencial_Cerdo_Kg__c = 201.00;
+        lead.Potencial_Pescado_Kg__c = 11.00;
+        lead.Potencial_Res_Kg__c = 2.00;
+        lead.Potencial_Pollo_Kg__c=2.00;
+        lead.Dias_de_Entrega__c = 'Luenes,Martes';
+        lead.Hora_Ideal_Entrega__c = '07:00 A 10:00';
+        lead.Hora_Preferida_Llamada_Contacto__c = '10:00';
+        lead.Calle__c = 'calle1';
+        lead.No_Exterior__c = '1';
+        lead.No_Interior__c = '11';
+        lead.Entre_Calle__c = '1 y 2';
+        lead.Id_prospecto_sap__c = '0000807856';
+        lead.Tipo_Persona__c = 'Fisica';
         insert lead;
         return lead;
     }
@@ -271,6 +288,7 @@ private class PedidoWizardControllerTest implements WebServiceMock {
               Descripcion__c = 'T2 MANAGUA',
               TipoSurtido__c = '2 - Directo'
           );
+        gpoVendedores.Name = 'Grupo';
         upsert gpoVendedores;
         return gpoVendedores;
     }
@@ -300,8 +318,8 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             Numero_Cliente_SAP__c = '0',
             RFC__c = 'XXXXXXXXXXX1',
             Telefono__c = '0000000000',
-            Oficina_de_Ventas__c = crearOficinaVenta().Id,
-            Grupo_de_Vendedores__c = crearGrupoVendedores().Id
+            Oficina_de_Ventas__c = obtenerOfiv().Id,
+            Grupo_de_Vendedores__c = obtenerGpoVendedores().id //crearGrupoVendedores().Id
         );
         
         insert cliente;
@@ -315,7 +333,7 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             RFC__c = 'XXXXXXXXXXX1',
             Telefono__c = '0000000000',
             Oficina_de_Ventas__c = crearOficinaVenta2().Id,
-            Grupo_de_Vendedores__c = crearGrupoVendedores().Id
+            Grupo_de_Vendedores__c = obtenerGpoVendedores().Id
         );
         
         insert cliente;
@@ -332,9 +350,9 @@ private class PedidoWizardControllerTest implements WebServiceMock {
             Zona__c = 'NOROESTE - 102',
             Grupo_de_clientes_Codigo__c = '7',
             Grupo_de_clientes__c = 'CULIACAN - 7',
-            Grupo_de_vendedores__c = obtenerGpoVendedores().Id,
+            Grupo_de_vendedores__c =crearGrupoVendedores().Id, /// obtenerGpoVendedores().Id,
             Grupo_de_Vendedores_Codigo__c = '108',
-            Oficina_de_ventas__c = obtenerOfiv().Id
+            Oficina_de_ventas__c = crearOficinaVenta().Id //obtenerOfiv().Id
         );
         insert estructura;
         return estructura;

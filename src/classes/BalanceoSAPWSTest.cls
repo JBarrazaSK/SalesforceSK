@@ -17,21 +17,12 @@ private class BalanceoSAPWSTest {
          new BalanceoSAPWS.BalanceoProductos();
          new BalanceoSAPWS.PedidoDetalle();
          new BalanceoSAPWS.ArrayOfPedidoDetalle();
-         
+
+      
          BalanceoSAPWS.BalanceoSoap bsoap = new BalanceoSAPWS.BalanceoSoap();
          try{bsoap.RegresaInventarioPorProducto(null,null);}catch(Exception e){}
          try{bsoap.ObtenerInventarioBalanceoPedidosSAP(null);}catch(Exception e){}
          try{bsoap.GuardarPedidos(null,null);}catch(Exception e){}
-     }
-     
-     static testMethod void pedi(){
-         new BalanceoSAPWSPedi.DT_SE_InventarioBalanceoPedidos_Req();
-         new BalanceoSAPWSPedi.BalanceoProductos_element();
-         new BalanceoSAPWSPedi.BalanceoProductos_element();
-         new BalanceoSAPWSPedi.ArrayOfInteger();
-         new BalanceoSAPWSPedi.DT_SE_InventarioBalanceoPedidos_Resp();
-         new BalanceoSAPWSPedi.ArrayOfDT_SE_InventarioBalanceoPedidos_RespBalanceoProductos();
-     }
 
-
+     }     
 }

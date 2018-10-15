@@ -24,15 +24,20 @@ public with sharing class BalanceoController {
 
 
     @RemoteAction  
-    public static List<ProductoWrapper> buscarRemoto(String fechaRegistro, String oficinaVentas) {
+    public static List<ProductoWrapper> buscarRemoto(String fechaRegistro, String oficinaVentas,string grupoVendedores) {
         List<Pedido__c> pedidosList;
-        System.debug(fechaRegistro);
-        System.debug(Date.valueOf(fechaRegistro));
         List<ProductoWrapper> productoWrapperList = new List<ProductoWrapper>();
         //PedidoUtils.ExternalSources externalSources = new PedidoUtils.ExternalSources();
         Date fechahoy = Date.today();   
         Pedido__c pedidoForm = new Pedido__c(OficinaVentas__c=oficinaVentas, Fecha_Registro__c=Date.valueOf(fechaRegistro));
-        
+         if(grupoVendedores=='' || grupoVendedores=='000000000000000')
+         {
+         	pedidoForm.Grupo_de_Vendedores__c = null;
+         }
+         else
+        	pedidoForm.Grupo_de_Vendedores__c = grupoVendedores;
+
+      
         Date fechaSurtido = pedidoForm.Fecha_Registro__c;
         if(fechaSurtido < fechahoy){
             throw new BalanceoException(PedidoUtils.BALANCEO_ERROR_DATE_PREV);
@@ -47,16 +52,19 @@ public with sharing class BalanceoController {
 		pedidosList = [SELECT Id, Name, Canal__c, OficinaVentas__c,
 					 OficinaVentas__r.Id, 
 					 OficinaVentas__r.Codigo__c, 
-					 Cuenta__c, ClienteSap__c  
+					 Cuenta__c, ClienteSap__c,Cuenta__r.Grupo_de_Vendedores__r.Name,Prospecto__c,Prospecto__r.Grupo_de_Vendedores__r.Name 
                         FROM Pedido__c 
                         WHERE DAY_IN_YEAR(convertTimezone(FechaSurtidoProgramada__c)) =: fechaSurtido.dayOfYear() and
                                   OficinaVentas__c IN: oficinasIds and 
                                   PedidoRechazado__c = false and 
                                   Pedido_Cancelado__c = false and
                                   PedidoCanceladoPorElSistema__c = false and
-                                  EstatusPedido__c = '1 - Pedido Colocado'];
+                                  EstatusPedido__c = '1 - Pedido Colocado'
+                                  and (Cuenta__r.Grupo_de_Vendedores__c =:  pedidoForm.Grupo_de_Vendedores__c or Prospecto__r.Grupo_de_Vendedores__c =:  pedidoForm.Grupo_de_Vendedores__c)
+                                  ];
         Set<Id> pedidosIds = new Set<Id>();
         Map<Id,Pedido__c> pedidosMap = new Map<Id,Pedido__c>();
+      
         if(pedidosList.size()==0){
             throw new BalanceoException(PedidoUtils.BALANCEO_ERROR_PEDIDO_CERO);
         }
@@ -66,6 +74,7 @@ public with sharing class BalanceoController {
         for(Pedido__c ped : pedidosList){
             //pedidoForm.OficinaVentas__r = ped.OficinaVentas__r;
             pedidosIds.add(ped.Id);
+           
             pedidosMap.put(ped.Id, ped);
         }
 
@@ -79,7 +88,9 @@ public with sharing class BalanceoController {
                                   PedidoRechazado__c = false and 
                                   Pedido_Cancelado__c = false and
                                   PedidoCanceladoPorElSistema__c = false and
-                                  EstatusPedido__c = '1 - Pedido Colocado'];
+                                  EstatusPedido__c = '1 - Pedido Colocado'
+                                   and (Cuenta__r.Grupo_de_Vendedores__c =:  pedidoForm.Grupo_de_Vendedores__c or Prospecto__r.Grupo_de_Vendedores__c =:  pedidoForm.Grupo_de_Vendedores__c)
+                                  ];
 
         
         Set<Id> pedidosAnterioresIds = new Set<Id>();
@@ -95,7 +106,9 @@ public with sharing class BalanceoController {
                                   PedidoRechazado__c = false and 
                                   Pedido_Cancelado__c = false and
                                   PedidoCanceladoPorElSistema__c = false and
-                                  EstatusPedido__c = '1 - Pedido Colocado'];
+                                  EstatusPedido__c = '1 - Pedido Colocado'
+                                   and (Cuenta__r.Grupo_de_Vendedores__c =:  pedidoForm.Grupo_de_Vendedores__c or Prospecto__r.Grupo_de_Vendedores__c =:  pedidoForm.Grupo_de_Vendedores__c)
+                                  ];
 
         
         Set<Id> pedidosPosterioresIds = new Set<Id>();
@@ -142,13 +155,13 @@ public with sharing class BalanceoController {
         System.debug(itemsList);
        
         for(PedidoItem__c item : itemsList){
-            
+        	                                
             productos.put(String.valueOf(item.Producto__c),item.Producto__r.Codigo_Id_Externo__c);
+          
             if(!productosPorCliente.containsKey(item.Pedido__r.Cuenta__c)){
                 productosPorCliente.put(item.Pedido__r.Cuenta__c,new Set<String>());
             }
             productosPorCliente.get(item.Pedido__r.Cuenta__c).add(item.Producto__r.Codigo_Id_Externo__c);
-
             productosIds.add(item.Producto__c);
             productosIdExts.add(Integer.valueOf(item.Producto__r.Codigo_Id_Externo__c));
             mapPedidoItems.put(item.Id,item.Cajas_Conf__c);
@@ -160,10 +173,11 @@ public with sharing class BalanceoController {
                 mp = new Map<Id, PedidoItem__c>();
                 itemsXPedidoxProducto.put(item.Producto__c, mp);
             }
+            
             mp.put(item.Pedido__c, item);  
             
             //mapUnidades.put(item.Producto__c,item.Unidad__c);
-            
+            system.debug('Grupo de vendedores prospectos: '+ item.Pedido__r.Prospecto__r.Grupo_de_Vendedores__r.Name);
             List<Pedido__c> pp;
             if(pedidosXProducto.containsKey(item.Producto__c)){
                 pp = pedidosXProducto.get(item.Producto__c);
@@ -244,7 +258,7 @@ public with sharing class BalanceoController {
             pw.balanceado = balanceadoXProducto.get(prodId);
             pw.anterior   = anteriorXProducto.get(prodId);
             pw.posterior  = posteriorXProducto.get(prodId);
-			 
+			
             //pw.balanceado = pw.balanceado==0?pw.confirmado:pw.balanceado;
 
             BalanceoNSCWS.BalanceoProductos invItem = inventario.get(Integer.valueOf(pw.producto.Codigo_Id_Externo__c));
@@ -326,7 +340,10 @@ public with sharing class BalanceoController {
                                 Pedido__r.Numero_de_Pedido_NSC__c,
                                 Pedido__r.Numero_Pedido_SAP__c,
                                 Pedido__r.Cuenta__c,
-                                Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name
+                                Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name,
+                                Pedido__r.Cuenta__r.Grupo_de_Vendedores__r.Name,
+                                Pedido__r.Prospecto__c,
+                                Pedido__r.Prospecto__r.Grupo_de_Vendedores__r.Name
                                 
                      FROM PedidoItem__c WHERE Pedido__c IN :pedidosIds ORDER BY Producto__r.Codigo_Id_Externo__c, Pedido__r.OficinaVentas__r.Name];
     }
@@ -723,6 +740,7 @@ public with sharing class BalanceoController {
         public Decimal diferencia {get;set;}
         public Decimal anterior   {get;set;}
         public Decimal posterior  {get;set;}
+        public string Celula      {get;set;}
         public Integer tipoManejoInventario  {get;set;}
         
         public ProductoWrapper() {

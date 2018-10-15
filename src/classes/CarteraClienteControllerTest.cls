@@ -13,18 +13,21 @@ private class CarteraClienteControllerTest {
             Codigo__c = '0'
         );
         insert canalDistribucionNSC;
+        Oficina_de_Venta__c ofi = crearOficina();
         List<Account> parentAccountList = new List<Account> {
             new Account(
                 Canal_de_Distribucion_NSC__c = canalDistribucionNSC.Id,
                 Name = 'TEST',
                 Numero_Cliente_SAP__c = '0',
                 RFC__c = 'XXXXXXXXXXX1',
-                Telefono__c = '1234567890'
+                Telefono__c = '1234567890',
+                Oficina_de_Ventas__c = ofi.id
             ),
             new Account(
                 Name = 'TEST',
                 RFC__c = 'XXXXXXXXXXX2',
-                Telefono__c = '1234567890'
+                Telefono__c = '1234567890',
+                Oficina_de_Ventas__c = ofi.id
             )
         };
         insert parentAccountList;
@@ -44,5 +47,16 @@ private class CarteraClienteControllerTest {
         controller = new CarteraClienteController(new ApexPages.StandardController(childAccount));
         
         Test.stopTest();
+    }
+     public static Oficina_de_Venta__c crearOficina(){
+        Oficina_de_Venta__c  ofiv = new Oficina_de_Venta__c();
+            ofiv.IdPlanta__c = '3';
+            ofiv.Codigo__c = '105';   
+            ofiv.IdClienteViz__c = '90000303';
+            ofiv.Valida_Disponibilidad__c = true;
+            ofiv.Descripcion__c = 'TSK LOS ANGELES';
+            ofiv.Opera_en_SAP__c = true;
+            upsert ofiv;
+        return ofiv;
     }
 }

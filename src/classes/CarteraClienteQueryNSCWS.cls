@@ -40,14 +40,16 @@ public class CarteraClienteQueryNSCWS {
         private String[] field_order_type_info = new String[]{'Datos','Mensaje','Tipo'};
     }
     public class RegresaCartera_element {
-        public Integer cliente;
+        public Integer cliente;  
         public Integer canal;
         public String organizacionVenta;
+        public boolean consultarSap;
         private String[] cliente_type_info = new String[]{'cliente','http://www.sukarne.com/ws/salesforce',null,'1','1','false'};
         private String[] canal_type_info = new String[]{'canal','http://www.sukarne.com/ws/salesforce',null,'1','1','false'};
         private String[] organizacionVenta_type_info = new String[]{'organizacionVenta','http://www.sukarne.com/ws/salesforce',null,'0','1','false'};
+        private String[] consultarSap_type_info = new String[]{'consultarSap','http://www.sukarne.com/ws/salesforce',null,'0','1','false'};
         private String[] apex_schema_type_info = new String[]{'http://www.sukarne.com/ws/salesforce','true','false'};
-        private String[] field_order_type_info = new String[]{'cliente','canal','organizacionVenta'};
+        private String[] field_order_type_info = new String[]{'cliente','canal','organizacionVenta','consultarSap'};
     }
     public class ArrayOfCartera {
         public CarteraClienteQueryNSCWS.Cartera[] Cartera;
@@ -65,14 +67,19 @@ public class CarteraClienteQueryNSCWS {
         public Integer timeout_x;
         private String[] ns_map_type_info = new String[]{'http://www.sukarne.com/ws/salesforce', 'CarteraClienteQueryNSCWS'};
         public CarteraClientesSoap(){
-            PedidoParameters__c pp = PedidoParameters__c.getInstance();
-            this.endpoint_x = pp.EndpointPedidos__c + '/SKServiciosExternos/SalesForce/CarteraClientes.asmx';
+        	endpoints__c ep = endpoints__c.getInstance();
+            this.endpoint_x = ep.Cartera_Clientes__c;
+            this.timeout_x =120000; 
+            
+           /* PedidoParameters__c pp = PedidoParameters__c.getInstance();
+            this.endpoint_x = pp.EndpointPedidos__c + '/SKServiciosExternos/SalesForce/CarteraClientes.asmx';*/
         }
-        public CarteraClienteQueryNSCWS.RespuestaOfListOfCartera RegresaCartera(Integer cliente,Integer canal,String organizacionVenta) {
+        public CarteraClienteQueryNSCWS.RespuestaOfListOfCartera RegresaCartera(Integer cliente,Integer canal,String organizacionVenta,boolean operaSap) {
             CarteraClienteQueryNSCWS.RegresaCartera_element request_x = new CarteraClienteQueryNSCWS.RegresaCartera_element();
             request_x.cliente = cliente;
             request_x.canal = canal;
             request_x.organizacionVenta = organizacionVenta;
+            request_x.consultarSap = operaSap;
             CarteraClienteQueryNSCWS.RegresaCarteraResponse_element response_x;
             Map<String, CarteraClienteQueryNSCWS.RegresaCarteraResponse_element> response_map_x = new Map<String, CarteraClienteQueryNSCWS.RegresaCarteraResponse_element>();
             response_map_x.put('response_x', response_x);

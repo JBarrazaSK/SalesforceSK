@@ -81,6 +81,36 @@ global class BatchCierreCanalSap implements Database.Batchable<sObject>,Database
 		}
 
 	}
+	else
+	{
+		user usuario  = [select id from user where alias = 'AUser'];
+		List<CronTrigger> cronstodelete = [Select Id from CronTrigger where OwnerId =:usuario.id  Limit 100];
+		for(CronTrigger CT: cronstodelete){
+		    System.abortjob(CT.Id);        
+		}
+
+		if(cronstodelete.size() > 0)
+		{
+			system.debug('Entro programacion');
+			HorasCierre.sort();
+			system.debug(HorasCierre[0]);
+			String day = string.valueOf(system.now().day());
+	        String month = string.valueOf(system.now().month());
+	        String hour = string.valueOf(16);
+	        String minute = string.valueOf(00);
+	        String second = string.valueOf(00);
+	        String year = string.valueOf(system.now().year());
+	        
+	        String strJobName = 'BatchCierreCanalSap';
+	        String strSchedule = '0 ' + minute + ' ' + hour + ' ' + day + ' ' + month + ' ?' + ' ' + year;
+	        string valor = System.schedule(strJobName, strSchedule, new CierreCanalSchedulable()); 
+	        Bitacora__c registro = new Bitacora__c();
+			registro.Clase__c = 'BatchCierreCanalSap';
+			registro.Estado__c = 'Procesado'; 
+			registro.mensaje__c = valor;
+			listaLog.add(registro);
+		}
+	}
 	if(listaAGuardar.size() > 0)
 	{
 		update listaAGuardar;

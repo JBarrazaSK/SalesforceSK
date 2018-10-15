@@ -50,7 +50,7 @@ public with sharing class PedidoWizardController {
 	                    pedidoWrapper.pedido.TipoSurtido__c = accountWrapper.account.Tipo_Surtido__c;
 	                    pedidoWrapper.tipoSurtido = accountWrapper.tipoSurtido;
 	                }
-	                //accountWrapper.isSelectable = false;
+	                accountWrapper.isSelectable = false;
                 }
                
                 
@@ -70,7 +70,7 @@ public with sharing class PedidoWizardController {
 	                    pedidoWrapper.pedido.TipoSurtido__c = accountWrapper.account.Tipo_Surtido__c;
 	                    pedidoWrapper.tipoSurtido = accountWrapper.tipoSurtido;
 	                }
-	                //accountWrapper.isSelectable = false;
+	                accountWrapper.isSelectable = false;
                 }
         }         
        if(accountWrapper != null && accountWrapper.ofiventas != null)
@@ -128,7 +128,8 @@ public with sharing class PedidoWizardController {
             accountWrapper.oficinaVentasName = oficinaVentasName;
             return;
         }
-        list<Case> ListaCasos = [SELECT Id FROM Case where status ='EN PROCESO' AND SK_SubCategoria_Tipo__c  ='Labor de Colocación' and OwnerId =:UserInfo.getUserId()];
+       	
+        list<Case> ListaCasos = [SELECT Id FROM Case where status ='EN PROCESO' AND SK_Categoria__c  ='Labor de colocación' and OwnerId =:UserInfo.getUserId()];
 
        if(ListaCasos != null && ListaCasos.size() > 0)
        {
@@ -178,9 +179,25 @@ public with sharing class PedidoWizardController {
 
         externalSources = new PedidoUtils.ExternalSources();
          system.debug('ACCOUNTWRAPER.ACCOUNT=> '+ accountWrapper.account.Parent.Tipo_de_Credito__c);
+  		
+       /*string pCliente = '';
+        system.debug('PROSPECTOS=> '+ pCliente);
+        if(pedidoWrapper.pedido.Prospecto__c != null )
+		{
+            pCliente =  [SELECT Id_prospecto_sap__c FROM LEAD WHERE id =: pedidoWrapper.pedido.Prospecto__c].Id_prospecto_sap__c;
+            if( pCliente  ==  null)
+			{
+                                    ApexPages.Message myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,'Favor de revisar, prospecto no cuenta con Id de prospecto SAP.');
+                                    ApexPages.addMessage(myMsg);
+                                    return;
+        	}
+        }
+        string prospectoCliente = pedidoWrapper.pedido.Prospecto__c != null ?pCliente:  accountWrapper.sucursal;
+        system.debug('PROSPECTOCLIENTE = '+prospectoCliente);*/
+
         if(
             externalSources.setIsClosedPlaza(accountWrapper.cliente, accountWrapper.sucursal, accountWrapper.canal, pedidoWrapper.pedido.OficinaVentas__r!=null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c):null) &&
-            externalSources.setInventarioXProductCodeMap(accountWrapper.cliente, accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c) &&
+            externalSources.setInventarioXProductCodeMap(accountWrapper.cliente, /*prospectoCliente*/accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c) &&
             externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc)
         ) {
             pedidoWrapper.queryPedidoParameters();
@@ -205,8 +222,7 @@ public with sharing class PedidoWizardController {
     }
     public void submit() {
     	system.debug('SUBMIT():'); 
-        pedidoWrapper.setPedidoData();
-        
+        pedidoWrapper.setPedidoData();        
         PedidoInsertNSCWS.PedidoRespuesta response = null;
         ApexPages.Message myMsg =  null;   
         WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido responseSAP = null; 

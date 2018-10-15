@@ -46,13 +46,21 @@ textarea {
             <apex:inputHidden value="{!AlmacenId}" id="HiddenId"/>
             <apex:inputHidden value="{!CodigoAlmacen}" id="HiddenNumeroAlmacen"/>
            
-      </td>
+      </td> 
         <td align="right">Fecha:</td>
         <td> 
           <div class="requiredInput">
           <div class="requiredBlock"></div>
           <apex:inputField value="{!pedido.Fecha_Registro__c}" id="FechaFiltro"/>
           </div>
+      </td>
+      <td align="right">Registros a Migrar:</td>
+        <td> 
+           <apex:inputText value="{!Registros}" id="reg"/>
+      </td>
+      <td align="right">Registros Total:</td>
+        <td> 
+           <apex:outputtext value="{!Lpedidos.size}" id="registros"/>
       </td>
       <td></td>
           
@@ -77,6 +85,12 @@ textarea {
   </apex:column>
   <apex:column headerValue="Oficina de ventas">
     <apex:outputText value="{!opp.pedido.OficinaVentas__r.name}"/>
+  </apex:column>
+  <apex:column headerValue="Fecha">
+  <apex:outputText value="{0, date, MMMM d','  yyyy}">
+    <apex:param value="{!opp.pedido.Fecha_de_Entrega__c}" />
+</apex:outputText>
+
   </apex:column>
    <apex:column headerValue="Pedido SAP" style="width: 35px;">
     <apex:outputText value="{!opp.Folio}"/>

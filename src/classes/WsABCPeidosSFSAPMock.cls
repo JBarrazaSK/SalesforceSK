@@ -39,4 +39,27 @@ global class WsABCPeidosSFSAPMock implements WebServiceMock {
         
     }
 }
+global class WsABCPeidosSFSAPFAILMock2 implements WebServiceMock {
+    
+		public void doInvoke(Object stub, Object request, Map<String, Object> responseMap, String endpoint, String soapAction, String requestName, String responseNS, String responseName, String responseType) {                  
+         if( request instanceOf WsABCPeidosSFSAP.EnviarInformacionASap_element) {
+            system.debug('ABCPEDIDOS::=>');
+            WsABCPeidosSFSAP.EnviarInformacionASapResponse_element response = new  WsABCPeidosSFSAP.EnviarInformacionASapResponse_element();
+            response.EnviarInformacionASapResult = new WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido();
+            response.EnviarInformacionASapResult.DT_SE_ABCPedidos_RespPedido = new list<ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido>();
+            ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido respPedido = new ABCPedidos_SF_to_ECC.DT_SE_ABCPedidos_RespPedido();
+            system.debug('ABC=> ');
+            respPedido.TipoMensaje = 'W';
+            respPedido.Mensaje='OK';
+            respPedido.FolioPedidoSAP ='12345678';
+            respPedido.FolioPedidoSalesforce ='P129876';
+            respPedido.Estatus= 'A';
+              system.debug('RESPNSE_WS=> '+ respPedido);
+            response.EnviarInformacionASapResult.DT_SE_ABCPedidos_RespPedido.add(respPedido);
+            system.debug('RESPNSE_WS=> '+ response);
+            responseMap.put('response_x', response);
+        }     
+        
+    }
+}
 }

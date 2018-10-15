@@ -36,6 +36,12 @@ public class ProspectoNSCWSTest implements WebServiceMock {
 		new ProspectoNSCWS.RegistrarProspectosMasivos_element();
 		new ProspectoNSCWS.RegistrarProspectosMasivosResponse_element();
 		new ProspectoNSCWS.RespuestaOfClientesProspectos();
+        /*insert new PedidoParameters__c (EndpointPedidos__c='http://localhost/tests',
+                                       DiasPreventaMaximos__c=11,
+                                       PrecioUnitarioDecrementoMaximo__c= 12,
+                                        PrecioUnitarioIncrementoMaximo__c = 1,
+                                       TipoCambioDolarPeso__c= 1);
+*/
 	}
 	@isTest static void coverCodeForRegistrarProspecto(){
 		Test.setMock(WebServiceMock.class, new ProspectoNSCWSTest());

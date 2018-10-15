@@ -21,15 +21,18 @@ public without sharing class LeadTrigger {
     
     public static void asignaCampos(List<Lead> leadNewList) {
     	map<string,string> mapEstructuras = new  map<string,string>();
-    	 
+    	 String rtProspectoDetalle = getRecordType('Lead', 'Prospecto Detalle');
     	 for( Canal_de_Distribucion_NSC__c e :[select id,Estructura_de_venta__c from Canal_de_Distribucion_NSC__c])
     	 {
     	 	mapEstructuras.put(e.id,e.Estructura_de_venta__c);
     	 }
 		system.debug('LEADNEWLISTA=> ' + leadNewList);
         for(Lead lead : leadNewList) {
-            lead.Nombre_DNM1__c = lead.OwnerId;
-            if(lead.Pais_Filtro__c == 'MEXICO')
+        	string idLead = lead.OwnerId;
+        	if(idLead.left(3) == SObjectType.user.getKeyPrefix())
+            	lead.Nombre_DNM1__c = lead.OwnerId;
+            
+            if(lead.recordTypeId == rtProspectoDetalle)
             {
            		 lead.Estructura_de_venta__c = mapEstructuras.get(lead.Canal_de_Distribucion_NSC__c);
             }
@@ -44,6 +47,9 @@ public without sharing class LeadTrigger {
         for(Lead lead : leadNewList) {
             if(leadOldMap != null ) {
                 system.debug('Entro');
+                if((leadOldMap.get(lead.Id).Status == 'Descartado') && lead.Status !='Reactivado'){
+                    lead.addError('Solamente puede tener estatus de reactivado un prospecto Descartado');
+                }
                 if((leadOldMap.get(lead.Id).Status == lead.Status) && lead.Status =='Descartado'){
                     lead.addError('No se puede modificar un prospecto depurado.');
                 }
@@ -184,7 +190,7 @@ Codigo__c = codigoTransporte
     }
     
     @future(callout = true)
-    public static void syncLead(List<Id> leadIds, Boolean activo,string OldMapLead) {
+    public static void syncLead(Id leadIds, Boolean activo,string OldMapLead) {
         triggerhelper.recursiveHelper(true);
         
         map<String,lead> mapProspectos = new map<String,lead>();
@@ -249,21 +255,22 @@ Codigo__c = codigoTransporte
             Colonia__r.Descripcion_Colonia__c,
             Extension_Tel__c,
             Fax__c,
-            Ext_Fax__c,
+            Ext_Fax__c,Pais_Filtro__c,
             Fecha_de_cumpleanos__c,Telefono_Contacto__c,Celular_Contacto__c,Correo_Electronico_Contacto__c
-            ,Organizacion_de_Ventas__c,Ramo_Codigo__c,Clave_de_Pais__c,Sociedad__c,Zona_de_Ventas__c,Oficina_de_Venta__r.Codigo__c
+            ,Organizacion_de_Ventas__c,Ramo_Codigo__c,Clave_de_Pais__c,Sociedad__c,Zona_de_Ventas__c,Oficina_de_Venta__r.Codigo__c,recordTypeId
             ,Moneda_Cliente__c,Localidad_Ciudad__r.name,Municipio_Delegacion__r.name,Estado__r.Clave_Estado__c,Status,Respuesta_Servicio__c,Prioridad_de_Entrega__c,Cliente_de_contado__c 
             FROM Lead
-            WHERE Id in :leadIds
+            WHERE Id =:leadIds
             ALL ROWS
         ];
         WSCreacionprospectos.ProspectosSapSoap services = new WSCreacionprospectos.ProspectosSapSoap();
         list<WSCreacionprospectos.DT_SF_CreacionProspectos> ListaProspectosSap = new  list<WSCreacionprospectos.DT_SF_CreacionProspectos>();
         list<lead> listaProspectosOtrosPaises = new  list<lead>();
         System.debug('LEADS: ' + leadList);
+         String rtProspectoDetalle = getRecordType('Lead', 'Prospecto Detalle');
         for (Lead lead: leadList){
-        	if(lead.Pais__r.Name =='MEXICO')
-        	{	
+        	if(lead.recordTypeId == rtProspectoDetalle)
+            {	
         		  mapProspectos.put(lead.Id_Prospecto__c,lead);
             	 ListaProspectosSap.add(CrearProspectoSap(lead,OldMapLead));
         	}
@@ -344,13 +351,14 @@ Codigo__c = codigoTransporte
                 } 
                 
             }
-            update mapProspectos.values();
-            
+           
+             update mapProspectos.values();
         } catch(Exception e) {
             System.debug('error prospecto: '+ e.getLineNumber());
             error = e.getMessage();
+            update mapProspectos.values();
         }
-
+		
     }
     
  public static String getCode(String picklistValue) {

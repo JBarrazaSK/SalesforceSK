@@ -36,7 +36,7 @@ public class CarteraClienteQueryNSCWSTest implements WebServiceMock {
         Test.startTest();
 
         CarteraClienteQueryNSCWS.CarteraClientesSoap carteraClientesSoap = new CarteraClienteQueryNSCWS.CarteraClientesSoap();
-        CarteraClienteQueryNSCWS.RespuestaOfListOfCartera respuestaOfListOfCartera = carteraClientesSoap.RegresaCartera(0, 0, 'SK01');
+        CarteraClienteQueryNSCWS.RespuestaOfListOfCartera respuestaOfListOfCartera = carteraClientesSoap.RegresaCartera(0, 0, 'SK01',false);
         CarteraClienteQueryNSCWS.Cartera cartera = new CarteraClienteQueryNSCWS.Cartera();
         cartera.SaldoActual = 0.0;
         cartera.SaldoVencido = 0.0;

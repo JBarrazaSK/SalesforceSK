@@ -22,8 +22,8 @@ public with sharing class CarteraClienteController {
         if(isValidAccount()) {
             String orgVenta = account.Organizacion_de_Ventas__c.trim();
             orgVenta = orgVenta.right(4);
-            system.debug('PARAMETROS=> ' +Integer.valueOf(account.Parent.Numero_Cliente_SAP__c)+' - '+Integer.valueOf(account.Parent.Canal_de_Distribucion_NSC__r.Codigo__c)+' - '+orgVenta );
-            cartera = account.ParentId == null ? retrieveCarteraCliente(Integer.valueOf(account.Numero_Cliente_SAP__c), Integer.valueOf(account.Canal_de_Distribucion_NSC__r.Codigo__c), orgVenta) : retrieveCarteraCliente(Integer.valueOf(account.Parent.Numero_Cliente_SAP__c), Integer.valueOf(account.Parent.Canal_de_Distribucion_NSC__r.Codigo__c), orgVenta);
+        
+            cartera = account.ParentId == null ? retrieveCarteraCliente(Integer.valueOf(account.Numero_Cliente_SAP__c), Integer.valueOf(account.Canal_de_Distribucion_NSC__r.Codigo__c), orgVenta,account.Oficina_de_Ventas__r.Opera_en_SAP__c) : retrieveCarteraCliente(Integer.valueOf(account.Parent.Numero_Cliente_SAP__c), Integer.valueOf(account.Parent.Canal_de_Distribucion_NSC__r.Codigo__c), orgVenta,account.Oficina_de_Ventas__r.Opera_en_SAP__c);
             system.debug('Cartera: '+ cartera);
             account.Pagare__c = cartera.PagoCheque;
         }
@@ -35,7 +35,8 @@ public with sharing class CarteraClienteController {
                 Organizacion_de_Ventas__c,
                 Canal_de_Distribucion_NSC__r.Codigo__c,
                 Parent.Numero_Cliente_SAP__c,
-                Parent.Canal_de_Distribucion_NSC__r.Codigo__c
+                Parent.Canal_de_Distribucion_NSC__r.Codigo__c,
+                Oficina_de_Ventas__c,Oficina_de_Ventas__r.Opera_en_SAP__c
             FROM Account
             WHERE Id = :accountId
         ];
@@ -63,15 +64,15 @@ public with sharing class CarteraClienteController {
         return !ApexPages.hasMessages();
     }
     
-    private CarteraClienteQueryNSCWS.Cartera retrieveCarteraCliente(Integer cliente, Integer canal, String orgVenta) {
+    private CarteraClienteQueryNSCWS.Cartera retrieveCarteraCliente(Integer cliente, Integer canal, String orgVenta,boolean operaSap) {
         CarteraClienteQueryNSCWS.CarteraClientesSoap request = new CarteraClienteQueryNSCWS.CarteraClientesSoap();
         request.timeout_x = WEB_SERVICE_TIMEOUT;
         for(Integer i=1; i<=MAX_CALLOUT_RETRIES; i++) {
             try {
-                return validateCarteraClienteResponse(request.RegresaCartera(cliente, canal, orgVenta)).Datos.Cartera[0];
+                return validateCarteraClienteResponse(request.RegresaCartera(cliente, canal, orgVenta,operaSap)).Datos.Cartera[0];
             } catch(Exception e) {
                 if(i == MAX_CALLOUT_RETRIES) {
-                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, CARTERACLIENTE_WEB_SERVICE_ERROR+e.getMessage()));
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, CARTERACLIENTE_WEB_SERVICE_ERROR+e.getMessage())); 
                 }
             }
         }

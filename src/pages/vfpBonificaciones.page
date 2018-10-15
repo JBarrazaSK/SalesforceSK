@@ -47,9 +47,10 @@ console.log(tecla);
 <apex:form id="form">
     <apex:pageBlock title="" mode="edit"> 
     <apex:pagemessages id="message"/>
+         <apex:commandButton action="{!GuardarCasoDevolucion}" value="Aceptar" rendered="{!DisableAceptar}"/> 
+        <apex:commandButton action="{!CancelarGuardado}" value="Cancelar" rendered="{!DisableAceptar}"/> 
         <apex:pageBlockButtons >
-            <apex:commandButton action="{!GuardarCasoDevolucion}" value="Guardar" rendered="{!DisableGuardar}"/>
-           
+            <apex:commandButton action="{!Confirmacion}" value="Guardar" rendered="{!DisableGuardar}"/>                   
         </apex:pageBlockButtons>
           
          <apex:pageBlockSection title="" columns="1">
@@ -73,6 +74,9 @@ console.log(tecla);
             <apex:inputtext label="Oficina de Venta" value="{!factura.OficinaVentas}" disabled="true" />
             <apex:inputtext label="Saldo" value="{!factura.Saldo}" disabled="true" />
             <apex:inputtext label="Gpo de Vendedores" value="{!factura.GrupoVendedores}" disabled="true"/>
+             <apex:outputText label="$ a Bonificar" value="{0,number,#,##0.00}" id="importe">
+                <apex:param value="{!importe}"  /> 
+            </apex:outputText>
            
         </apex:pageBlockSection>
         <apex:pageBlockSection id="Bonificacion" title="Aplicación de Bonificación" columns="1" rendered="{!factura.ListaProductos != null}" >
@@ -119,12 +123,21 @@ console.log(tecla);
                		<apex:outputText value="{!opp.Precio}" style="width:80px;"/>		
                </apex:column>
                <apex:column headerValue="Volumen real">
-               		<apex:input value="{!opp.VolumenReal}" style="width:80px;" disabled="{!DisabledVolumen}" onKeyPress=" return IsNumeric(event)"/>		
+               		<apex:input value="{!opp.VolumenReal}"
+                                style="width:80px;"
+                                disabled="{!DisabledVolumen}"
+                                onKeyPress=" return IsNumeric(event)">
+                   				<apex:actionSupport event="onblur" action="{!GeneraDevoluciones}" reRender="importe"/>
+                   </apex:input>
                </apex:column>
                <apex:column headerValue="Precio real">
-               		<apex:input value="{!opp.PrecioReal}" style="width:80px;" disabled="{!DisabledPrecio}" onKeyPress=" return IsNumeric(event)"/>		
+               		<apex:input value="{!opp.PrecioReal}"
+                                    style="width:80px;"
+                                    disabled="{!DisabledPrecio}"
+                                    onKeyPress=" return IsNumeric(event)">
+                        	<apex:actionSupport event="onblur" action="{!GeneraDevoluciones}" reRender="importe"/>
+                   </apex:input>
                </apex:column>
-
             </apex:pageBlockTable> 
         </apex:pageBlockSection>
     </apex:pageBlock>

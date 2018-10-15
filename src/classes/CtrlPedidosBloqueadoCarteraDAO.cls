@@ -9,7 +9,7 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
     	System.debug('CANALFACTURA:=> '+canalFactura);
       String fieldName = ' ,Name,Folio_Pedido_SDL__c,Fecha_de_Embarque__c,Cliente__r.Name,Cliente__r.Numero_Cliente_SAP__c,Canal__c,Fecha_de_Entrega__c,';
       fieldName +='Account.Name,Motivo_Rechazo_Cartera__c,Cliente__r.Organizacion_de_Ventas__c,Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c,';
-      fieldName +='Cliente__r.Sociedad__c,Cliente__r.Canal_Distribucion__c,Cliente__r.Moneda_Cliente__c,Id_Externo__c,Canal_Factura__r.IdPlanta__c,motiv_aprov_recha__c,Numero_de_Pedido_NSC__c,Canal_Factura__r.Codigo__c,Canal_Factura__r.SucursalesViz__c,frontera__c ';
+      fieldName +='Cliente__r.Sociedad__c,Cliente__r.Canal_Distribucion__c,Cliente__r.Moneda_Cliente__c,Id_Externo__c,Canal_Factura__r.IdPlanta__c,motiv_aprov_recha__c,Numero_de_Pedido_NSC__c,Canal_Factura__r.Codigo__c,Canal_Factura__r.SucursalesViz__c,frontera__c,Canal_Factura__r.Opera_en_SAP__c ';
   		String bloqueado = 'N';
   	 	String fechaConsulta = String.valueOf(fecha);
   	 	String dynQuery = 'select Id ' + fieldName + ' From Opportunity ';
@@ -113,7 +113,7 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
     		 String orgVenta = opp.Cliente__r.Organizacion_de_Ventas__c.trim();
              orgVenta = orgVenta.right(4);
 
-             CarteraClienteQueryNSCWS.Cartera cartera  = retrieveCarteraCliente(Integer.valueOf(opp.Cliente__r.Numero_Cliente_SAP__c), Integer.valueOf(opp.Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c), orgVenta);
+             CarteraClienteQueryNSCWS.Cartera cartera  = retrieveCarteraCliente(Integer.valueOf(opp.Cliente__r.Numero_Cliente_SAP__c), Integer.valueOf(opp.Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c), orgVenta,opp.Canal_Factura__r.Opera_en_SAP__c );
              if(cartera != null)
              {
              	wp.SaldoActual = cartera.SaldoActual;
@@ -153,7 +153,7 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
     {
     	String fieldName = ',Name,Folio_Pedido_SDL__c,Fecha_de_Embarque__c,Cliente__r.Name,Cliente__r.Numero_Cliente_SAP__c,Canal__c,Fecha_de_Entrega__c,';
     	fieldName +='Motivo_Rechazo_Cartera__c,Cliente__r.Organizacion_de_Ventas__c,Cliente__r.Canal_de_Distribucion_NSC__r.Codigo__c,';
-    	fieldName +='Cliente__r.Sociedad__c,Cliente__r.Canal_Distribucion__c,Cliente__r.Moneda_Cliente__c,Id_Externo__c,Canal_Factura__r.IdPlanta__c,Account.Name ';
+    	fieldName +='Cliente__r.Sociedad__c,Cliente__r.Canal_Distribucion__c,Cliente__r.Moneda_Cliente__c,Id_Externo__c,Canal_Factura__r.IdPlanta__c,Account.Name, Canal_Factura__r.Opera_en_SAP__c ';
       Configuracion_Cartera__c Configuracion_Cartera = Configuracion_Cartera__c.getInstance();
   		Decimal Dias = Configuracion_Cartera.Dias_Saldo__c;
 
@@ -186,12 +186,12 @@ public with sharing class CtrlPedidosBloqueadoCarteraDAO {
   		AggregateResult[] ImportePedidos = CalcularImportesClientes(setOpp);
   		return ImportePedidos;
     }
-    public static CarteraClienteQueryNSCWS.Cartera retrieveCarteraCliente(Integer cliente, Integer canal, String orgVenta) {
+    public static CarteraClienteQueryNSCWS.Cartera retrieveCarteraCliente(Integer cliente, Integer canal, String orgVenta,boolean operaSap) {
         CarteraClienteQueryNSCWS.CarteraClientesSoap request = new CarteraClienteQueryNSCWS.CarteraClientesSoap();
         request.timeout_x = WEB_SERVICE_TIMEOUT;
         for(Integer i=1; i<=MAX_CALLOUT_RETRIES; i++) {
             try {
-                return request.RegresaCartera(cliente, canal, orgVenta).Datos.Cartera[0];
+                return request.RegresaCartera(cliente, canal, orgVenta,operaSap).Datos.Cartera[0];
             } catch(Exception e) {
                 if(i == MAX_CALLOUT_RETRIES) {
                     ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.FATAL, CARTERACLIENTE_WEB_SERVICE_ERROR+e.getMessage()));

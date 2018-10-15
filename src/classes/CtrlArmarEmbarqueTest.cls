@@ -118,7 +118,7 @@ public class CtrlArmarEmbarqueTest {
        	{
        		system.debug('Listapedidos ' +Ext.Listapedidos.size());
        		Ext.Listapedidos[0].Seleccionado = true;
-       		Ext.GuardarEmbarque();
+       		//Ext.GuardarEmbarque();
        		Ext.CodigoAlmacen = '64';
        		Ext.Listapedidos[0].Seleccionado = true;
        		Ext.Listapedidos[0].Orden = 1;
@@ -562,103 +562,6 @@ public class CtrlArmarEmbarqueTest {
 	      
        		Test.stopTest();
        }
-  
-      /* static  testmethod void CerrarEmbarqueN()
-       {
-       	    endpoints__c ep = new endpoints__c();
-        	ep.GrabarPedidosLegados__c = 'http://192.168.217.29:2562/SKServiciosExternos/SAP/PedidosMayoreoLegados.asmx';
-            upsert ep;
-       		Oficina_de_Venta__c Ofiv = CrearOficinaVentas();
-	    	Opportunity Pedido = CrearPedido('P20160129','A');
-	    	Product2 prod = CrearProducto();
-	    	PricebookEntry ListaPrecios = CrearPricebookEntry(prod);
-	    	CrearOpportunityLineItem(pedido,ListaPrecios);
-	    	list<Opportunity> listaPedidos = new list<Opportunity>();
-	    	Pedido.Liberado__c = 'S';
-
-	    	listaPedidos.add(pedido);
-	      	CtrlArmarEmbarque Ext = new CtrlArmarEmbarque();
-	    	Ext.Canal = 'A';
-	    	Ext.Frontera = '';
-	    	Ext.CodigoAlmacen = '64';
-	       	Ext.Fecha_embarque =  Date.today().addDays(2);
-	       	Ext.AlmacenId = Ofiv.Id;
-	       	Ext.getPedidos();
-	       	embarque__c embarque = 	CtrlArmarEmbarqueDAO.GenerarEmbarquesConPedidoConFolio(listaPedidos,'A',Ofiv.Id,Date.today().addDays(2));
-	       	Ext.ListaEmbarques= Ext.ObtenerEmbarques();
-	       	
-	       
-	       	Test.startTest(); 
-	        Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock());
-	       	Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
-            Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());
-           Test.setMock(WebServiceMock.class, new WsEntregasMock());
-	       	Ext.ListaEmbarques[0].Seleccionado = true;
-	      	Ext.CerrarEmbarque();
-       		Test.stopTest();
-       }
-       static  testmethod void CerrarEmbarqueFail()
-       {
-       	endpoints__c ep = new endpoints__c();
-        	ep.GrabarPedidosLegados__c = 'http://192.168.217.29:2562/SKServiciosExternos/SAP/PedidosMayoreoLegados.asmx';
-            upsert ep;
-       		Oficina_de_Venta__c Ofiv = CrearOficinaVentas();
-	    	Opportunity Pedido = CrearPedido('P20160129','A');
-	    	Product2 prod = CrearProducto();
-	    	PricebookEntry ListaPrecios = CrearPricebookEntry(prod);
-	    	CrearOpportunityLineItem(pedido,ListaPrecios);
-	    	list<Opportunity> listaPedidos = new list<Opportunity>();
-	    	Pedido.Liberado__c = 'S';
-	    	listaPedidos.add(pedido);
-	      	CtrlArmarEmbarque Ext = new CtrlArmarEmbarque();
-	    	Ext.Canal = 'A';
-	    	Ext.Frontera = '';
-	    	Ext.CodigoAlmacen = '64';
-	       	Ext.Fecha_embarque =  Date.today().addDays(2);
-	       	Ext.AlmacenId = Ofiv.Id;
-	       	Ext.getPedidos();
-	       	embarque__c embarque = 	CtrlArmarEmbarqueDAO.GenerarEmbarquesConPedidoConFolio(listaPedidos,'A',Ofiv.Id,Date.today().addDays(2));
-	       	Ext.ListaEmbarques= Ext.ObtenerEmbarques();
-	       	Test.startTest();
-	       	Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock.WsArmarEmbarqueSDLWebServiceMockFail());
-	       	Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());
-	       	Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
-	       	Test.setMock(WebServiceMock.class, new WsEntregasMock());	
-	       	Ext.ListaEmbarques[0].Seleccionado = true;
-	      	Ext.CerrarEmbarque();
-       		Test.stopTest();
-       }
-       static  testmethod void CerrarEmbarqueFailError()
-       {
-       		endpoints__c ep = new endpoints__c();
-        	ep.GrabarPedidosLegados__c = 'http://192.168.217.29:2562/SKServiciosExternos/SAP/PedidosMayoreoLegados.asmx';
-            upsert ep;
-       		Oficina_de_Venta__c Ofiv = CrearOficinaVentas();
-	    	Opportunity Pedido = CrearPedido('P20160129','A');
-	    	Product2 prod = CrearProducto();
-	    	PricebookEntry ListaPrecios = CrearPricebookEntry(prod);
-	    	CrearOpportunityLineItem(pedido,ListaPrecios);
-	    	list<Opportunity> listaPedidos = new list<Opportunity>();
-	    	Pedido.Liberado__c = 'S';
-	    	listaPedidos.add(pedido);
-	      	CtrlArmarEmbarque Ext = new CtrlArmarEmbarque();
-	    	Ext.Canal = 'A';
-	    	Ext.Frontera = '';
-	    	Ext.CodigoAlmacen = '64';
-	       	Ext.Fecha_embarque =  Date.today().addDays(2);
-	       	Ext.AlmacenId = Ofiv.Id;
-	       	Ext.getPedidos();
-	       	embarque__c embarque = 	CtrlArmarEmbarqueDAO.GenerarEmbarquesConPedidoConFolio(listaPedidos,'A',Ofiv.Id,Date.today().addDays(2));
-	       	Ext.ListaEmbarques= Ext.ObtenerEmbarques();
-	       	Test.startTest();
-	       	Test.setMock(WebServiceMock.class, new WsArmarEmbarqueSDLWebServiceMock.UnauthorizedEndpointResponse());
-	        Test.setMock(WebServiceMock.class, new WsPedidosMayoreoLegadosMock());
-	       	Test.setMock(HttpCalloutMock.class, new WsComposicionEmbarqueMockHttp());
-	       	Test.setMock(WebServiceMock.class, new WsEntregasMock());
-	       	Ext.ListaEmbarques[0].Seleccionado = true;
-	      	Ext.CerrarEmbarque();
-       		Test.stopTest();
-       }*/
        static  testmethod void AbrirEmbarque()
        {
        		Oficina_de_Venta__c Ofiv = CrearOficinaVentas();
@@ -1216,6 +1119,9 @@ public class CtrlArmarEmbarqueTest {
         pedido.Fecha_de_Entrega__c = Date.today().addDays(6);
         pedido.unidad__c ='C';
 		pedido.Canal__c ='A';
+        
+        system.debug('PEDIDO=> '+  pedido);
+        
         upsert pedido;
         return pedido;
 

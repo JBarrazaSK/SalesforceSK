@@ -37,7 +37,7 @@ public class WsABCPeidosSFSAPTest implements WebServiceMock {
          new WsABCPeidosSFSAP.EnviarInformacionASap_element();
          new WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_RespPedido();
          new WsABCPeidosSFSAP.ArrayOfDT_SE_ABCPedidos_ReqLista();
-         
+                  
          insert new endpoints__c(ABCPedidosSF__c='http://localhost/tests');
          WsABCPeidosSFSAP.ABCPedidosSF_SAPSoap sp = new WsABCPeidosSFSAP.ABCPedidosSF_SAPSoap();
          try{sp.EnviarInformacionASap(null);}catch(Exception e){}

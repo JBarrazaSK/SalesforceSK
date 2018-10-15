@@ -27,7 +27,10 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
 
   		Test.setMock(WebServiceMock.class, new PedidoUtilsTest());
       
-
+        SKServiciosExternos__c  conf = new SKServiciosExternos__c();
+        conf.Notificacion_errores__c = 'ramon.atondo@sukarne.com';
+        conf.Prospectos__c = 'https://test.com';
+        insert conf;
         Test.startTest();
         //Se prueba mediante ProductosBalanceoControllerTest y PedidoWizardTest
  		crearMonedas();
@@ -148,7 +151,7 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         inventarioSAPP.TipoInventario  ='10';
         inventarioSAPP.TipoManejoInventario ='10'; 
         inventarioSAPP.EsPesoEstandar  ='10';
-        inventarioSAPP.Contenido  ='10';
+        inventarioSAPP.Contenido  ='10.00';
         externalSources.CrearElementoInventario(inventarioSAPP);
         externalSources.setIsClosedPlaza(accountWrapper.cliente, accountWrapper.sucursal, accountWrapper.canal, pedidoWrapper.pedido.OficinaVentas__r!=null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c):null);
         externalSources.setInventarioXProductCodeMap(accountWrapper.cliente, accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c);
@@ -209,7 +212,7 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         inv.TipoInventario =100;
         inv.TipoManejoInventario =100;
         inv.EsPesoEstandar =true;
-        inv.Contenido =100;
+        inv.Contenido =100.50;
         Map<String, ProductoInventarioQueryNSCWS.Inventario> inventarioXProductCodeMap =  new Map<String, ProductoInventarioQueryNSCWS.Inventario>();
         inventarioXProductCodeMap.put(String.valueOf('1010'),inv);
         pedidoWrapper.addCurrentAmountsToInventory(inventarioXProductCodeMap);
@@ -274,7 +277,7 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         pedido.Canal__c = '3';
         pedido.Correo_electronico_del_cliente__c = 'correo@correo.com';
         pedido.TipoSurtido__c = '1';
-        pedido.Cuenta__c = '0012C00000FCWsuQAH';
+        pedido.Cuenta__c = obtenercuenta().Id;//'0012C00000FCWsuQAH';
        	pedido.Fecha_Registro__c = date.today();
         Lead lead =  crearLEAD();
         pedido.Prospecto__c =    lead.Id;
@@ -285,11 +288,8 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
         pedido.OficinaVentas__c = ofi.Id;
         pedido.Forma_Pago_Original__c = '2 - Crédito';
         pedido.Factura_No_Fiscal__c = false;
-        pedido.Orden_de_Compra__c = '1092';
-       
-        
-        //pedido.OficinaVentas__r = ofi;       
-        pedido.Numero_de_Pedido_NSC__c = '';
+        pedido.Orden_de_Compra__c = '1092';    
+        pedido.Numero_de_Pedido_NSC__c = '1010';
         
         upsert pedido;
         return pedido;
@@ -299,6 +299,7 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
          Canal_de_Distribucion_NSC__c canalDistribucionNSC = new Canal_de_Distribucion_NSC__c(
 	            Codigo__c = '1000'
 	        );
+        canalDistribucionNSC.Estructura_de_venta__c =  crearEstructura().Id;
 	       upsert canalDistribucionNSC;
         return canalDistribucionNSC;
     }
@@ -321,11 +322,23 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
             LastName = 'TEST',
             RFC__c = 'XXXXXXXXXXX3',
             Telefono__c = '0000000000',
-            Estructura_de_venta__c = crearEstructura().Id,
+            Estructura_de_venta__c = ObtenerEstructuraventa().id,
             Colonia__c = colonia.id
-            
         );
+        lead.Estado_Prospecto__c ='Solicitud Alta SK';
+        lead.Potencial_Cerdo_Kg__c = 201.00;
+        lead.Potencial_Pescado_Kg__c = 11.00;
+        lead.Potencial_Res_Kg__c = 2.00;
+        lead.Potencial_Pollo_Kg__c=2.00;
+        lead.Dias_de_Entrega__c = 'Luenes,Martes';
+        lead.Hora_Ideal_Entrega__c = '07:00 A 10:00';
+        lead.Hora_Preferida_Llamada_Contacto__c = '10:00';
+        lead.Calle__c = 'calle1';
+        lead.No_Exterior__c = '1';
+        lead.No_Interior__c = '11';
+        lead.Entre_Calle__c = '1 y 2';
         lead.Id_prospecto_sap__c = '0000807856';
+        lead.Tipo_Persona__c = 'Fisica';
         insert lead;
         return lead;
     }
@@ -339,7 +352,7 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
             Zona__c = 'NOROESTE - 102',
             Grupo_de_clientes_Codigo__c = '7',
             Grupo_de_clientes__c = 'CULIACAN - 7',
-           // Grupo_de_vendedores__c = obtenerGpoVendedores().Id,
+            Grupo_de_vendedores__c = obtenerGrupoVendedores().Id,
             Grupo_de_Vendedores_Codigo__c = '108',
             Oficina_de_ventas__c = obtenerOfiv().Id
         );
@@ -392,6 +405,7 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
               Descripcion__c = 'T2 MANAGUA',
               TipoSurtido__c = '2 - Directo'
           );
+            gpoVendedores.Name = 'GRupoVendorees';
         upsert gpoVendedores;
         return gpoVendedores;
     }
@@ -416,9 +430,12 @@ public with sharing class PedidoUtilsTest implements WebServiceMock {
     {
         return [SELECT id,Tipo_Surtido__c FROM Account Limit 1];        
     }
-        public static Lead obtenerLead()
+    public static Lead obtenerLead()
     {
-        return [SELECT id FROM Lead Limit 1];        
-    
+        return [SELECT id FROM Lead Limit 1];    
     }    
+    public static Estructura_de_venta__c ObtenerEstructuraventa()
+    {
+        return [SELECT id FROM Estructura_de_venta__c Limit 1];          
+    }  
 }

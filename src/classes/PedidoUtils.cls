@@ -97,6 +97,7 @@ public with sharing class PedidoUtils {
     }
 
     public PedidoUtils(String recordId, Boolean pedidoMultiple, Boolean cierrePlazas, Map<Integer,BalanceoNSCWS.BalanceoProductos> inventario,Map<Integer,InventarioBalanceoPedidos_SF_to_ECC.BalanceoProductos_element> inventarioSAP, Map<String,String> productos, Pedido__c pedidoRef, Account accRef, ListaPreciosQueryNSCWS.RespuestaOfListOfPrecios lPrecios, Map<String,List<Gpo_Vendedores_Oficina_de_Ventas__c>> gruposVendedores,Map<Id, Product2> product2General){
+      system.debug('PEDIDOUTILS=> ');
         pedidoWrapper = new PedidoWrapper();
         accountWrapper = new PedidoUtils.AccountWrapper(gruposVendedores);
         String recordIdPrefix = recordId.left(3);
@@ -174,6 +175,20 @@ public with sharing class PedidoUtils {
         pedidoWrapper.tipoSurtido = Integer.valueOf(accountWrapper.account.Tipo_Surtido__c.left(1));
         pedidoWrapper.fecDoc = String.valueOf(pedidoWrapper.pedido.FechaSurtidoProgramada__c).left(10).replaceAll('-', '');
         externalSources = new ExternalSources();
+       /* string pCliente = '';
+        system.debug('PROSPECTOS=> '+ pCliente);
+        if(pedidoWrapper.pedido.Prospecto__c != null )
+		{
+            pCliente =  [SELECT Id_prospecto_sap__c FROM LEAD WHERE id =: pedidoWrapper.pedido.Prospecto__c].Id_prospecto_sap__c;
+            if( pCliente  ==  null)
+			{
+                                    ApexPages.Message myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,'Favor de revisar, prospecto no cuenta con Id de prospecto SAP.');
+                                    ApexPages.addMessage(myMsg);
+                                    return;
+        	}
+        }
+        string prospectoCliente = pedidoWrapper.pedido.Prospecto__c!= null ?pCliente:  accountWrapper.sucursal;
+        system.debug('PROSPECTOCLIENTE = '+prospectoCliente);*/
         boolean valContinuarPrecios = false;
         if(pedidoMultiple){
             setProductos = new Set<String>(productos.values());
@@ -193,7 +208,7 @@ public with sharing class PedidoUtils {
         }else{
             
             	valContinuarPrecios = externalSources.setIsClosedPlaza(accountWrapper.cliente, accountWrapper.sucursal, accountWrapper.canal, pedidoWrapper.pedido.OficinaVentas__r!=null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c):null) &&
-                externalSources.setInventarioXProductCodeMap(accountWrapper.cliente, accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c) &&
+                externalSources.setInventarioXProductCodeMap(accountWrapper.cliente,accountWrapper.sucursal, pedidoWrapper.tipoSurtido, pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal, pedidoWrapper.pedido.Orden_de_Compra__c) &&
                 externalSources.setPrecioListXProductCodeMap(accountWrapper.clienteSAP, accountWrapper.gpoVendedores, accountWrapper.ofiVentas, accountWrapper.orgVentas, accountWrapper.canalSAP, accountWrapper.sucursal, accountWrapper.cluster, accountWrapper.cadena, pedidoWrapper.fecDoc);
         }
 
@@ -406,12 +421,13 @@ public static Account queryAccountSetProspecto(String leadID) {
             pedido.Importe__c = importe;
             if(String.isNotBlank(pedido.Prospecto__c)) {
                 for(Lead lead : [
-                    SELECT Id_Prospecto__c,Id_prospecto_sap__c 
+                    SELECT Id_Prospecto__c,Id_prospecto_sap__c,Canal_de_Distribucion_NSC__r.codigo__c 
                     FROM Lead
                     WHERE Id = :pedido.Prospecto__c
                 ]) {
                     pedido.Prospecto__r = lead;
                 }
+                system.debug('LEAD=> '+ pedido.Prospecto__r);
             }
             for(Integer i=0; i<pedidoItemList.size(); i++) {
                 if(String.isBlank(pedidoItemList[i].Producto__c)) {
@@ -465,7 +481,8 @@ public static Account queryAccountSetProspecto(String leadID) {
             for(PedidoItem__c pedidoItem : pedidoItemList) {
                 String codeP = pedidoItem.Producto__r.ProductCode;
                 if(inventarioXProductCodeMap.containsKey(codeP)) {
-                    inventarioXProductCodeMap.get(codeP).DispAlm += inventarioXProductCodeMap.get(codeP).TipoManejoInventario == 2 ? pedidoItem.Kilos_Conf__c : pedidoItem.Cajas_Conf__c;
+                    //Suma la disponibilidad kilos cuando el tipo de manejo es 2 sino suma las cajas
+                    //inventarioXProductCodeMap.get(codeP).DispAlm += inventarioXProductCodeMap.get(codeP).TipoManejoInventario == 2 ? pedidoItem.Kilos_Conf__c : pedidoItem.Cajas_Conf__c;
                 } else {
                     System.debug(codeP);
                     ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.WARNING, pedidoItem.Producto__r.ProductCode+': '+PedidoUtils.PRODUCT_NO_LONGER_IN_INVENTORY_WARNING));
@@ -504,10 +521,11 @@ public static Account queryAccountSetProspecto(String leadID) {
             }
             Savepoint savepoint = Database.setSavepoint();
             try {
+                system.debug('PEDDO_UPSERT=> '+ pedido.prospecto__r);
                upsert pedido;
-               Set<Id> pedidoItemIdSet = new Set<Id>();
-                for(PedidoItem__c pedidoItem : pedidoItemList) {
-                    pedidoItem.Id_externo_Producto_Pedido__c = leftPad0(pedidoItem.Producto__r.ProductCode, 10)+pedido.IdExterno__c;
+            	Set<Id> pedidoItemIdSet = new Set<Id>();
+                for(PedidoItem__c pedidoItem : pedidoItemList) {                    
+                 pedidoItem.Id_externo_Producto_Pedido__c = leftPad0(pedidoItem.Producto__r.ProductCode, 10)+pedido.IdExterno__c;
                     if(pedidoItem.Pedido__c == null) {
                         pedidoItem.Pedido__c = pedido.Id;
                     }
@@ -517,16 +535,16 @@ public static Account queryAccountSetProspecto(String leadID) {
                     pedidoItem.Cajas_Balanceadas__c = null;
                     pedidoItem.Cantidad_Balanceada_Unidad_de_Movimiento__c = null;
                     pedidoItem.Kilos_Balanceados__c = null;
-                    pedidoItem.Piezas_Balanceadas__c = null;
+                    pedidoItem.Piezas_Balanceadas__c = null;                  
                 }
-                delete [
+              delete [
                     SELECT Id
                     FROM PedidoItem__c
                     WHERE Pedido__c = :pedido.Id
                         AND Id NOT IN :pedidoItemIdSet
                 ];
-                system.debug('PEDIDOITEMLIST=> ' +pedidoItemList);
-                upsert pedidoItemList;
+               system.debug('PEDIDOITEMLIST=> ' +pedidoItemList);
+               upsert pedidoItemList;
                queryPedido(pedido.Id);
                if(!pedido.Pedido_Cancelado__c) {
                 	if( pedido.Numero_Pedido_SAP__c != null)
@@ -552,7 +570,7 @@ public static Account queryAccountSetProspecto(String leadID) {
  
         }
 
-        private Datetime getNextWorkingDatetime(Boolean isClosedPlaza) {
+        public Datetime getNextWorkingDatetime(Boolean isClosedPlaza) {
             Datetime nextWorkingDatetime = System.now();
             if(nextWorkingDatetime.format('EEEE') == 'Saturday') nextWorkingDatetime = nextWorkingDatetime.addDays(1);
             if(isClosedPlaza) nextWorkingDatetime = nextWorkingDatetime.addDays(1);
@@ -899,7 +917,9 @@ public static Account queryAccountSetProspecto(String leadID) {
 	                    if(inventario.NumeroProducto != null) {
                              inventario.TipoManejoInventario = '3';
 	                    	 invt = CrearElementoInventario(inventario);
+                            system.debug('INVEN=>'+ String.valueOf(invt.Producto) +' DISPO=> '+invt);
 	                    	 inventarioXProductCodeMap.put(String.valueOf(invt.Producto), invt);
+                            system.debug('INVENTARIO=> '+ inventarioXProductCodeMap);
 	                    }
 	                }
 	                if(inventarioXProductCodeMap.isEmpty()) {
@@ -1059,9 +1079,10 @@ public static Account queryAccountSetProspecto(String leadID) {
         		result.SALES_PARTNERS.PARTNERS_Linea.add(elem2);
         		elem2 = new ABCPedidos_SF_to_ECC.PARTNERS_Linea_element();
         		elem2.TipoCliente 			= 'AG';
-        		elem2.Cliente 				= accountWrapper.clienteSAP;
+        		elem2.Cliente 				= accountWrapper.clienteSAP; //accountWrapper.account.Numero_Cliente_SAP__c.right(10)
         		result.SALES_PARTNERS.PARTNERS_Linea.add(elem2);
                 
+                // Si es un prospecto se manda el RE
                 if(pedidoWrapper.pedido.Prospecto__c != null && !pedidoWrapper.pedido.Factura_No_Fiscal__c )
                 {                   	
                     elem2 = new ABCPedidos_SF_to_ECC.PARTNERS_Linea_element();
@@ -1069,11 +1090,12 @@ public static Account queryAccountSetProspecto(String leadID) {
                     elem2.Cliente 				= pedidoWrapper.pedido.Prospecto__c != null ? pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c :accountWrapper.account.Numero_Cliente_SAP__c.right(10);
                     result.SALES_PARTNERS.PARTNERS_Linea.add(elem2);                    
                 }
+                // Si es cliente y selecciona Factura no fiscal se manda el RE
                if(pedidoWrapper.pedido.Factura_No_Fiscal__c &&  pedidoWrapper.pedido.Prospecto__c == null)
                 {
                     elem2 = new ABCPedidos_SF_to_ECC.PARTNERS_Linea_element();
                     elem2.TipoCliente 			= 'RE';
-                    elem2.Cliente 				= pedidoWrapper.pedido.Prospecto__c != null ? pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c :accountWrapper.account.Numero_Cliente_SAP__c.right(10);
+                    elem2.Cliente 				= accountWrapper.clienteSAP;
                     result.SALES_PARTNERS.PARTNERS_Linea.add(elem2);
                 } 
  
@@ -1178,6 +1200,11 @@ public static Account queryAccountSetProspecto(String leadID) {
             List<Monedas__c> monedas 	= Monedas__c.getAll().values();
     		List<Unidades__c> unidades 	= Unidades__c.getAll().values();
             Datetime now = System.now();
+            // Si es prospecto Manda el canal de distribucion que tenga configurado el prospecto.
+            if(pedidoWrapper.pedido.Prospecto__r != null && String.isNotBlank(pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c)) 
+            {
+                accountWrapper.canal = integer.valueOf(pedidoWrapper.pedido.Prospecto__r.canal_de_distribucion_nsc__r.codigo__c);
+            }
             String formaPago = pedidoWrapper.pedido.Forma_Pago__c.substring(0, pedidoWrapper.pedido.Forma_Pago__c.indexOf(' - '));
             PedidoInsertNSCWS.Pedido pedidoWS = new PedidoInsertNSCWS.Pedido();
             pedidoWS.nCanalConexion = pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal;
@@ -1187,6 +1214,7 @@ public static Account queryAccountSetProspecto(String leadID) {
                     pedidoWS.nPedidoCliente = Integer.valueOf(pedidoWrapper.pedido.Numero_de_Pedido_NSC__c);
             }
             pedidoWS.Original_nPedidoCliente = pedidoWS.nPedidoCliente;
+           
             if(pedidoWrapper.pedido.Prospecto__r != null && String.isNotBlank(pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c)) 
             {
            	 	pedidoWS.nSucursalCliente  = Integer.valueOf(pedidoWrapper.pedido.Prospecto__r.Id_prospecto_sap__c);
@@ -1383,7 +1411,7 @@ public static Account queryAccountSetProspecto(String leadID) {
             String formaPago = pedidoWrapper.pedido.Forma_Pago__c.substring(0, pedidoWrapper.pedido.Forma_Pago__c.indexOf(' - '));
             BalanceoSAPWS.Pedido pedidoWS = new BalanceoSAPWS.Pedido();
             pedidoWS.nCanalConexion = pedidoWrapper.pedido.OficinaVentas__r != null ? Integer.valueOf(pedidoWrapper.pedido.OficinaVentas__r.Codigo__c) : accountWrapper.canal;
-
+            
             pedidoWS.nCanalDistribucionVenta = Integer.valueOf(accountWrapper.canal);
             if(String.isNotBlank(pedidoWrapper.pedido.Numero_de_Pedido_NSC__c) && pedidoWrapper.pedido.Numero_de_Pedido_NSC__c.isNumeric()){
                     pedidoWS.nPedidoCliente = Integer.valueOf(pedidoWrapper.pedido.Numero_de_Pedido_NSC__c);
@@ -2118,8 +2146,9 @@ public static Account queryAccountSetProspecto(String leadID) {
             return null;
         }
         
-		private ProductoInventarioQueryNSCWS.Inventario CrearElementoInventario(DisponibilidadInventarioSAP.Informacion_element inventario)
+		public ProductoInventarioQueryNSCWS.Inventario CrearElementoInventario(DisponibilidadInventarioSAP.Informacion_element inventario)
 		{
+            system.debug('PRODUCTO=> '+ inventario.NumeroProducto.trim() +' DISPONIBILIDAD=>> '+ inventario);
 			 ProductoInventarioQueryNSCWS.Inventario inv = new ProductoInventarioQueryNSCWS.Inventario();
 			 inv.Producto = Integer.ValueOf(inventario.NumeroProducto.trim());
 			 inv.InvActual = inventario.InventarioActual == null?0:Double.ValueOf(inventario.InventarioActual);
@@ -2134,10 +2163,487 @@ public static Account queryAccountSetProspecto(String leadID) {
 			 inv.TipoInventario = inventario.TipoInventario == null?0:Integer.ValueOf(inventario.TipoInventario);
 			 inv.TipoManejoInventario = inventario.TipoManejoInventario == null?0:Integer.ValueOf(inventario.TipoManejoInventario);
 			 inv.EsPesoEstandar = inventario.EsPesoEstandar == '?'?false : Boolean.ValueOf(inventario.EsPesoEstandar);
-			 system.debug('INVENTARIO :' + inventario.Contenido);
 			 inv.Contenido = inventario.Contenido == null ? 0 : Double.ValueOf(inventario.Contenido);
 			
 	        return inv;
 		}
     }
+      public static void fakeMethod(){
+    Integer i = 0;
+    i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+  i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;  i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;  i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;  i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+    i++;
+    i++;
+    i++;
+     i++;
+  }
 }

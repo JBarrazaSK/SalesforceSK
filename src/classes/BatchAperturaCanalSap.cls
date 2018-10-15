@@ -17,7 +17,7 @@ global class BatchAperturaCanalSap implements Database.Batchable<sObject>,Databa
  global void execute(Database.BatchableContext BC, List<Oficina_de_Venta__c> scope) {
 
  	List<Oficina_de_Venta__c> listaAGuardar = new List<Oficina_de_Venta__c>();
- 	
+ 	Boolean Estado = false;
  	if (scope.size() > 0)
 	{
 			for(Oficina_de_Venta__c ofv : scope)
@@ -27,10 +27,10 @@ global class BatchAperturaCanalSap implements Database.Batchable<sObject>,Databa
 					ofv.Extension__c= false;
 					listaAGuardar.add(ofv);
 			}
-		EnviarAServicio(listaAGuardar,'A');
+		Estado = EnviarAServicio(listaAGuardar,'A');
 	}
 		
-	if(listaAGuardar.size() > 0)
+	if(listaAGuardar.size() > 0 && Estado)
 	{
 		update listaAGuardar;
 	}
@@ -55,10 +55,11 @@ global  Boolean EnviarAServicio(list<Oficina_de_Venta__c> oficinasVentas,string 
  				if(oficina.OrganizacionesText__c == null)
 		 		{
 		 			Bitacora__c registro = new Bitacora__c();
-					registro.Clase__c = 'BatchCierreCanalSap';
+					registro.Clase__c = 'AperturaCanal';
 					registro.Estado__c = 'Procesado';
-					registro.mensaje__c = '(Cierre de canal) La oficina de ventas no cuenta con  organizacion de ventas ' + oficina.Codigo__c;
+					registro.mensaje__c = '(AperturaCanal) La oficina de ventas no cuenta con  organizacion de ventas ' + oficina.Codigo__c;
 					listaLog.add(registro);
+                    return false;
 		 		}
 		 		request.OrganizacionVentas = oficina.OrganizacionesText__c.right(4);
 		 		request.Sector= '00';
@@ -81,17 +82,17 @@ global  Boolean EnviarAServicio(list<Oficina_de_Venta__c> oficinasVentas,string 
 	 			if(rc != null && rc.Tipo !='S')
 		 		{
 		 			Bitacora__c registro = new Bitacora__c();
-					registro.Clase__c = 'BatchCierreCanalSap';
+					registro.Clase__c = 'BatchAperturaCanalSap';
 					registro.Estado__c = 'Error';
-					registro.mensaje__c = '(Cierre de canal) '+rc.Mensaje;
+					registro.mensaje__c = '(AperturaCanal) '+rc.Mensaje;
 					listaLog.add(registro);
 		 		}
 		 		else
 		 		{
 		 			Bitacora__c registro = new Bitacora__c();
-					registro.Clase__c = 'BatchCierreCanalSap';
+					registro.Clase__c = 'BatchAperturaCanalSap';
 					registro.Estado__c = 'Exitoso';
-					registro.mensaje__c = '(Cierre de canal) '+rc.Mensaje;
+					registro.mensaje__c = '(AperturaCanal) '+rc.Mensaje;
 					listaLog.add(registro);
 		 		}
 	 		}
@@ -99,9 +100,9 @@ global  Boolean EnviarAServicio(list<Oficina_de_Venta__c> oficinasVentas,string 
  		catch(exception ex)
  		{
  			Bitacora__c registro = new Bitacora__c();
-			registro.Clase__c = 'BatchCierreCanalSap';
+			registro.Clase__c = 'BatchAperturaCanalSap';
 			registro.Estado__c = 'Error';
-			registro.mensaje__c = '(Cierre de canal) '+ex.getmessage();
+			registro.mensaje__c = '(AperturaCanal) '+ex.getmessage();
 			listaLog.add(registro);
  			return false;
  		}
@@ -114,5 +115,6 @@ global  Boolean EnviarAServicio(list<Oficina_de_Venta__c> oficinasVentas,string 
         return sFecha;
     } 
  global void finish(Database.BatchableContext BC) {
+ 	 
  }
 }

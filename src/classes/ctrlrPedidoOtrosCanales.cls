@@ -469,7 +469,7 @@ public class ctrlrPedidoOtrosCanales {
             System.debug('Kilos::'+prod.item.Kilos__c); //prod.item.Kilos__c = prod.item.Volumen__c;
         }
         else if( prod.item.Unidad__c == 'P' ) {
-            system.debug('prod.item.Tipo_de_Precio__c Tizoc'+ prod.item.Tipo_de_Precio__c);
+            system.debug('prod.item.Tipo_de_Precio__c Tizoc'+ prod.item.Tipo_de_Precio__c +' UNIDAD_BASE '+sfdcProd.Unidad_de_medida_base__c);
          if(prod.item.Tipo_de_Precio__c == 'PP' && sfdcProd.Unidad_de_medida_base__c =='PI')
           {
               System.debug('PP');
@@ -481,9 +481,9 @@ public class ctrlrPedidoOtrosCanales {
           }
           else if(prod.item.Tipo_de_Precio__c == 'PP' && sfdcProd.Unidad_de_medida_base__c =='CJ')
           {
-                     prod.item.Cajas__c = prod.item.Cantidad__c /prod.pzasXCaja;
-                prod.item.Volumen__c =  prod.item.Cajas__c * prod.item.Peso_Promedio__c;
-                prod.item.Kilos__c = prod.item.Volumen__c;
+              prod.item.Cajas__c = prod.item.Cantidad__c /prod.pzasXCaja;
+              prod.item.Volumen__c =  prod.item.Cajas__c * prod.item.Peso_Promedio__c;
+              prod.item.Kilos__c = prod.item.Volumen__c;
           }
          else if(prod.item.Tipo_de_Precio__c == 'PK' && sfdcProd.Unidad_de_medida_base__c =='CJ')
           {
@@ -496,12 +496,13 @@ public class ctrlrPedidoOtrosCanales {
           }
           else if(prod.item.Tipo_de_Precio__c == 'PK'  && sfdcProd.Unidad_de_medida_base__c =='PI')
           {
-              system.debug('PIEZAS=> '+ ' CANTIDAD=> '+ prod.item.Cantidad__c + ' PESO_PROMEDIO=> ' +prod.item.Peso_Promedio__c);
-              Integer cj = Math.round(prod.item.Cantidad__c/prod.pzasXCaja);
+              	system.debug('CANTIDAD=> '+ prod.item.Cantidad__c + ' PESO_PROMEDIO=> ' +prod.item.Peso_Promedio__c);
+              	Integer cj = Math.round(prod.item.Cantidad__c/prod.pzasXCaja);
                 if( cj < 1 ) { cj = 1; }
                 prod.item.Cajas__c = cj;
                 prod.item.Volumen__c = prod.item.Cantidad__c * prod.item.Peso_Promedio__c;
                 prod.item.Kilos__c = prod.item.Volumen__c;
+              
           }
           else if(prod.item.Tipo_de_Precio__c == 'DK' && sfdcProd.Unidad_de_medida_base__c =='PI')
           {
@@ -648,6 +649,7 @@ public class ctrlrPedidoOtrosCanales {
               }
 
         }else if(prod.item.Unidad__c=='P'){// && (prod.pzas==null || prod.pzas != prod.item.Cantidad__c)){
+            system.debug('UNIDAD_mEDIDA=> '+ prod.item.Unidad__c +' TIPO_PRECIO=> '+ prod.item.Tipo_de_Precio__c);
           if(prod.item.Tipo_de_Precio__c == 'PP' && sfdcProd.Unidad_de_medida_base__c == 'PI' )
               {
                   System.debug('PP');
@@ -704,7 +706,6 @@ public class ctrlrPedidoOtrosCanales {
               }
               else if(prod.item.Tipo_de_Precio__c == 'PK' && sfdcProd.Unidad_de_medida_base__c == 'CJ')
               {
-
                   piezas = Integer.valueOf(prod.item.Cantidad__c);
                   Integer cj = Math.round(prod.item.Cantidad__c/prod.pzasXCaja);
                     if( cj < 1 ) { cj = 1; }
@@ -790,7 +791,7 @@ public class ctrlrPedidoOtrosCanales {
         System.debug('Pallets:: '+tmpPallets+' OP: '+(Double.valueOf(cajas)/Double.valueOf(prod.cajasXPallet)) );
         if(tmpPallets<1){tmpPallets=1;}
         prod.item.Pallets__c = math.round(tmpPallets);
-        prod.item.Volumen__c = vol;
+        prod.item.Volumen__c = integer.valueOf(vol);
         prod.item.Quantity = prod.item.Cantidad__c;
         prod.item.Piezas__c = piezas;
         prod.item.Kilos__c = kg;
@@ -2088,16 +2089,28 @@ public class ctrlrPedidoOtrosCanales {
           }
 
             String liberado, motivoRechazo;
-            if( esValido != null ) {
-                if( esvalido.aprobado ) {
-                    pedido.Liberado__c = 'S'; pedido.MotivoRechazo__c = esvalido.mensaje;
-                }
-                else {
-                    pedido.Liberado__c = 'N';
-                    pedido.MotivoRechazo__c = esvalido.mensaje;
-                    pedido.Motivo_Rechazo_Cartera__c= esvalido.mensaje;
-                    ApexPages.addMessage( new ApexPages.Message(ApexPages.Severity.INFO, esvalido.mensaje));
-                }
+        	system.debug('RESPUESTA=> '+  esValido +' canalDistribucion=> '+canalDistribucion );
+            if( esValido != null ) {   
+                if( canalDistribucion == 'MY' ) {
+                    motivoRechazo = esvalido.mensaje !=  null ? esvalido.mensaje :'';
+                    pedido.Liberado__c = 'S';
+                    pedido.MotivoRechazo__c = motivoRechazo ;
+                	if(esvalido.mensaje != null){
+                    	ApexPages.addMessage( new ApexPages.Message(ApexPages.Severity.INFO, motivoRechazo));
+                	}
+                    system.debug('PEDIDO DE MAYOREO');
+                }else
+                {
+                    if( esvalido.aprobado ) {
+                        pedido.Liberado__c = 'S'; pedido.MotivoRechazo__c = esvalido.mensaje;
+                    }
+                    else {
+                        pedido.Liberado__c = 'N';
+                        pedido.MotivoRechazo__c = esvalido.mensaje;
+                        pedido.Motivo_Rechazo_Cartera__c= esvalido.mensaje;
+                        ApexPages.addMessage( new ApexPages.Message(ApexPages.Severity.INFO, esvalido.mensaje));
+                    }
+                }         	
             }
 
 

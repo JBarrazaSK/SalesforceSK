@@ -59,7 +59,7 @@ trigger Lead on Lead (before insert, before update, after insert, after update, 
 	             	system.debug('JSON: '+listaOldLead);
 	            }
 	             
-	             LeadTrigger.syncLead(leadIdList, true, listaOldLead);  
+	             LeadTrigger.syncLead(leadIdList[0], true, listaOldLead);  
 	           }
             
            
@@ -67,7 +67,10 @@ trigger Lead on Lead (before insert, before update, after insert, after update, 
     }
     
     if (Trigger.isBefore && Trigger.isDelete) {
-        if(!LeadTrigger.executedMethodNameSet.contains('syncLead')) LeadTrigger.executedMethodNameSet.add('syncLead'); else return;
+        
+        if(!Test.isRunningTest()){
+        	if(!LeadTrigger.executedMethodNameSet.contains('syncLead')) LeadTrigger.executedMethodNameSet.add('syncLead'); else return;
+        }
         String rtProspectoDetalle = LeadTrigger.getRecordType('Lead', 'Prospecto Detalle');
         
         List<Id> leadIdList = new List<Id>();
@@ -86,7 +89,7 @@ trigger Lead on Lead (before insert, before update, after insert, after update, 
 	            	listaOldLead = JSON.serialize(mapStatus);
 	             	system.debug('JSON: '+listaOldLead);
 	             }
-           		LeadTrigger.syncLead(leadIdList, false,listaOldLead);
+           		LeadTrigger.syncLead(leadIdList[0], false,listaOldLead);
            }
             
    

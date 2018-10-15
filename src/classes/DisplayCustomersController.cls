@@ -86,7 +86,8 @@ public with sharing class DisplayCustomersController {
         if( Acc.Id != null ){
         
             try{
-                Acc = [SELECT Id, Numero_Cliente_SAP__c, ParentId, Parent.Numero_Cliente_SAP__c, Organizacion_de_Ventas__c 
+                Acc = [SELECT Id, Numero_Cliente_SAP__c, ParentId, Parent.Numero_Cliente_SAP__c, Organizacion_de_Ventas__c,
+                Oficina_de_Ventas__c,Oficina_de_Ventas__r.Opera_en_SAP__c 
                 FROM Account Where Id =: Acc.Id LIMIT 1];
                 //startDate = String.valueOf(Date.valueOf('2014-01-01')).ReplaceAll('-','/');
                 //endDate = String.valueOf(Date.valueOf('2014-02-01')).ReplaceAll('-','/');
@@ -145,7 +146,7 @@ public with sharing class DisplayCustomersController {
             //hreq.setEndPoint('http://187.216.127.15:2562/SKServiciosExternos/SalesForce/EstadoDeCuentaCliente.asmx');
             hreq.setEndPoint(settings.Endpoint_Saldos__c);
             hreq.setMethod('POST');
-            String strBody = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sal="http://www.sukarne.com/ws/salesforce"><soapenv:Header/><soapenv:Body><sal:ConsultarSaldos><sal:cliente>'+strCustomerNumber+'</sal:cliente><sal:fechaInicio>'+ strStartDate +'</sal:fechaInicio><sal:fechaFinal>'+ strEndDate +'</sal:fechaFinal><sal:organizacionVenta>'+organizacionVenta+'</sal:organizacionVenta></sal:ConsultarSaldos></soapenv:Body></soapenv:Envelope>';
+            String strBody = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sal="http://www.sukarne.com/ws/salesforce"><soapenv:Header/><soapenv:Body><sal:ConsultarSaldos><sal:cliente>'+strCustomerNumber+'</sal:cliente><sal:fechaInicio>'+ strStartDate +'</sal:fechaInicio><sal:fechaFinal>'+ strEndDate +'</sal:fechaFinal><sal:organizacionVenta>'+organizacionVenta+'</sal:organizacionVenta><sal:consultarSAP>'+Acc.Oficina_de_Ventas__r.Opera_en_SAP__c+'</sal:consultarSAP></sal:ConsultarSaldos></soapenv:Body></soapenv:Envelope>';
             hreq.setHeader('SOAPAction','http://www.sukarne.com/ws/salesforce/ConsultarSaldos');
             hreq.setHeader('Content-Type','text/xml');
             hreq.setBody(strBody);               

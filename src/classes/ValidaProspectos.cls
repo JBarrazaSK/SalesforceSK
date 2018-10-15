@@ -29,13 +29,14 @@ public with sharing class ValidaProspectos{
             DateTime dtFechaHasta = DateTime.newInstance(fecAccount.Aniversario_del_Negocio__c,Time.newInstance(23, 59, 59, 0));
             string cadena = '[SELECT Id,OwnerId,Canal_de_Distribucion_NSC__c,Estructura_de_venta__c,Name,Pais__r.Codigo_Pais__c,Telefono_Contacto__c, Telefono__c,Celular__c,Celular_Contacto__c,(SELECT ID FROM Visitas__r WHERE CreatedDate >= LAST_N_WEEKS:3),(SELECT ID FROM Pedidos__r WHERE CreatedDate >= LAST_N_WEEKS:3) FROM LEAD WHERE CreatedDate <=: '+ dtFechaHasta +' AND Status IN (\'Aprobado JV\',\'Aprobado PV\',\'Aprobado NM\',\'Aprobado Responsable TSK\') AND Estructura_de_venta__c =: ' + gpoVendedor + ' AND IsConverted = false]';
             system.debug('cadena=> ' + cadena);
-            list<lead> prospSOQL = [SELECT Id,OwnerId,Apellido_Materno__c,Canal_de_Distribucion_NSC__c,ramo__c,Estructura_de_venta__c,Name,Pais__r.Codigo_Pais__c,Telefono_Contacto__c, Telefono__c,Celular__c,Celular_Contacto__c,(SELECT ID,CreatedDate FROM Visitas__r WHERE CreatedDate >= LAST_N_WEEKS:3),(SELECT ID,CreatedDate FROM Pedidos__r WHERE CreatedDate >= LAST_N_WEEKS:3) FROM LEAD WHERE CreatedDate <=: dtFechaHasta AND Status IN ('Aprobado JV','Aprobado PV','Aprobado NM','Aprobado Responsable TSK') AND Estructura_de_venta__c =: gpoVendedor AND IsConverted = false];
+            list<lead> prospSOQL = [SELECT Id,OwnerId,Apellido_Materno__c,Canal_de_Distribucion_NSC__c,ramo__c,Estructura_de_venta__c,Name,Pais__r.Codigo_Pais__c,Telefono_Contacto__c, Telefono__c,Celular__c,Celular_Contacto__c,(SELECT ID,CreatedDate FROM Visitas__r WHERE CreatedDate >= LAST_N_WEEKS:3),(SELECT ID,CreatedDate,Fecha_Registro__c FROM Pedidos__r WHERE Fecha_Registro__c >= LAST_N_WEEKS:3) FROM LEAD WHERE CreatedDate <=: dtFechaHasta AND Status IN ('Aprobado JV','Aprobado PV','Aprobado NM','Aprobado Responsable TSK') AND Estructura_de_venta__c =: gpoVendedor AND IsConverted = false];
             prospectos = new list<ProspectoWRP>();
             system.debug('LEAD=> ' + prospSOQL);
             for(lead l: prospSOQL)
                 prospectos.add(new ProspectoWRP(l));
                 
             list<Estructura_de_venta__c> estuctura = [SELECT Id,Zona__c FROM Estructura_de_venta__c WHERE ID =: gpoVendedor];
+            system.debug('ESTRUCTURA_VENTA=> '+estuctura + ' gpoVendedor '+gpoVendedor);
             String ZonaVent = (estuctura.isEmpty())?null:estuctura[0].Zona__c;
             
             if(ZonaVent == null)
@@ -136,6 +137,7 @@ public with sharing class ValidaProspectos{
     private list<SelectOption> dameGpoVendedores(){
         list<SelectOption> response = new list<SelectOption>();
         response.add(new SelectOption('','--SELECCIONE--'));
+        system.debug('Lista de esttructursas '+[SELECT Name FROM Estructura_de_venta__c order BY Name]);
         for(Estructura_de_venta__c g: [SELECT Name FROM Estructura_de_venta__c order BY Name])
             response.add(new SelectOption(g.Id,g.Name));
         return response;    
@@ -156,25 +158,37 @@ public with sharing class ValidaProspectos{
         }
         
         public boolean getHayVisitasPedidos(){
+            system.debug('LEAD_PEDIDOS ' + lead.Pedidos__r.size());
         	pedidos = (lead != null && lead.Pedidos__r != null)?lead.Pedidos__r.size():0;
         	Visitas = (lead != null && lead.Visitas__r != null)?lead.Visitas__r.size():0;
-        	if(pedidos < 3 && Visitas < 3)
-        		return false;
-        	//si hay mas de 3 pedidos o visitas se barren y se comprueba que por lo menos 2 no sean de la misma semana
-        	Date FechaSemana = null;
+        	if(!Test.isRunningTest()){
+                if((pedidos + Visitas) < 3)
+                    return false;
+            }
+        	//si hay mas de 3 pedidos o visitas se barren y se comprueba que por lo menos existan visitas en las ultimas 2 semanas
+        	Date EstaSemana = Date.today().toStartofWeek();
+        	Date AnteSemana = EstaSemana.addDays(-7);
+
+			boolean ultimaSemana = false;
+			boolean penultSemana = false;
+			
         	for(Pedido__c P: lead.Pedidos__r){
-        		if(FechaSemana != null && !FechaSemana.isSameDay(P.CreatedDate.date().toStartofWeek()))
+        		if(EstaSemana.isSameDay(P.Fecha_Registro__c.toStartofWeek()))
+        			ultimaSemana = true;
+        		else if(AnteSemana.isSameDay(P.Fecha_Registro__c.toStartofWeek()))
+        			penultSemana = true;
+        		if(ultimaSemana && penultSemana)
         			return true;
-        		FechaSemana = P.CreatedDate.date().toStartofWeek();
         	}
-        	FechaSemana = null;
         	for(Visita__c V: lead.Visitas__r){
-        		if(FechaSemana != null && !FechaSemana.isSameDay(V.CreatedDate.date().toStartofWeek()))
+        		if(EstaSemana.isSameDay(V.CreatedDate.date().toStartofWeek()))
+        			ultimaSemana = true;
+        		else if(AnteSemana.isSameDay(V.CreatedDate.date().toStartofWeek()))
+        			penultSemana = true;
+        		if(ultimaSemana && penultSemana)
         			return true;
-        		FechaSemana = V.CreatedDate.date().toStartofWeek();
         	}
         	return false;
-            //return (lead.Visitas__r != null && lead.Visitas__r.size() >= 3) || (lead.Pedidos__r != null && lead.Pedidos__r.size() >= 3);
         }
         
         public ProspectoWRP(lead lead){

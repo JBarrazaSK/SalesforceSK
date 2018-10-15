@@ -36,7 +36,7 @@ public class ctrlCabeceroFacturas {
 
             try {
                 accntRecord = [SELECT Id, Numero_Cliente_SAP__c, ParentId, Parent.Numero_Cliente_SAP__c
-                , Organizacion_de_Ventas__c
+                , Organizacion_de_Ventas__c,Oficina_de_Ventas__r.Opera_en_SAP__c,Oficina_de_Ventas__c
                 FROM Account Where Id = : accntId LIMIT 1];
                 System.debug('\n Controller record:' + accntRecord);
 
@@ -54,7 +54,7 @@ public class ctrlCabeceroFacturas {
                 }
 
                 else{
-                    strXMLdata = sendRequestForInvoices( strCustomerNumber, accntRecord.Organizacion_de_Ventas__c ); //accntRecord.Organizacion_de_Ventas__c );
+                    strXMLdata = sendRequestForInvoices( strCustomerNumber, accntRecord.Organizacion_de_Ventas__c ,accntRecord.Oficina_de_Ventas__r.Opera_en_SAP__c); //accntRecord.Organizacion_de_Ventas__c );
                     System.debug('strXMLdata ::: ' + strXMLdata);
                 }
             } catch (Exception e) {
@@ -66,7 +66,7 @@ public class ctrlCabeceroFacturas {
         return strXMLdata;
     }
 
-    private Static String sendRequestForInvoices(String strCustomerNumber, String organizacionVenta){
+    private Static String sendRequestForInvoices(String strCustomerNumber, String organizacionVenta,boolean operaSap){
 
         //WebService Callout to get FacturaCabecero list as response
 
@@ -85,7 +85,7 @@ public class ctrlCabeceroFacturas {
         hreq.setEndpoint(settings.Endpoint_Facturas__c);
         hreq.setMethod('POST');
 		 system.debug('endpoint ' + settings.Endpoint_Facturas__c);
-        String strBody = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sal="http://www.sukarne.com/ws/salesforce"><soapenv:Header/><soapenv:Body><sal:ConsultarFacturas><sal:cliente>' + strCustomerNumber + '</sal:cliente><sal:serie>' + '' + '</sal:serie><sal:folio>' + '' + '</sal:folio><sal:fechaInicio>' + '' + '</sal:fechaInicio><sal:fechaFinal>' + '' + '</sal:fechaFinal><sal:ObtenerResumen>1</sal:ObtenerResumen><sal:organizacionVenta>'+organizacionVenta+'</sal:organizacionVenta></sal:ConsultarFacturas></soapenv:Body></soapenv:Envelope>';
+        String strBody = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sal="http://www.sukarne.com/ws/salesforce"><soapenv:Header/><soapenv:Body><sal:ConsultarFacturas><sal:cliente>' + strCustomerNumber + '</sal:cliente><sal:serie>' + '' + '</sal:serie><sal:folio>' + '' + '</sal:folio><sal:fechaInicio>' + '' + '</sal:fechaInicio><sal:fechaFinal>' + '' + '</sal:fechaFinal><sal:ObtenerResumen>1</sal:ObtenerResumen><sal:organizacionVenta>'+organizacionVenta+'</sal:organizacionVenta><sal:ConsultaSAP>' + operaSap + '</sal:ConsultaSAP></sal:ConsultarFacturas></soapenv:Body></soapenv:Envelope>';
         System.debug('strBody ::: ' + strBody);
 
         hreq.setHeader('SOAPAction', 'http://www.sukarne.com/ws/salesforce/ConsultarFacturas');

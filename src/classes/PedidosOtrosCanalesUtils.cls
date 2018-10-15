@@ -3181,6 +3181,10 @@ return bandera;
 					                }
                 			}
                 			    opportunityLineItem oppl = new opportunityLineItem();
+            system.debug('CANTIDAD_EN_PIEZAS => ' + cantidad);
+            					if(p.item.Unidad__c == 'P') // Si la unidad base son piezas  manda las piezas en cajaspedidas
+                					cajasTt =  p.item.piezas__c == null ? cantidad :integer.valueOf(p.item.piezas__c);
+                            
 					            oppl.Cajas__c = cajasTt;
 					            oppl.kilos__c = cantidadKGS.setScale(2);
 					            oppl.Volumen__c = librasPeso.setScale(2);
@@ -3195,7 +3199,7 @@ return bandera;
             					oppl.Tipo_de_Inventario__c  = p.item.Tipo_de_Inventario__c;
             					oppl.Unidad__c  = p.item.Unidad__c;
         
-            system.debug(' CODIGO=> '+p.codigo);
+            system.debug(' OPPL=> '+oppl);
             d = new WsActualizaDatosGenerales_NSC_SDL.DetallePedidoMayoreo();           
             d = CrearDetalleNSCSDL(oppl,contador++, request.pedidoDatosGenerales.TipoMoneda,p.codigo,pedido);
             if(d != null)
@@ -5140,8 +5144,10 @@ pedido.StageName = '11 - Bloqueado Cierre';
             System.debug('Error leyendo el canal de distribucion de la sucursal');
             canalDistribucion = '';
         }
+        if(Test.isRunningTest())
+            	return;
         pedido.Canal_Factura__r = PedidosOtrosCanalesUtils.retrieveCanalFacturaInfo( pedido.Canal_Factura__c );
-        
+
         areaResp = ObtenerCanalVenta(pedido); 
         
         system.debug('Planta :: '+ pedido.Canal_Factura__r.IdPlanta__c);

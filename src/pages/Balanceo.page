@@ -60,7 +60,8 @@
                         <apex:inputField value="{!pedidoForm.Fecha_Registro__c}" required="true" id="fechaSurtidoProgramada"/>
                     </apex:pageBlockSectionItem>
                     <apex:inputField value="{!pedidoForm.OficinaVentas__c}" required="true" id="filtroOficinaVentas"/>
-                    
+					<apex:pageBlockSectionItem />
+                     <apex:inputField value="{!pedidoForm.Grupo_de_Vendedores__c}" required="true" id="filtroGV"/>
                     <apex:selectList title="Seleccionar por" label="Aplicar a:" size="1" onchange="validaSelecionaProducto(this.value);" disabled="true" id="selecionaPor">
                         <apex:selectOptions value="{!productSelectionList}"/>
                     </apex:selectList> 
@@ -138,6 +139,7 @@
 					            <th>Confirmado</th>
 					            <th>Balanceado</th>
 					            <th>Canal de Distribución</th>
+					            <th>Celula</th>
 					            <th>Estatus</th>
 					            <th>Televenta</th>
 					            <th>Requiere Autorización</th>
@@ -168,6 +170,7 @@
 			    		onkeypress="integerInputOnly(event)" onblur="validaCantidad(this);" value="{Cajas_Conf__c}" />
 			    </td>
 			    <td title="Canal de Distribución"><span>{Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name}</span></td>
+			    <td title="Celula"><span>{Pedido__r.Cuenta__r.Grupo_de_Vendedores__r.Name}</span></td>
 			    <td title="Estatus"><span>{Pedido__r.EstatusPedido__c}</span></td>
 			    <td title="Televenta"><span>{CreatedBy.Name}</span></td>
 			    <td title="Requiere Autorización"><span>{Pedido__r.RequiereAutorizacion__c}</span></td>
@@ -179,6 +182,8 @@
     <script type="text/javascript">
 
     j$(document).ready(function(){
+        
+        var oficinaCerrada = false;
     });
 
 	function validaCantidad(item){
@@ -239,6 +244,8 @@
         var fechaSurtidoProgramadaArr = [];
         var fechaSurtidoProgramadaVal = '';
         var filtroOV = j$('[id$=":filtroOficinaVentas_lkid"]').val();
+        var filtroGV = j$('[id$=":filtroGV_lkid"]').val();
+
         try{
         	fechaSurtidoProgramadaArr = fechaSurtidoProgramada.split("/");
         	if(fechaSurtidoProgramadaArr.length!=3){
@@ -256,9 +263,10 @@
         	alert("Selecciona una {!$ObjectType.Pedido__c.fields.OficinaVentas__c.Label}");
         	return;
         }
+        
         showLoadingDiv();
         muestraBusquedaProductos();
-        BalanceoController.buscarRemoto(fechaSurtidoProgramadaVal,filtroOV,
+        BalanceoController.buscarRemoto(fechaSurtidoProgramadaVal,filtroOV,filtroGV,
             function(result, event){
                 if (event.status) {
                     j$("#productosBusqueda").html("");
@@ -318,12 +326,14 @@
                     }else{
                     	var ovAbierta = false;
                     	j$.each(canales, function(key, canal){
-                    		j$(".ov-" + canal + "-input").removeClass("ovAbierta").addClass("ovCerrada");
-                    		j$(".ov-" + canal + "-text").removeClass("ovCerrada").addClass("ovAbierta");
+                            j$(".ov-" + canal + "-input").removeClass("ovAbierta").addClass("ovCerrada");
+                            j$(".ov-" + canal + "-text").removeClass("ovCerrada").addClass("ovAbierta");
                     		if(result[canal]===undefined){
                     			console.log("No regresa canal solicitado");
                     		}else if(result[canal]==true){
                     			console.log("Canal "+ canal + " cerrado");
+                                j$(".ov-" + canal + "-input").removeClass("ovCerrada").addClass("ovAbierta");
+                                j$(".ov-" + canal + "-input").attr("readonly","readonly");
                     		}else if(result[canal]==false){
                     			j$(".ov-" + canal + "-text").removeClass("ovAbierta").addClass("ovCerrada");
                     			j$(".ov-" + canal + "-input").removeClass("ovCerrada").addClass("ovAbierta");
@@ -331,9 +341,9 @@
                     		}
                     	});
 
-                		//if(ovAbierta==false){
-                		//	alert("Las plazas estan cerradas");
-                		//}
+                        //if(ovAbierta==false){
+                            //alert("Las plazas estan cerradas");
+                        //}
                     	muestraDetalle(item);
                     }
                     muestraDetalle(item);//FIXME
@@ -474,7 +484,7 @@
     		j$(".sinDisponible").show();
             j$(".sinDisponible").find('.productoBusqueda').show();
     	}else if(item=='P'){
-    		j$("[id$='selectProducto']").prop('disabled', false);
+    		j$("[id$='selectProducto']").prop('disabled', false); 
     	}
     }
 
@@ -504,16 +514,20 @@
     	itemTR = itemTR.replace('{canales}',rmUndefinen(objCanales.canales));
     	itemTR = itemTR.replace('{canalPadre}',rmUndefinen(objCanales.canalPadre));
 
-    	//console.log(itemTR);
+    	
     	return itemTR;
     }
 
     function generaDetalleProducto(pedidos, items){
-    	console.log(items);
+    
     	var trsContent = '';
     	j$.each(pedidos, function(key, pedido){
+    	
+    		
+    		
     		var itemTR = j$('#templateProductosBalanceo tbody').html();
     		var item = items[pedido.Id];
+    		
 	    	itemTR = itemTR.replace('{Pedido__r.OficinaVentas__r.Name}',rmUndefinen(item.Pedido__r.OficinaVentas__r.Name));
 	    	itemTR = itemTR.replace('{Pedido__r.Numero_de_Pedido_NSC__c}',rmUndefinen(item.Pedido__r.Numero_de_Pedido_NSC__c));
 	    	itemTR = itemTR.replace('{Pedido__r.Numero_Pedido_SAP__c}',rmUndefinen(item.Pedido__r.Numero_Pedido_SAP__c));
@@ -521,21 +535,26 @@
 	    	itemTR = itemTR.replace('{Pedido__r.Cuenta__r.Name}',rmUndefinen(item.Pedido__r.Cuenta__r.Name));
 	    	itemTR = itemTR.replace('{Cajas__c}',rmUndefinen(item.Cajas__c));
 	    	itemTR = itemTR.replace(/{Cajas_Balanceadas__c}/g,rmUndefinen(item.Cajas_Balanceadas__c));
-
+	    	itemTR = itemTR.replace('{Pedido__r.Cuenta__r.Grupo_de_Vendedores__r.Name}',rmUndefinen(item.Pedido__r.Cuenta__r.Grupo_de_Vendedores__r.Name));
 	    	itemTR = itemTR.replace('{Cajas_Conf_Balanceadas}',rmUndefinen(item.Cajas_Balanceadas__c==0?item.Cajas_Conf__c:item.Cajas_Balanceadas__c));
-
+			if(item.Pedido__r.prospecto__c != null)
+			{
+				console.log(item. Pedido__r.prospecto__c);
+				itemTR = itemTR.replace('{Pedido__r.Prospecto__r.Grupo_de_Vendedores__r.Name}',rmUndefinen(item. Pedido__r.Prospecto__r.Grupo_de_Vendedores__r.Name));
+			}
 	    	itemTR = itemTR.replace(/{Cajas_Conf__c}/g,rmUndefinen(item.Cajas_Conf__c));
             
 	    	itemTR = itemTR.replace(/{Cajas__c}/g,rmUndefinen(item.Cajas__c));
             
 	    	itemTR = itemTR.replace('{Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name}',rmUndefinen(item.Pedido__r.Cuenta__r.Canal_de_Distribucion_NSC__r.Name));
+
 	    	itemTR = itemTR.replace('{Pedido__r.EstatusPedido__c}',rmUndefinen(item.Pedido__r.EstatusPedido__c));
 	    	itemTR = itemTR.replace('{CreatedBy.Name}',rmUndefinen(item.CreatedBy.Name));
 	    	itemTR = itemTR.replace('{Pedido__r.RequiereAutorizacion__c}',rmUndefinen(item.Pedido__r.RequiereAutorizacion__c?'Si':'No'));
 	    	itemTR = itemTR.replace(/{Pedido__r.OficinaVentas__r.Codigo__c}/g,rmUndefinen(item.Pedido__r.OficinaVentas__r.Codigo__c));
 	    	itemTR = itemTR.replace(/{Id}/g,rmUndefinen(item.Id));
 	    	itemTR = itemTR.replace(/{Pedido__c}/g,rmUndefinen(item.Pedido__c));
-	    	itemTR = itemTR.replace(/{Producto__r.Codigo_Id_Externo__c}/g,rmUndefinen(item.Producto__r.Codigo_Id_Externo__c));
+
 	    	trsContent += itemTR;
 	    });
     	return trsContent;

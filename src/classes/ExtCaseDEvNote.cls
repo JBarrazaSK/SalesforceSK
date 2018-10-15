@@ -6,6 +6,7 @@ public class ExtCaseDEvNote {
     public Factura factura{get;set;}   
     public string idCaso {get;set;}   
     public string Numfactura {get;set;}   
+    public string nombreContacto {get;set;}
     public ExtCaseDEvNote(){}
  
   public ExtCaseDEvNote(ApexPages.StandardController stdController) {
@@ -20,6 +21,7 @@ public class ExtCaseDEvNote {
         	this.caso.OwnerId = grupo.Id;
         	this.caso.Origin ='Portal Interno';
         	this.caso.Status = 'Nuevo';
+            this.caso.SK_Categoria__c =  'Devolución';
         	this.Caso.Repartidor__c =  new Contact().Id;
         }
 
@@ -184,14 +186,13 @@ public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[]
 	  		showPageMessage('WARNING','Cliente no cuenta con una sucursal configurada.');
 	  		return;
 	  	}
-  		String contacto = TraerContacto(cuentaId).Id;
-  		system.debug('REPARTIDOR__C ' + cuentaId);  		
-  		if(contacto == null)
+  		Contact contacto = TraerContacto(cuentaId);		
+  		/*if(contacto == null)
 		{
 	  		showPageMessage('WARNING','No se encuentro un contacto asociado a la cuenta.');
 	  		return;
-	  	}
-  		
+	  	}*/
+    	nombreContacto =  contacto.Name;
   		factura.NombreCliente = String.ValueOf(Datos[0].Cabecero.CodigoCliente)+' - '+Datos[0].Cabecero.DescripcionCliente;
   		factura.OficinaVentas = Datos[0].Cabecero.OficinaVentas;
   		setPicklist(Datos[0].Cabecero.OficinaVentas);
@@ -218,8 +219,7 @@ public void LlenarEntidadFactura(EntityConsultaFactura_SF_to_ECC.Datos_element[]
 		  		df.Importe = dt.Importe;
 		  		factura.ListaProductos.add(df);
   		}
-    
-    this.Caso.ContactId = contacto; 
+    this.Caso.ContactId = contacto.Id; 
     this.caso.AccountId = cuentaId; 
 }
 public void setPicklist(string OficinaVentas)
@@ -268,15 +268,16 @@ public Account TraerCuenta(string NumeroCliente)
 } 
 public Contact TraerContacto (string IdCuenta)
 {
+    system.debug('cuentaid=> '+ IdCuenta);
 	Contact contacto = new Contact();
 	try{
-		contacto = [select id,Name  from Contact where AccountId =: IdCuenta Limit 1];
+		contacto = [SELECT id,Name  FROM Contact WHERE AccountId =: IdCuenta Limit 1];
 	}
 	catch(Exception e)
 	{
 		
 	}
-	
+	system.debug('CONTACTO=> '+ contacto);
 	return contacto;
 }
 public class Factura

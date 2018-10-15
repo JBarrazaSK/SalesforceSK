@@ -39,7 +39,8 @@ public class DisplayInvoicesController {
         
             try {
                 accntRecord = [SELECT Id, Numero_Cliente_SAP__c, Organizacion_de_Ventas__c, 
-                ParentId, Parent.Numero_Cliente_SAP__c FROM Account Where Id = : accntId LIMIT 1];     
+                ParentId, Parent.Numero_Cliente_SAP__c,
+                Oficina_de_Ventas__c,Oficina_de_Ventas__r.Opera_en_SAP__c FROM Account Where Id = : accntId LIMIT 1];     
                 System.debug('\n Controller record:' + accntRecord);
                 
                 if(accntRecord.ParentId != NULL && accntRecord.Parent.Numero_Cliente_SAP__c != NULL){
@@ -63,7 +64,8 @@ public class DisplayInvoicesController {
                     displayPageMessages( 'ERROR', 'Customer Number not found for current Account!');
                 }
                 else{
-                    strXMLdata = sendRequestForInvoices(strCustomerNumber , strSerie, strFolio, strStartDate, strEndDate, orgVentas);
+                	//accntRecord
+                    strXMLdata = sendRequestForInvoices(strCustomerNumber , strSerie, strFolio, strStartDate, strEndDate, orgVentas,accntRecord.Oficina_de_Ventas__r.Opera_en_SAP__c);
                     System.debug('strXMLdata ::: ' + strXMLdata);
                 }
             } catch (Exception e) {
@@ -80,7 +82,7 @@ public class DisplayInvoicesController {
                                                  String strFolio,
                                                  String strStartDate,
                                                  String strEndDate,
-                                                 String orgVentas){
+                                                 String orgVentas, boolean operaSap){
                                     
         //WebService Callout to get FacturaCabecero list as response
 
@@ -91,7 +93,7 @@ public class DisplayInvoicesController {
         hreq.setEndpoint(settings.Endpoint_Facturas__c);
         hreq.setMethod('POST');
 
-        String strBody = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sal="http://www.sukarne.com/ws/salesforce"><soapenv:Header/><soapenv:Body><sal:ConsultarFacturas><sal:cliente>' + strCustomerNumber + '</sal:cliente><sal:serie>' + strSerie + '</sal:serie><sal:folio>' + strFolio + '</sal:folio><sal:fechaInicio>' + strStartDate + '</sal:fechaInicio><sal:fechaFinal>' + strEndDate + '</sal:fechaFinal><sal:organizacionVenta>'+ orgVentas +'</sal:organizacionVenta><sal:ObtenerResumen>0</sal:ObtenerResumen></sal:ConsultarFacturas></soapenv:Body></soapenv:Envelope>';
+        String strBody = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sal="http://www.sukarne.com/ws/salesforce"><soapenv:Header/><soapenv:Body><sal:ConsultarFacturas><sal:cliente>' + strCustomerNumber + '</sal:cliente><sal:serie>' + strSerie + '</sal:serie><sal:folio>' + strFolio + '</sal:folio><sal:fechaInicio>' + strStartDate + '</sal:fechaInicio><sal:fechaFinal>' + strEndDate + '</sal:fechaFinal><sal:organizacionVenta>'+ orgVentas +'</sal:organizacionVenta><sal:ObtenerResumen>0</sal:ObtenerResumen><sal:ConsultaSAP>' + operaSap + '</sal:ConsultaSAP></sal:ConsultarFacturas></soapenv:Body></soapenv:Envelope>';
         System.debug('strBody ::: ' + strBody);
         
         hreq.setHeader('SOAPAction', 'http://www.sukarne.com/ws/salesforce/ConsultarFacturas');

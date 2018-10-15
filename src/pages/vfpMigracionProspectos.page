@@ -1,0 +1,106 @@
+<apex:page showHeader="true" sidebar="false" controller="ControllerMigrarProspectos">
+   <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<style>
+                *{margin:0; padding:0; box-sizing:border-box; font-family: 'Open Sans', sans-serif; }
+                h1, h2, h3, h4, h5, h6{font-weight: 600; font-family: 'Open Sans', sans-serif !important;}
+                table#opportunityTable tr td{font-family: 'Open Sans', sans-serif ; font-size:13px;}
+                label{font-size: 14px; font-weight: 600; padding:15px 0;display:block; }
+                h1.headerSection{font-size: 18px;}
+                .container{max-width:1100px; margin:0 auto; padding:15px;}
+                .headcontainer { padding: 25px 0 15px; text-align:center; }
+                ul.selctList li { margin: 0; list-style: none; display: inline-block; padding-right: 30px; }
+                .selectOptionCls {  padding: 0 0 15px;}
+                input[type="radio"] { vertical-align: middle; -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50px; border: 1px solid #a8c4cd; box-shadow: inset 1px 1px 3px rgba(168, 196, 205, 0.4); -webkit-box-shadow: inset 1px 1px 3px rgba(168, 196, 205, 0.4); -moz-box-shadow: inset 1px 1px 3px rgba(168, 196, 205, 0.4); }
+                input[type="radio"]:checked{background: #2196F3; box-shadow: inset 0 0 0px 4px #fff;}
+                .procesBtn{ padding-top: 0; background: #2196F3; border: 1px solid #2196F3; padding: 5px 25px; color: #fff; font-weight: 700; font-size: 14px; text-transform: capitalize; border-radius: 3px; cursor: pointer; }
+                .procesBtn:hover{background:#017fe2; border: 1px solid #017fe2;}
+                #errorMsg { display:none; border: 1px solid #ccc; padding: 10px; border-radius: 1px; box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.15);  -moz-box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.15);  border-left: 3px solid red; }
+                #showStatusDiv { position: fixed; background: rgba(0, 0, 0, 0.43); width: 100%; height: 100%; top: 0; left: 0; z-index: 999999; }
+                #showStatusDiv img { position: absolute; top: 50%; left: 50%; margin-right: 25px; }
+                /*.warningM2{border-left: 3px solid #f90 !important;}
+                .custom-wrng { background: url('{!URLFOR($Resource.DataImportServiceResource,'Images/warning.svg')}'); background-repeat: no-repeat; background-size: 30px; background-position: 4% 50%; padding: 10px 15px 10px 43px; }
+                .custom-success { border-left: 3px solid #41ad49 !important; background: url('{!URLFOR($Resource.DataImportServiceResource,'Images/tickMark.svg')}'); background-repeat: no-repeat; background-size: 30px; background-position: 4% 50%; padding: 10px 15px 10px 43px; }
+                .custom-error{ background: url('{!URLFOR($Resource.DataImportServiceResource,'Images/error.svg')}'); background-repeat: no-repeat; background-size: 30px; background-position: 4% 50%; padding: 10px 15px 10px 43px; }*/
+                select, input { border: 1px solid #ccc; box-shadow: 0 0 3px rgba(0, 0, 0, 0.08)inset; border-radius: 3px; padding: 2px; }
+                input{padding: 2px 5px;}
+                .list .headerRow th, table.dataTable.no-footer, .list td, .list th, body.oldForecast .list .last td, body.oldForecast .list .last th{border-bottom:1px solid #ccc; }
+                table#opportunityTable { padding: 0 0 31px; }
+                table#opportunityTable tbody{border-left: 1px solid #ccc; border-right: 1px solid #ccc;  }
+                table#opportunityTable tr.even td{background:#f5f4f4;}
+                table#opportunityTable tr:hover td { background: #edf7ff; }
+                .excel_table{ padding-top: 10px; }
+                .dataTables_wrapper .dataTables_paginate .paginate_button{padding: 4px 10px;}
+                .excel_table{ border: 1px solid #ccc; padding: 14px; margin: 20px 0; border-top: 3px solid #c0c0c0; border-radius: 3px; }
+                .mce-branding-powered-by { display:none; !important}
+            </style>
+<script type="text/javascript">
+   Visualforce.remoting.timeout = 120000; // Set timeout at page level
+   var tiempoEspera = 30000;
+   var prospectos = [];
+ function EnvioProspecto(Prospecto) {
+ 		
+           Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.ControllerMigrarProspectos.GuardarProspecto}',
+            Prospecto,
+             function(result, event){
+                if (event.status) {
+                		console.log(result);
+                		
+                   
+                } else if (event.type === 'exception') {
+                   $('#showStatusDiv').hide();
+                } else {
+                    $('#showStatusDiv').hide();
+                }
+            }, 
+             {escape: true,timeout: 120000,buffer: false } 
+        );
+        $('#showStatusDiv').hide();
+    }       
+      function Prospectos() {
+    $('#showStatusDiv').show();
+           Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.ControllerMigrarProspectos.getProspectos}',
+             function(result, event){
+                if (event.status) {
+                 for(i = 0; i < result.length; i++) {
+                	prospectos.push(result[i]);
+	            }
+                     
+                } else if (event.type === 'exception') {
+                   		console.log(result);
+                   		$('#showStatusDiv').hide();
+                } else {
+                    	console.log(result);
+                    	$('#showStatusDiv').hide();
+                }
+            }, 
+            {escape: true}
+        );
+        
+        if(prospectos.length == 0)
+        {
+        	$('#showStatusDiv').hide();
+        	alert('No se encontraron prospectos a migrar.');
+        }
+       for(i = 0; i < prospectos.length; i++) {
+                	setTimeout(function() {
+                	
+									    			EnvioProspecto(prospectos[i]);
+									    			$('#showStatusDiv').hide();
+									    }, 3000);		
+	            }
+    }   
+   
+         function showErrorMsgs(msg) {
+            alert(msg);
+        }
+</script>
+<apex:form >
+ <div id="showStatusDiv" style="display:none;">
+                    <apex:image value="{!$Resource.spinner}" width="100" height="100"/>
+                </div>
+ <div id="btnEnviarPedido" class="processBlk" align="center"><input type="button" id="btnProcess" onClick="Prospectos();" value="Obtener Prospectos" class="procesBtn"/></div>
+</apex:form>
+
+</apex:page>

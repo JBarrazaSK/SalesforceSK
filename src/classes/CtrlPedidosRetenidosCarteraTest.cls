@@ -20,7 +20,7 @@ public class CtrlPedidosRetenidosCarteraTest {
         CrearOpportunityLineItem(Pedido2,CrearPricebookEntry(CrearProducto2()));
         Account cuenta = CrearCuenta();
 
-        Test.startTest();
+        Test.startTest(); 
         clase.opp = new opportunity();
         clase.opp = Pedido;
         clase.opp.Fecha_de_Embarque__c  = Date.today().addDays(6);
@@ -69,6 +69,7 @@ public class CtrlPedidosRetenidosCarteraTest {
         Opportunity Pedido2 =CrearPedido2('P20160214','A');
         CrearOpportunityLineItem(Pedido2,CrearPricebookEntry(CrearProducto2()));
           Account cuenta = CrearCuenta();
+
         Test.startTest();
         clase.opp = new opportunity();
         clase.opp.Fecha_de_Embarque__c  = Date.today().addDays(6);
@@ -88,6 +89,7 @@ public class CtrlPedidosRetenidosCarteraTest {
          Opportunity Pedido2 =CrearPedido2('P20160214','A');
          CrearOpportunityLineItem(Pedido2,CrearPricebookEntry(CrearProducto2()));
            Account cuenta = CrearCuenta();
+
         Test.startTest();
         clase.opp = new opportunity();
         clase.opp.Fecha_de_Embarque__c  = Date.today().addDays(6);
@@ -491,7 +493,8 @@ public class CtrlPedidosRetenidosCarteraTest {
       															IdPlanta__c = '1',
       															IdClienteViz__c = '90000303',
       															Surte_Otros_Canales__c = false,
-      															Sucursal_Viz__c = 803287
+      															Sucursal_Viz__c = 803287,
+      															Opera_en_SAP__c = false
 
       														);
       	upsert oFiv;

@@ -32,12 +32,15 @@
             
         </apex:pageBlockSection> 
         <apex:pageBlockSection title="Datos Generales" columns="2" rendered="{!factura.ListaProductos != null}">
-            <apex:inputField label="Cliente" value="{!case.ContactId}"  required="true" html-disabled="true"/>
+            <!--<apex:inputField label="Contacto" value="{!case.ContactId}"  required="true"
+                             rendered="{!case.ContactId != null}"
+                             html-disabled="true"/>-->
+            <apex:inputText label="Contacto" value="{!nombreContacto}"   rendered="{!case.ContactId != null}"  disabled="true"/>
             <apex:outputText label="Tipo Registro" value="{!case.RecordType.Name}"/> 
             <apex:inputText label="Fecha Factura" value="{!factura.FechaFactura}" required="true" disabled="true"/>
             <apex:pageBlockSectionItem />
             <apex:inputField label="Nombre del cliente / sucursal" value="{!case.AccountId}" required="true" html-disabled="true"/>
-            <apex:inputField id="Categoria" value="{!case.SK_Categoria__c}"  rendered="{!Show}" required="true"/>
+            <apex:inputField id="Categoria" value="{!case.SK_Categoria__c}" rendered="{!Show}" required="true" html-disabled="true"/>
             <apex:inputField value="{!case.Oficina_de_Ventas__c}" rendered="{!Show}" required="true" html-disabled="true"/>
             <apex:inputField value="{!case.SK_SubCategoria_Tipo__c}"  rendered="{!Show}" required="true"/>
             <apex:inputField value="{!case.Nivel_Centro__c}" rendered="{!Show}" required="true"/>

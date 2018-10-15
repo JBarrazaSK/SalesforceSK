@@ -548,7 +548,7 @@ textarea {
                         </apex:inputText>
                     </apex:column>
                     <apex:column headerValue="Volumen" >
-                        <apex:outputText value="{0, number, ###,###,##0.00}" rendered="{!!p.HabilitaVolumen}" style="width:50px">
+                        <apex:outputText value="{0, number}" rendered="{!!p.HabilitaVolumen}" style="width:50px">
                         	<apex:param value="{!p.item.Volumen__c}" />
                         </apex:outputText>
                         <apex:inputText value="{!p.item.Volumen__c}" rendered="{!p.HabilitaVolumen}" style="width:50px" >

@@ -623,6 +623,7 @@ public with sharing class OpportunityParserController {
                 Integer cajas = 0;
                 Double vol = 0.0;
                 Integer piezas = 0;
+                System.debug('item.Tipo_de_Precio__c :: '+item.Tipo_de_Precio__c +' UNIDAD_BASE=> '+prod.Unidad_de_medida_base__c);
                 if(item.Unidad__c=='K'){
                   if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'PI' )
                     {
@@ -663,10 +664,6 @@ public with sharing class OpportunityParserController {
                     }
 
                 }else if(item.Unidad__c=='C'){
-
-
-                    System.debug('item.Tipo_de_Precio__c :: '+item.Tipo_de_Precio__c);
-                    System.debug('prod.Unidad_de_medida_base__c:: '+prod.Unidad_de_medida_base__c);
                     if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'PI' )
                     {
                             System.debug('PP');
@@ -747,15 +744,22 @@ public with sharing class OpportunityParserController {
                             item.Cantidad__c = piezas;
                             System.debug('vol DL '+ vol);
 
-                    }
-                    else{
-                            
+                    }else if(item.Tipo_de_Precio__c == 'PK' && prod.Unidad_de_medida_base__c == 'PI' )
+                    {
                             piezas += Math.round(item.Quantity);
                             cajas = Math.round(item.Quantity / prod.Piezas_por_caja__c);
                             kg = cajas * item.Peso_Promedio__c;
                             vol = piezas * item.Peso_Promedio__c; //kg; //peticion de pedro castro que viajen piezas 18/08/2018
                         	item.Cantidad__c = piezas;
-                         System.debug('Piezas...' + piezas + ' cajas=> '+ cajas+' Kilos=> '+ kg+' volumen '+ vol);
+                         	System.debug('Piezas...' + piezas + ' cajas=> '+ cajas+' Kilos=> '+ kg+' volumen '+ vol);
+                    }
+                    else
+                    {
+                         piezas += Math.round(item.Quantity);
+                            cajas = Math.round(item.Quantity / prod.Piezas_por_caja__c);
+                            kg = cajas * item.Peso_Promedio__c;
+                            vol = kg; 
+                        	item.Cantidad__c = piezas;
                     }
                 }else if(item.Unidad__c=='L'){
                     if(item.Tipo_de_Precio__c == 'PP' && prod.Unidad_de_medida_base__c == 'PI' )
@@ -1029,6 +1033,9 @@ public with sharing class OpportunityParserController {
 
         if( tipoPrecio=='DL' && uomVenta =='K') {
             return (vol* KG_LB) * precio;
+        }
+        if( tipoPrecio=='PK' && uomVenta=='P') {
+            return vol * precio;
         }
         if( tipoPrecio=='PK' ) {
             return kg * precio;

@@ -282,14 +282,15 @@ private class BalanceoControllerTest  implements WebServiceMock {
         Test.startTest();
         	BalanceoController controller = new BalanceoController();
         	System.assertEquals(controller.productSelectionList.size(),3);
+        
             List<BalanceoController.ProductoWrapper> lista;
             try{
-        	   lista = BalanceoController.buscarRemoto(String.valueOf(dtPedido.date()),String.valueOf(oficinaVentas.Id));
+        	   lista = BalanceoController.buscarRemoto(String.valueOf(dtPedido.date()),String.valueOf(oficinaVentas.Id),'');
             }catch(Exception e){
                 System.debug('Validación correcta=' + e.getMessage());
             }
 
-            lista = BalanceoController.buscarRemoto(String.valueOf(System.now().date()),String.valueOf(oficinaVentas.Id));
+            lista = BalanceoController.buscarRemoto(String.valueOf(System.now().date()),String.valueOf(oficinaVentas.Id),'');
         	if(lista.size()>0){
         		lista.get(0).getPedidosIds();
         		lista.get(0).getAccountsIds();

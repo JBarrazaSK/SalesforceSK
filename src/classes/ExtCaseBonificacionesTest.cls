@@ -3,6 +3,7 @@ public class ExtCaseBonificacionesTest {
     
     static testmethod void testBonificacion(){
         ExtCaseBonificaciones ext =  new ExtCaseBonificaciones();
+        ext.factura = new ExtCaseBonificaciones.Factura();
         //ext.Caso =  crearCaso();
         ext.Show =  true;
         ext.NumCaso = '';
@@ -10,6 +11,7 @@ public class ExtCaseBonificacionesTest {
         ext.DisabledImporte=  true;
         ext.DisabledPrecio =  true;
         ext.DisabledVolumen = true;
+        ext.DisableGuardar =  false;
         ext.NumeroFactura =101;
         crearGrupo('QUEUE-Jefe-Distribucion');
         crearGrupo('QUEUE-Despacho-En-Linea');
@@ -32,7 +34,7 @@ public class ExtCaseBonificacionesTest {
         Test.setMock(WebServiceMock.Class, new WsDevolucionesSAPMock.WsConsultaFacturaSAPMock());
         ext.ConsultarFactura();
 
-        ext.factura = new ExtCaseBonificaciones.Factura();
+        
         ExtCaseBonificaciones.DetalleFactura detalle =  new ExtCaseBonificaciones.DetalleFactura();
         ext.factura.Abonos='123.20';
         ext.factura.CodigoCliente='114';
@@ -74,10 +76,27 @@ public class ExtCaseBonificacionesTest {
         det.Volumen 		= '10';
         det.Precio 			= 11;
         det.Importe 		= 111;  
-         d.Detalle =  new List<EntityConsultaFactura_SF_to_ECC.Detalle_element>();
+        d.Detalle =  new List<EntityConsultaFactura_SF_to_ECC.Detalle_element>();
         d.Detalle.add(det);
         Datos.add(d);
         ext.LlenarEntidadFactura(Datos);
+        ext.TipoAplicacion = 'IMPORTE GENERAL';
+        ext.factura.ImporteBonificar = 0; 
+        ext.Confirmacion();
+         ext.factura.ImporteBonificar = 1; 
+        ext.Confirmacion();
+        ext.factura.ImporteBonificar = 40; 
+        ext.Confirmacion();
+        ext.TipoAplicacion = 'PESO';       
+        ext.Confirmacion();
+        ext.TipoAplicacion = 'PRECIO';       
+        ext.Confirmacion();
+     	ext.Factura.ListaProductos[0].PrecioReal = 110;
+        ext.Confirmacion();
+        ext.TipoAplicacion = 'PESO';  
+        ext.Factura.ListaProductos[0].VolumenReal = 11;
+        ext.Confirmacion();
+        
         
         Test.setMock(WebServiceMock.Class, new WsDevolucionesSAPMock.WsDevolucionesSAPFailNullMock());
         ext.factura.ImporteBonificar = 1; 
@@ -90,15 +109,24 @@ public class ExtCaseBonificacionesTest {
 
         ext.factura.ImporteBonificar = 0; 
         ext.GuardarCasoDevolucion(); 
-        ext.factura.ImporteBonificar = 35; 
+       /*  ext.factura.ImporteBonificar = 35; 
         ext.GuardarCasoDevolucion();              
         ext.factura.ImporteBonificar = 1; 
+         ext.Factura.ListaProductos[0].VolumenReal = 10;
         ext.TipoAplicacion = 'PESO'; 
         ext.GuardarCasoDevolucion(); 
-        ext.Factura.ListaProductos[0].PrecioReal = 10;
+   		ext.Factura.ListaProductos[0].VolumenReal = 11;
+        ext.GuardarCasoDevolucion(); 
+       	ext.Factura.ListaProductos[0].PrecioReal = 10;
         ext.Factura.ListaProductos[0].VolumenReal = 10;
         ext.TipoAplicacion = 'PRECIO';
 		ext.GuardarCasoDevolucion();  
+        
+        ext.Factura.ListaProductos[0].PrecioReal = 0;
+        ext.Factura.ListaProductos[0].VolumenReal = 0;
+        ext.TipoAplicacion = 'PRECIO';
+        ext.GuardarCasoDevolucion();  
+        
         ext.Factura.ListaProductos[0].PrecioReal = 0;
         ext.Factura.ListaProductos[0].VolumenReal = 0; 
         ext.factura.ImporteBonificar = 1; 
@@ -108,6 +136,17 @@ public class ExtCaseBonificacionesTest {
         ext.factura.ImporteBonificar = 1; 
         ext.TipoAplicacion = 'PESO';
         ext.GuardarCasoDevolucion();
+        
+        
+        ext.Factura.ListaProductos[0].PrecioReal = 10;
+        ext.Factura.ListaProductos[0].VolumenReal = 1; 
+        ext.factura.ImporteBonificar = 1; 
+        ext.TipoAplicacion = 'PESO';
+        
+        ext.GuardarCasoDevolucion();
+*/
+      
+        ext.CancelarGuardado();
         Test.stopTest();
     }
     public static case crearCaso()

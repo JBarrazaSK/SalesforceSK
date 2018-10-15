@@ -1,0 +1,379 @@
+<apex:page controller="MatrizSeguimientoController">
+	<style>
+		th.encabezado{
+			color: #FFF;
+			background-color: #d30909;
+			padding: 7px;
+			border: 1px solid #FFF;
+			white-space: pre-wrap; /* css-3 */
+        	white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+        	white-space: -pre-wrap; /* Opera 4-6 */
+        	white-space: -o-pre-wrap; /* Opera 7 */
+        	word-wrap: break-word; /* Internet Explorer 5.5+ */
+        	width: 73px;
+        	min-width: 73px;
+        	max-width: 73px;
+        	text-align: center;
+		    vertical-align: middle !important;
+		    height: 33px;
+		}
+		.bordeInf{
+		    border-bottom: solid 1px #ececec !important;
+		}
+		td.categoria01{
+			font-weight: bold;
+		    min-width: 190px;
+		    padding: 5px;
+		    background-color: #dfdbdb;
+		    border-top: solid 1px #ececec;
+		}
+		td.categoria02{
+			font-weight: bold;
+		    min-width: 190px;
+		    padding: 5px;
+		    background-color: #FFF;
+		    border-top: solid 1px #ececec;
+		}
+		td.categoria03{
+			font-weight: bold;
+		    min-width: 190px;
+		    padding: 5px;
+		    background-color: #ffff93;
+		    border-top: solid 1px #ececec;
+		}
+		td.categoria04{
+			font-weight: bold;
+		    min-width: 190px;
+		    padding: 5px;
+		    height: 35px;
+		    background-color: #FFF;
+		    border-top: solid 1px #ececec;
+		    vertical-align: middle !important;
+		}
+		td.agrupamiento01{
+		    min-width: 70px;
+		    background-color: #FFF;
+		    border: solid 1px #ececec;
+		    border-left: none;
+		}
+		td.indicador{
+		    background-color: #FFF;
+		    border: solid 1px #ececec;
+		    text-align: center;
+		    vertical-align: middle !important;
+		}
+		td.bloqueado{
+			background-color: #d0d0d0;
+    		border: solid 1px #ececec;
+		}
+		td.objetivo{
+			background-color: #dccfb6;
+    		border: solid 1px #ececec;
+    		font-size: 110%;
+		    font-weight: bold;
+		    vertical-align: middle !important;
+		    text-align: center;
+		}
+		td.objetivoVol{
+			background-color: #FF0000;
+    		border: solid 1px #ececec;
+    		text-align: center;
+		    font-weight: bold;
+		    vertical-align: middle !important;
+		}
+		td.celdamuerta1{
+			background-color: #FFF;
+		    height: 15px;
+		    border: none;
+		}
+		td.celdamuerta2,th.celdamuerta2{
+			background-color: #FFF;
+		    border: none;
+		    min-width: 30px;
+		}
+		td.celdamuerta3{
+			background-color: #FFF;
+		    height: 20px;
+		    border: none;
+		}
+		td.categoriaEfectividad{
+			background-color: #d0d0d0;
+    		height: 17px;
+    		font-weight: bold;
+    		padding: 6px;
+    		vertical-align: middle !important;
+		}
+		td.valorEfectividad{
+			background-color: #d0d0d0;
+    		height: 17px;
+    		font-weight: bold;
+    		padding: 6px;
+    		text-align: right;
+    		vertical-align: middle !important;
+		}
+		
+		#grafica .barras td{
+			padding: 20px 0px;
+			height: 17px;
+		}
+		
+		#grafica .leyendas th{
+			font-weight: bold;
+		    padding: 20px 10px;
+		    text-align: right;
+		    height: 17px;
+		}
+		
+		#grafica .celdaIzq{
+			width: 200px;
+    		border-right: 2px solid #000;
+    		background-color: #FFF;
+		}
+		
+		#grafica .celdaDer div{
+			height: 100%;
+		}
+		#grafica .fondoBarras{
+			background-color: #FFF;
+			position: absolute;
+		    width: 100%;
+		}
+		#grafica .fondoBarras .linea{
+			width: 12%;
+			float: left;
+    		border-right: 1px solid #ccc;
+		}
+		#grafica .celdaInferior{
+			background-color: #FFF;
+		}
+		
+		#grafica .celdaInferior div{
+			font-weight: bold;
+			text-align: right;
+		    padding: 6px;
+		    font-size: 110%;
+		    float: left;
+		}
+		#grafica .celdaInferior div.primero{ width: 197px;}
+		#grafica .celdaInferior div.numerador{margin-left: -34px;width: 12%;}
+		#grafica .barraVerde {background-color: #29b210;position: relative;}
+		#grafica .barraRoja {background-color: #d91515;position: relative;float: left;}
+		#grafica .barraAmarilla {background-color: #efdf15;position: relative;float: left;}
+		#grafica .barraGris {background-color: #b0a1a1;position: relative;float: left;}
+		
+	</style>
+	<apex:sectionHeader title="Matriz de Seguimiento" subtitle="Desarrollo de Negocios"/>
+	<apex:form >
+		<apex:pageBlock >
+			<apex:pageBlockButtons location="top">
+	        	<apex:outputlink target="blank_" styleclass="btn" value="{!URLFOR($Page.vfpMatrizSeguimientoPDF)}">Mostrar PDF</apex:outputlink>
+	        </apex:pageBlockButtons>
+			<apex:pageBlockSection columns="1">
+				<apex:outputPanel layout="block">
+					<table border="0" cellpadding="0" cellspacing="0" style="width: 100%;">
+					  	<tr>
+					  		<th colspan="2"></th>
+					  		<th class="encabezado">Semana Anterior</th>
+					  		<th class="encabezado">Semana Actual</th>
+					  		<th class="encabezado">Total</th>
+					  		<th class="encabezado">Conversión</th>
+					  		<th class="encabezado">Volumen</th>
+					  		<th class="encabezado">Rentabilidad</th>
+					  		<th class="encabezado">Total Actual</th>
+					  		<th class="celdamuerta2"></th>
+					  		<th class="encabezado">Semana Objetivo</th>
+					  	</tr>
+					  	<tr>
+					  		<td class="categoria01">Mercado Objetivo</td>
+					  		<td rowspan="3" class="agrupamiento01"></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Mob.Valor1}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Mob.Valor2}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Mob.suma}" /></apex:outputText></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Mob.suma}" /></apex:outputText></td>
+					  		<th class="celdamuerta2"></th>
+					  		<td class="objetivo"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!SemObjetivo.MercadoObjetivo__c}" /></apex:outputText></td>
+					  	</tr>
+					  	<tr>
+					  		<td class="categoria01">Prospectos</td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Pro.Valor1}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Pro.Valor2}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Pro.suma}" /></apex:outputText></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Pro.suma}" /></apex:outputText></td>
+					  		<th rowspan="8" class="celdamuerta2"></th>
+					  		<td class="objetivo"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!SemObjetivo.Prospectos__c}" /></apex:outputText></td>
+					  	</tr>
+					  	<tr>
+					  		<td class="categoria01">Clientes Visitados</td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Cli.Valor1}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Cli.Valor2}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Cli.suma}" /></apex:outputText></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Cli.suma}" /></apex:outputText></td>
+					  		<td class="objetivo"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!SemObjetivo.ClientesVisitados__c}" /></apex:outputText></td>
+					  	</tr>
+					  	<tr>
+					  		<td colspan="2" class="categoria02">Oportunidades</td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Ops.Valor1}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Ops.Valor2}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Ops.Valor3}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Ops.suma}" /></apex:outputText></td>
+					  		<td class="objetivo"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!SemObjetivo.Oportunidades__c}" /></apex:outputText></td>
+					  	</tr>
+					  	<tr>
+					  		<td class="categoria03">Llamadas de Seguimiento</td>
+					  		<td rowspan="4" class="agrupamiento01"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Lla.Valor1}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!lla.Valor2}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Lla.Valor3}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Lla.suma}" /></apex:outputText></td>
+					  		<td class="objetivo"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!SemObjetivo.LlamadasSeguimiento__c}" /></apex:outputText></td>
+					  	</tr>
+					  	<tr>
+					  		<td class="categoria03">Demostración</td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Dem.Valor1}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Dem.Valor2}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Dem.Valor3}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Dem.suma}" /></apex:outputText></td>
+					  		<td class="objetivo"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!SemObjetivo.Demostracion__c}" /></apex:outputText></td>
+					  	</tr>
+					  	<tr>
+					  		<td class="categoria03">Propuesta / Capacitación</td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!PyC.Valor1}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!PyC.Valor2}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!PyC.Valor3}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!PyC.suma}" /></apex:outputText></td>
+					  		<td class="objetivo"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!SemObjetivo.PropuestaCapacitacion__c}" /></apex:outputText></td>
+					  	</tr>
+					  	<tr>
+					  		<td class="categoria03">Negociación</td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="bloqueado"></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Neg.Valor1}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Neg.Valor2}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Neg.Valor3}" /></apex:outputText></td>
+					  		<td class="indicador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Neg.suma}" /></apex:outputText></td>
+					  		<td class="objetivo"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!SemObjetivo.Negociacion__c}" /></apex:outputText></td>
+					  	</tr>
+					  	<tr>
+					  		<td colspan="2"  class="categoria02 bordeInf">Cierre</td>
+					  		<td class="bloqueado bordeInf"></td>
+					  		<td class="bloqueado bordeInf"></td>
+					  		<td class="bloqueado bordeInf"></td>
+					  		<td class="indicador bordeInf"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Cie.suma}" /></apex:outputText></td>
+					  		<td class="indicador bordeInf"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Cie.suma}" /></apex:outputText></td>
+					  		<td class="indicador bordeInf"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Cie.suma}" /></apex:outputText></td>
+					  		<td class="indicador bordeInf"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Cie.suma}" /></apex:outputText></td>
+					  		<td class="objetivo bordeInf"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!SemObjetivo.Cierre__c}" /></apex:outputText></td>
+					  	</tr>
+					  	<tr>
+					  		<td colspan="11" class="celdamuerta1"></td>
+					  	</tr>
+					  	<tr>
+					  		<td colspan="2" class="categoria04 bordeInf">Volumen Negociado (tons)</td>
+					  		<td class="bloqueado bordeInf"></td>
+					  		<td class="bloqueado bordeInf"></td>
+					  		<td class="bloqueado bordeInf"></td>
+					  		<td class="indicador bordeInf"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Vol.Valor1}" /></apex:outputText></td>
+					  		<td class="indicador bordeInf"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Vol.Valor2}" /></apex:outputText></td>
+					  		<td class="indicador bordeInf"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Vol.Valor3}" /></apex:outputText></td>
+					  		<td class="indicador bordeInf"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!Vol.Suma}" /></apex:outputText></td>
+					  		<td class="celdamuerta2"></td>
+					  		<td class="objetivoVol bordeInf"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!SemObjetivo.VolumenNegociado__c}" /></apex:outputText></td>
+					  	</tr>
+					  	<tr>
+					  		<td colspan="11" class="celdamuerta3"></td>
+					  	</tr>
+					  	<tr>
+					  		<td colspan="5" class="categoriaEfectividad">% Efectividad</td>
+					  		<td colspan="2" class="valorEfectividad"><apex:outputText value="{0, number, ##0%}"><apex:param value="{!Efectividad}" /></apex:outputText></td>
+					  		<td colspan="3" class="celdamuerta2"></td>
+					  		<td class="valorEfectividad" style="text-align: center;"><apex:outputText value="{0, number, ##0%}"><apex:param value="{!ObjetivoEfec}" /></apex:outputText></td>
+					  	</tr>
+					</table>
+				</apex:outputPanel>
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+	</apex:form>
+	<apex:pageBlock >
+		<apex:pageBlockSection columns="1">
+			<apex:outputPanel layout="block">
+				<table border="0" cellpadding="0" cellspacing="0" style="width: 100%;" id="grafica">
+					<tr>
+						<td class="celdaIzq">
+							<table border="0" cellpadding="0" cellspacing="0" style="width: 100%;" class="leyendas">
+								<tr><th>Mercado Objetivo</th></tr>
+								<tr><th>Prospectos</th></tr>
+								<tr><th>Clientes Visitados</th></tr>
+								<tr><th>Oportunidades</th></tr>
+								<tr><th>Llamadas de Seguimiento</th></tr>
+								<tr><th>Demostración</th></tr>
+								<tr><th>Propuesta / Capacitación</th></tr>
+								<tr><th>Negociación</th></tr>
+								<tr><th>Cierre</th></tr>
+							</table>
+						</td>
+						<td class="celdaDer">
+							<div style="position: relative;">
+								<div class="fondoBarras">
+									<div class="linea"></div>
+									<div class="linea"></div>
+									<div class="linea"></div>
+									<div class="linea"></div>
+									<div class="linea"></div>
+									<div class="linea"></div>
+									<div class="linea"></div>
+									<div class="linea"></div>
+								</div>
+								<table border="0" cellpadding="0" cellspacing="0" style="width: 97%;" class="barras">
+									<tr><td><div class="barraVerde" style="width:{!Mob.PocTotal}%;"></div></td></tr>
+									<tr><td><div class="barraVerde" style="width:{!Pro.PocTotal}%;"></div></td></tr>
+									<tr><td><div class="barraVerde" style="width:{!Cli.PocTotal}%;"></div></td></tr>
+									<tr><td><div class="barraRoja" style="width:{!ops.PocValor1}%;"></div><div class="barraAmarilla" style="width:{!ops.PocValor2}%;"></div><div class="barraGris" style="width:{!ops.PocValor3}%;"></div></td></tr>
+									<tr><td><div class="barraRoja" style="width:{!lla.PocValor1}%;"></div><div class="barraAmarilla" style="width:{!Lla.PocValor2}%;"></div><div class="barraGris" style="width:{!Lla.PocValor3}%;"></div></td></tr>
+									<tr><td><div class="barraRoja" style="width:{!Dem.PocValor1}%;"></div><div class="barraAmarilla" style="width:{!Dem.PocValor2}%;"></div><div class="barraGris" style="width:{!Dem.PocValor3}%;"></div></td></tr>
+									<tr><td><div class="barraRoja" style="width:{!PyC.PocValor1}%;"></div><div class="barraAmarilla" style="width:{!PyC.PocValor2}%;"></div><div class="barraGris" style="width:{!PyC.PocValor3}%;"></div></td></tr>
+									<tr><td><div class="barraRoja" style="width:{!Neg.PocValor1}%;"></div><div class="barraAmarilla" style="width:{!Neg.PocValor2}%;"></div><div class="barraGris" style="width:{!Neg.PocValor3}%;"></div></td></tr>
+									<tr><td><div class="barraRoja" style="width:{!Cie.PocValor1}%;"></div><div class="barraAmarilla" style="width:{!Cie.PocValor2}%;"></div><div class="barraGris" style="width:{!Cie.PocValor3}%;"></div></td></tr>
+								</table>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="celdaInferior">
+							<div class="primero">0</div>
+							<div class="numerador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!GrphNums[0]}" /></apex:outputText></div>
+							<div class="numerador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!GrphNums[1]}" /></apex:outputText></div>
+							<div class="numerador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!GrphNums[2]}" /></apex:outputText></div>
+							<div class="numerador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!GrphNums[3]}" /></apex:outputText></div>
+							<div class="numerador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!GrphNums[4]}" /></apex:outputText></div>
+							<div class="numerador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!GrphNums[5]}" /></apex:outputText></div>
+							<div class="numerador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!GrphNums[6]}" /></apex:outputText></div>
+							<div class="numerador"><apex:outputText value="{0, number, ###,###,##0}"><apex:param value="{!GrphNums[7]}" /></apex:outputText></div>
+						</td>
+					</tr>
+				</table>
+			</apex:outputPanel>
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+</apex:page>

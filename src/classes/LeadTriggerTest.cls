@@ -85,6 +85,8 @@ private class LeadTriggerTest {
         Test.startTest();
 			Database.convertLead(leadConvert);
        LeadTrigger.CrearProspectoSap(lead,'');
+        triggerHelper.b =  false;
+        delete lead;
         Test.stopTest();
     }
 /*public static testMethod void myUnitTest() {

@@ -279,6 +279,10 @@ public CrtlCierreCanalDetalle()
 	        		ofv.oficina.Extension__c = false;
 	        		ofv.oficina.En_aprobacion__c = false;
 	        		ofv.oficina.Motivo_Cierre__c = Motivo;
+	        		String hour = string.valueOf(system.now().hour());
+	        		String minute = string.valueOf(system.now().minute());
+	        		ofv.oficina.Nueva_Hora_Cierre_DT__c = CalcularHoraCierre(hour+':'+minute,Integer.ValueOf(ArregloMotivo[1]));
+			        system.debug('Nueva Hora cierre: '+ ofv.oficina.Nueva_Hora_Cierre_DT__c);
 	        		oficinasAGuardar.add(ofv.oficina);
  				}
  				
@@ -368,10 +372,12 @@ public CrtlCierreCanalDetalle()
 	        		if(ofv.oficina.Nueva_Hora_Cierre_DT__c != null)
   		             {
 			        	ofv.oficina.Nueva_Hora_Cierre_DT__c = CalcularHoraCierre(ofv.oficina.Nueva_Hora_Cierre_DT__c,Integer.ValueOf(ArregloMotivo[1]));
+			        	system.debug('Nueva Hora cierre: '+ ofv.oficina.Nueva_Hora_Cierre_DT__c);
   		             }
   		             else
   		             {
   		             	ofv.oficina.Nueva_Hora_Cierre_DT__c = CalcularHoraCierre(ofv.oficina.Hora_Cierre_dt__c,Integer.ValueOf(ArregloMotivo[1]));
+  		             	system.debug('Nueva Hora cierre: '+ ofv.oficina.Nueva_Hora_Cierre_DT__c);
   		             }
 	        		oficinasAGuardar.add(ofv.oficina);
 	        		

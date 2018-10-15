@@ -177,6 +177,9 @@ public with sharing class CtrlArmarEmbarque {
                 emb.Observaciones__c = Observaciones;
                 emb.Hora_Carga_Planta__c = HoraPlanta;
 				string mensaje = '';
+           
+              try
+              {
 				for(CtrlArmarEmbarque.PedidosWrapper pedido :Listapedidos)
 				{
 					if(Approval.isLocked(pedido.IdPedido) && pedido.Seleccionado)
@@ -187,6 +190,7 @@ public with sharing class CtrlArmarEmbarque {
 					pedidoSap = pedido.pedidosap;
 					if(pedido.Seleccionado)
 					{
+                        system.debug('PEDIDO.PEDIDO=> ' +pedido.pedido);
 						PedidosOtrosCanalesUtils.ObtenerActalizaLegados(pedido.pedido);
 						if(PedidosOtrosCanalesUtils.ActualizaSAP && string.isBlank(pedido.pedido.Numero_Pedido_SAP__c))
 						{
@@ -249,9 +253,7 @@ public with sharing class CtrlArmarEmbarque {
 				WsArmarEmbarqueSDL.RespuestaArmadoSDL response = null;
 				
 
-              try
-              {
-                        response =  service.ArmarEmbarque(Request);
+                  	response =  service.ArmarEmbarque(Request);
                    if(response != null && response.Estatus == true )
                     {
                        emb.Folio_Embarque_SDL__c = response.FolioEmbarqueSDL;
@@ -910,18 +912,24 @@ public with sharing class CtrlArmarEmbarque {
 		WsComposicionEmbarque.ArrayOfDT_SDL_ComEmbaRespZLE_COMPOSICION responseSAP = null;
         RequestSAP = new WsComposicionEmbarque.SI_OS_SDL_ComEmbaRequest();
 	  	RequestSAP.MT_SDL_ComEmbaReq = new WsComposicionEmbarque.ArrayOfDT_SDL_ComEmbaReqZLE_COMPOSICION();
-    	
-    	RequestSAP.MT_SDL_ComEmbaReq.ZLE_COMPOSICION = CtrlArmarEmbarqueDAO.ArregloPedidosSAP(ListaDetalleEmb,NombreEmb,fornteras,Observaciones,mapEntregas);
-        
-        responseSAP = serviceSAP.ComposicionEmbarques(RequestSAP); 
-        system.debug('REspuestasap: '+ responseSAP);
-        if(responseSAP != null && responseSAP.DT_SDL_ComEmbaRespZLE_COMPOSICION[0].Status == 'OK')
+        try
         {
-          Transporte = responseSAP.DT_SDL_ComEmbaRespZLE_COMPOSICION[0].DocumentoDeTransporte;
+            RequestSAP.MT_SDL_ComEmbaReq.ZLE_COMPOSICION = CtrlArmarEmbarqueDAO.ArregloPedidosSAP(ListaDetalleEmb,NombreEmb,fornteras,Observaciones,mapEntregas);
+            system.debug('REspuestasap: '+ RequestSAP);
+            responseSAP = serviceSAP.ComposicionEmbarques(RequestSAP); 
+            system.debug('REspuestasap: '+ responseSAP);
+            if(responseSAP != null && responseSAP.DT_SDL_ComEmbaRespZLE_COMPOSICION[0].Status == 'OK')
+            {
+              Transporte = responseSAP.DT_SDL_ComEmbaRespZLE_COMPOSICION[0].DocumentoDeTransporte;
+            }
+            else 
+            {
+                showPageMessage('WARNING',responseSAP.DT_SDL_ComEmbaRespZLE_COMPOSICION[0].Mensaje);
+                return null;
+            }
         }
-        else 
-        {
-        	showPageMessage('WARNING',responseSAP.DT_SDL_ComEmbaRespZLE_COMPOSICION[0].Mensaje);
+        catch(exception e){
+            	showPageMessage('ERROR','Ocurrio un problema al generar Transporte SAP.');
         	return null;
         }
         return Transporte; 
@@ -975,9 +983,9 @@ public with sharing class CtrlArmarEmbarque {
     i++;
     i++;
     i++;
-    i++;
-     i++;
-    i++;
+        i++;
+        i++;
+        i++;
     i++;
     i++;
      i++;

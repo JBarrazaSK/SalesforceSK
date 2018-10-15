@@ -395,6 +395,7 @@ public with sharing class  CtrlArmarEmbarqueDAO {
         	detalleComp.Observaciones = Observaciones;
         	arreglo.add(detalleComp);
 		}
+        system.debug('ARREGLO=> '+ arreglo);
 		return arreglo;
 
 	}

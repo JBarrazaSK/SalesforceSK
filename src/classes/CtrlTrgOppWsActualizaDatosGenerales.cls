@@ -1344,6 +1344,7 @@ public with sharing class CtrlTrgOppWsActualizaDatosGenerales {
                             if(item.TYPE_x == 'E')
                             {
                                 pedido.Observacion__c = item.MESSAGE;
+                                pedido.Numero_Pedido_SAP__c = (string.isBlank(pedido.Numero_Pedido_SAP__c)) ?Response.SapShip_To: pedido.Numero_Pedido_SAP__c;
                                 system.debug('Mensaje SAP: '+ item.MESSAGE);
                             }
                         }

@@ -64,6 +64,7 @@ public class PedidoItemTrigger {
                     lead.Productos_Vendidos__c = lead.Productos_Vendidos__c.left(lead.Productos_Vendidos__c.length()-1);
                 }
             }
+            triggerhelper.recursiveHelper(true);
             Database.update(leadMap.values(), false);
         }
     }
